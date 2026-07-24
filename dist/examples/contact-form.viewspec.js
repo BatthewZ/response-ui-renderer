@@ -1,0 +1,152 @@
+var title = "Contact Form";
+var description = "A contact form with name, email, subject selector, and message textarea";
+var forms = { "contact": {
+	"fields": {
+		"name": { "initialValue": "" },
+		"email": { "initialValue": "" },
+		"subject": { "initialValue": "general" },
+		"message": { "initialValue": "" }
+	},
+	"onSubmit": {
+		"action": "showToast",
+		"payload": {
+			"message": "Form submitted successfully!",
+			"variant": "success",
+			"title": "Success"
+		}
+	}
+} };
+var root = {
+	"component": "Container",
+	"children": [{
+		"component": "Stack",
+		"props": { "gap": "r3" },
+		"children": [
+			{
+				"component": "Text",
+				"props": { "variant": "h2" },
+				"children": ["Contact Us"]
+			},
+			{
+				"component": "Text",
+				"props": {
+					"variant": "body-2",
+					"color": "secondary"
+				},
+				"children": ["We'd love to hear from you. Fill out the form below and we'll get back to you as soon as possible."]
+			},
+			{
+				"component": "Card",
+				"props": { "padding": "r3" },
+				"children": [{
+					"component": "Stack",
+					"props": { "gap": "r4" },
+					"children": [
+						{
+							"component": "Row",
+							"props": {
+								"gap": "r4",
+								"wrap": true
+							},
+							"children": [{
+								"component": "Field",
+								"children": [{
+									"component": "Label",
+									"children": ["Name"]
+								}, {
+									"component": "Input",
+									"props": { "placeholder": "Your name" }
+								}]
+							}, {
+								"component": "Field",
+								"children": [{
+									"component": "Label",
+									"children": ["Email"]
+								}, {
+									"component": "Input",
+									"props": {
+										"type": "email",
+										"placeholder": "you@example.com"
+									}
+								}]
+							}]
+						},
+						{
+							"component": "Field",
+							"children": [{
+								"component": "Label",
+								"children": ["Subject"]
+							}, {
+								"component": "Select",
+								"props": { "options": [
+									{
+										"label": "General Inquiry",
+										"value": "general"
+									},
+									{
+										"label": "Support",
+										"value": "support"
+									},
+									{
+										"label": "Feedback",
+										"value": "feedback"
+									},
+									{
+										"label": "Partnership",
+										"value": "partnership"
+									}
+								] }
+							}]
+						},
+						{
+							"component": "Field",
+							"children": [{
+								"component": "Label",
+								"children": ["Message"]
+							}, {
+								"component": "Textarea",
+								"props": {
+									"placeholder": "What's on your mind?",
+									"rows": 5
+								}
+							}]
+						},
+						{
+							"component": "FormActions",
+							"children": [{
+								"component": "Button",
+								"props": {
+									"variant": "primary",
+									"onClick": {
+										"action": "showToast",
+										"payload": {
+											"message": "Form submitted successfully!",
+											"variant": "success",
+											"title": "Success"
+										}
+									}
+								},
+								"children": ["Send Message"]
+							}, {
+								"component": "Button",
+								"props": { "variant": "ghost" },
+								"children": ["Cancel"]
+							}]
+						}
+					]
+				}]
+			}
+		]
+	}]
+};
+var contact_form_viewspec_default = {
+	version: 1,
+	title,
+	description,
+	forms,
+	root
+};
+//#endregion
+export { contact_form_viewspec_default as default, description, forms, root, title };
+
+//# sourceMappingURL=contact-form.viewspec.js.map

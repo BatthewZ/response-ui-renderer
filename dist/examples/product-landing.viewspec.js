@@ -1,0 +1,163 @@
+var title = "Product Landing Page";
+var description = "A marketing landing page with hero section, feature cards, and call-to-action";
+var data = {
+	"features": {
+		"type": "static",
+		"value": [
+			{
+				"title": "Lightning Fast",
+				"description": "Built for speed with optimized rendering and lazy loading. Your users never wait."
+			},
+			{
+				"title": "Beautiful Design",
+				"description": "Carefully crafted components following modern design principles and accessibility standards."
+			},
+			{
+				"title": "Fully Responsive",
+				"description": "Looks great on any device, from mobile phones to ultrawide monitors."
+			}
+		]
+	},
+	"showCta": {
+		"type": "static",
+		"value": true
+	}
+};
+var root = {
+	"component": "Stack",
+	"props": { "gap": "r1" },
+	"children": [{
+		"component": "Hero",
+		"props": {
+			"size": "md",
+			"overlay": true,
+			"align": "center"
+		},
+		"children": [{
+			"component": "Hero.Background",
+			"props": {
+				"src": "https://picsum.photos/seed/hero-landing/1600/900",
+				"parallax": true
+			}
+		}, {
+			"component": "Hero.Content",
+			"props": {
+				"animate": true,
+				"animation": "fade-up"
+			},
+			"children": [{
+				"component": "Stack",
+				"props": { "gap": "r4" },
+				"children": [
+					{
+						"component": "Text",
+						"props": {
+							"variant": "h1",
+							"color": "inverse"
+						},
+						"children": ["Build Beautiful UIs"]
+					},
+					{
+						"component": "Text",
+						"props": {
+							"variant": "body-1",
+							"color": "inverse"
+						},
+						"children": ["Create stunning interfaces with our comprehensive component library. No code required."]
+					},
+					{
+						"$cond": "data.showCta",
+						"then": {
+							"component": "Row",
+							"props": {
+								"gap": "r4",
+								"justify": "center"
+							},
+							"children": [{
+								"component": "Button",
+								"props": {
+									"variant": "primary",
+									"size": "lg",
+									"onClick": {
+										"action": "showToast",
+										"payload": {
+											"message": "Welcome aboard!",
+											"variant": "info"
+										}
+									}
+								},
+								"children": ["Get Started"]
+							}, {
+								"component": "Button",
+								"props": {
+									"variant": "ghost-inverse",
+									"size": "lg"
+								},
+								"children": ["Learn More"]
+							}]
+						}
+					}
+				]
+			}]
+		}]
+	}, {
+		"component": "Container",
+		"children": [{
+			"component": "Stack",
+			"props": { "gap": "r2" },
+			"children": [{
+				"component": "Text",
+				"props": { "variant": "h2" },
+				"children": ["Why Choose Us"]
+			}, {
+				"component": "MasonryGrid",
+				"props": {
+					"columns": {
+						"base": 1,
+						"md": 3
+					},
+					"gap": "var(--spacing-r4)",
+					"animate": true
+				},
+				"children": [{
+					"$each": "data.features",
+					"as": "feature",
+					"node": {
+						"component": "MasonryGrid.Item",
+						"children": [{
+							"component": "Card",
+							"props": { "padding": "r3" },
+							"children": [{
+								"component": "Stack",
+								"props": { "gap": "r5" },
+								"children": [{
+									"component": "Text",
+									"props": { "variant": "h4" },
+									"children": [{ "$ref": "feature.title" }]
+								}, {
+									"component": "Text",
+									"props": {
+										"variant": "body-2",
+										"color": "secondary"
+									},
+									"children": [{ "$ref": "feature.description" }]
+								}]
+							}]
+						}]
+					}
+				}]
+			}]
+		}]
+	}]
+};
+var product_landing_viewspec_default = {
+	version: 1,
+	title,
+	description,
+	data,
+	root
+};
+//#endregion
+export { data, product_landing_viewspec_default as default, description, root, title };
+
+//# sourceMappingURL=product-landing.viewspec.js.map
