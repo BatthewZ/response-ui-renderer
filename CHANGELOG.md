@@ -23,3 +23,10 @@ Initial release. JSON (ViewSpec) → `@batthewz/response-ui-react-components`.
 - **Two validators, one contract.** A dependency-free `validateViewSpec` plus an optional Zod
   schema and `viewSpecJsonSchema()` for constraining LLM generation, held in step by a
   cross-check suite.
+- **Targets `@batthewz/response-ui-react-components` 0.9.0.** The peer range is `^0.9.0`, up
+  from `^0.8.2`; the dev dependencies on the components package and on
+  `@batthewz/response-ui-css` move to `^0.9.0` alongside it, so `build`, `typecheck` and
+  `test` run against the same pair a consumer installs. Under npm's 0.x caret rule `^0.8.2`
+  resolves `>=0.8.2 <0.9.0`, so 0.9.0 does not satisfy the old range — this release does not
+  work against components 0.8.x, and that components release carries a breaking change of its
+  own (buttons now default to `type="button"`).
