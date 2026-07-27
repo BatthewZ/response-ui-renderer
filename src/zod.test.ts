@@ -78,7 +78,7 @@ const VALID: [string, unknown][] = [
       version: 1,
       title: "T",
       root: "x",
-      theme: "grimdark",
+      theme: "aurora",
       themeOverrides: { "--C-PRIMARY": "oklch(0.6 0.15 220)" },
     },
   ],

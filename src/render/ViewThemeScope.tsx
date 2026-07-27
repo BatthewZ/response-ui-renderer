@@ -5,16 +5,17 @@ import { type CSSProperties, type ReactNode, useEffect, useId, useMemo } from "r
 /**
  * Where `data-theme` is written.
  *
- * This is a real constraint of `@batthewz/response-ui-css`, not a preference.
- * Its built-in themes are authored `:root[data-theme="grimdark"]`, and `:root`
- * is `<html>` — so writing the attribute to a wrapper `<div>` matches nothing
- * and the theme silently does not apply.
+ * This is a real constraint of CSS selectors, not a preference. A theme authored
+ * `:root[data-theme="aurora"]` matches `<html>` and nothing else — so writing
+ * the attribute to a wrapper `<div>` matches nothing and the theme silently
+ * does not apply. The `@batthewz/response-ui-css` worked examples are authored
+ * that way, as is anything derived from its theme template.
  *
- * - `"root"`   — sets the attribute on `<html>`. Works with the built-in themes
- *                (default, events, grimdark, tech). Affects the whole document.
- * - `"scoped"` — sets it on the view's wrapper element. Themes the subtree only,
- *                but ONLY works for themes authored with a bare
- *                `[data-theme="…"]` selector. Built-in themes will not apply.
+ * - `"root"`   — sets the attribute on `<html>`. Works with themes authored
+ *                `:root[data-theme="…"]`. Affects the whole document.
+ * - `"scoped"` — sets it on the view's wrapper. Themes the subtree only, but
+ *                ONLY works for themes authored with a bare `[data-theme="…"]`
+ *                selector; a `:root[…]` theme will not apply.
  *
  * `themeOverrides` is unaffected by this choice: inline custom properties
  * cascade to descendants regardless of selector, so it is always scoped and

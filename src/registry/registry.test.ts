@@ -61,7 +61,7 @@ describe("defaultRegistry coverage", () => {
 
   it("registers nothing that is not a component", () => {
     // Hooks, utilities and constants must not become addressable from JSON.
-    for (const name of ["useTheme", "cn", "addDays", "THEMES", "STORAGE_KEY", "useForm"]) {
+    for (const name of ["useTheme", "cn", "addDays", "EXAMPLE_THEMES", "STORAGE_KEY", "useForm"]) {
       expect(name in defaultRegistry).toBe(false);
     }
   });

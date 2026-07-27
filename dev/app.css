@@ -1,7 +1,22 @@
+/* Fonts first. CSS requires every @import to precede all other rules in the
+   flattened stylesheet, so a theme's font import cannot live inside the theme file
+   (which loads after the foundation) — it would be dropped silently, giving the
+   right palette in the wrong typeface. Each example keeps its faces here. */
+@import "@batthewz/response-ui-css/examples/themes/events-fonts";
+@import "@batthewz/response-ui-css/examples/themes/grimdark-fonts";
+@import "@batthewz/response-ui-css/examples/themes/tech-fonts";
+
 /* The three-import contract, in order — same as any consumer. */
 @import "@batthewz/response-ui-css";
 @import "@batthewz/response-ui-react-components/styles";
 @import "../src/styles.css";
+
+/* Opt-in worked examples, so the theme picker has something to pick. No entry
+   imports them — a consumer authors their own theme instead. */
+@import "@batthewz/response-ui-css/examples/themes/events";
+@import "@batthewz/response-ui-css/examples/themes/grimdark";
+@import "@batthewz/response-ui-css/examples/themes/tech";
+@import "@batthewz/response-ui-react-components/examples/theme-tuning";
 
 /* Generate the utilities the playground chrome itself uses. */
 @source "./**/*.{ts,tsx}";

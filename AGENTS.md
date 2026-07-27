@@ -81,15 +81,17 @@ Ref precedence: explicit `data.`/`forms.` → `$each` aliases and `state.` → b
 
 ## Theming — the one real gotcha
 
-`response-ui-css`'s built-in themes are `:root[data-theme="…"]`, which matches `<html>` only.
-So:
+A `theme` name is whatever the host app defines. `response-ui-css` defines only `default`
+(which IS `:root`); its `events`/`grimdark`/`tech` themes are opt-in worked examples, not a
+built-in set. Themes authored `:root[data-theme="…"]` — the worked examples, and the theme
+template most themes start from — match `<html>` only. So:
 
-- `themeMode="root"` (default) writes to `<html>`. Works with built-in themes; global. A
-  view declaring NO theme makes no claim at all — it must never strip the host's theme.
-  Claims are a stack: last mounted wins, releasing falls back to the next claim and finally
-  to the host's own value, so overlapping views hand back in the right order.
-- `themeMode="scoped"` writes to the view wrapper. Scoped; **built-in themes will not
-  apply** — only themes authored with a bare `[data-theme="…"]` selector.
+- `themeMode="root"` (default) writes to `<html>`. Works with a `:root[data-theme]` theme;
+  global. A view declaring NO theme makes no claim at all — it must never strip the host's
+  theme. Claims are a stack: last mounted wins, releasing falls back to the next claim and
+  finally to the host's own value, so overlapping views hand back in the right order.
+- `themeMode="scoped"` writes to the view wrapper. Scoped; **a `:root[data-theme]` theme
+  will not apply** — only themes authored with a bare `[data-theme="…"]` selector.
 - `themeOverrides` are inline custom properties and always work, always scoped. Prefer them
   for per-view theming.
 

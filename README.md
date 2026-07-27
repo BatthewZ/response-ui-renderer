@@ -32,7 +32,7 @@ bun add @batthewz/response-ui-renderer @batthewz/response-ui-react-components \
 Three CSS imports, in this order:
 
 ```css
-@import "@batthewz/response-ui-css";                      /* tokens, themes, scales */
+@import "@batthewz/response-ui-css";                      /* tokens, scales, `default` theme */
 @import "@batthewz/response-ui-react-components/styles";  /* component CSS */
 @import "@batthewz/response-ui-renderer/styles";          /* renderer diagnostics */
 ```
@@ -48,7 +48,7 @@ your build.
 {
   "version": 1,
   "title": "Team",
-  "theme": "grimdark",                          // optional
+  "theme": "aurora",                            // optional — a theme your app defines
   "themeOverrides": { "--C-PRIMARY": "oklch(0.6 0.15 220)" },  // optional
   "data": { "members": { "type": "static", "value": [{ "name": "Ada" }] } },
   "forms": { "contact": { "fields": { "email": { "initialValue": "" } } } },
@@ -200,17 +200,24 @@ descendants, so **this always works and is always scoped to the view**:
 ```
 
 Keys must start with `--`; anything else is ignored. See the
-[theme contract](https://github.com/BatthewZ/response-ui-css) for the full token list.
+[theme contract](https://github.com/BatthewZ/response-ui-css/blob/main/docs/theme-contract.md)
+for the full token list.
 
 ### `theme` and the `:root` caveat
 
-⚠️ **`response-ui-css`'s built-in themes are authored `:root[data-theme="…"]`, and `:root`
-is `<html>`.** A theme name therefore cannot be scoped to a subtree with those themes — the
-attribute has to be on the document element or the rule matches nothing.
+A `theme` name refers to a theme **your application defines** — writing your own is the
+normal case. `response-ui-css` defines only `default` (which is `:root` itself); the
+`events` / `grimdark` / `tech` themes it ships are opt-in worked examples, not a built-in
+set, and nothing imports them for you.
+
+⚠️ **A theme authored `:root[data-theme="…"]` matches `<html>` and nothing else.** A theme
+name therefore cannot be scoped to a subtree if it is written that way — the attribute has
+to be on the document element or the rule matches nothing. The worked examples, and the
+theme template most themes start from, are written that way.
 
 `themeMode` makes the trade-off explicit:
 
-| `themeMode` | Writes `data-theme` to | Works with built-in themes | Scope |
+| `themeMode` | Writes `data-theme` to | Works with a `:root[data-theme]` theme | Scope |
 | --- | --- | --- | --- |
 | `"root"` *(default)* | `<html>` | ✅ yes | whole document |
 | `"scoped"` | the view's wrapper | ❌ no — needs a bare `[data-theme]` theme | the view only |
