@@ -27,7 +27,7 @@ function isComponentLike(value: unknown): value is ElementType {
 /**
  * A React component by convention: PascalCase name + renderable value. Excludes
  * the barrel's hooks (`useTheme`), utilities (`cn`, `addDays`) and constants
- * (`THEMES`) without needing a hand-maintained deny list that could drift.
+ * (`EXAMPLE_THEMES`) without needing a hand-maintained deny list that could drift.
  */
 export function isExportedComponent(name: string, value: unknown): value is ElementType {
   return /^[A-Z]/.test(name) && isComponentLike(value);

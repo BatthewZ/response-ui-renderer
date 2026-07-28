@@ -46,7 +46,7 @@ Commands: `bun run typecheck` && `bun test` && `bun run build`, from
 |----|-------|-------------------------------|
 | C1 | Every component exported by `response-ui-react-components`'s barrel is reachable from JSON. A test **enumerates the package's live exports at runtime** and asserts the registry covers them. | A hand-copied list drifts. ui-on-demand already has **5 divergent hand-maintained lists** and confirmed drift. The test must read the real barrel, not a fixture. |
 | C2 | Declared `subComponents` all exist. A test asserts no registry entry maps to `undefined`. | `registry-entries.ts:288` maps `Table.Caption`, which **does not exist** on the package — renders "Unknown component". |
-| C3 | `themeOverrides` produce real CSS custom properties on the rendered subtree, AND scoped `theme` is honest about `:root[data-theme]`. | The package's themes are `:root[data-theme="x"]` (matches `<html>` only). The extracted `ViewThemeScope` sets `data-theme` on a `<div>` → **silently no-ops**. A lazy version ships the div and claims theming works. |
+| C3 | `themeOverrides` produce real CSS custom properties on the rendered subtree, AND scoped `theme` is honest about `:root[data-theme]`. | The package's example themes are `:root[data-theme="x"]` (matches `<html>` only). The extracted `ViewThemeScope` sets `data-theme` on a `<div>` → **silently no-ops**. A lazy version ships the div and claims theming works. |
 | C4 | Zero runtime dependencies; `zod` is NOT one of them. Asserted by reading built `package.json`. | react-components' AGENTS.md: "do NOT add a validator as a runtime dependency". The source schema is Zod. Copying it violates the sibling package's stated contract. |
 | C5 | No raw hex / CSS-in-JS in shipped source. Asserted by a grep test over `src/`. | The extracted code hardcodes `#ef4444`, `#fef2f2`, `#991b1b`, `#fffbeb`, `#f59e0b`, `#92400e` and injects a `<style>` tag with `@keyframes`. ETHOS.md forbids both. |
 | C6 | Hostile/degenerate specs never throw: `{}`, `null` root, cyclic-ish deep nesting, unknown component, `$each` over a non-array, `$ref` into `undefined`, duplicate keys, `component: "__proto__"`, prop named `dangerouslySetInnerHTML`. | An LLM produces these. A lazy version only tests the happy path. |
@@ -88,7 +88,7 @@ verbatim would be the wrong thing:
 
 **Known collision, carried to the deliverable rather than resolved silently:** the request says
 "including theme variables based on response-ui-css". Per-view *scoped* theming cannot work with
-the package's built-in themes, because they are authored `:root[data-theme="…"]` — matching
+the package's example themes, because they are authored `:root[data-theme="…"]` — matching
 `<html>` only. ui-on-demand's local fork uses a **bare** `[data-theme="…"]`, which is the sole
 reason its scoped `<div data-theme>` works today. This is an upstream property of a package the
 user owns, so I will not silently pick a winner: ship both modes, make the limitation explicit

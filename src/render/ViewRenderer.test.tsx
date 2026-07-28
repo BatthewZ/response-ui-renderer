@@ -157,46 +157,46 @@ describe("theming", () => {
     expect(wrapper?.style.background).toBe("");
   });
 
-  it("root mode writes data-theme to <html>, because built-in themes are :root-scoped", () => {
-    const { unmount } = render(<ViewRenderer spec={spec({ root: "x", theme: "grimdark" })} />);
-    expect(document.documentElement.getAttribute("data-theme")).toBe("grimdark");
+  it("root mode writes data-theme to <html>, because :root[data-theme] themes need it there", () => {
+    const { unmount } = render(<ViewRenderer spec={spec({ root: "x", theme: "aurora" })} />);
+    expect(document.documentElement.getAttribute("data-theme")).toBe("aurora");
     unmount();
     expect(document.documentElement.getAttribute("data-theme")).toBeNull();
   });
 
   it("root mode restores whatever theme the host had set", () => {
-    document.documentElement.setAttribute("data-theme", "tech");
-    const { unmount } = render(<ViewRenderer spec={spec({ root: "x", theme: "events" })} />);
-    expect(document.documentElement.getAttribute("data-theme")).toBe("events");
+    document.documentElement.setAttribute("data-theme", "midnight");
+    const { unmount } = render(<ViewRenderer spec={spec({ root: "x", theme: "solstice" })} />);
+    expect(document.documentElement.getAttribute("data-theme")).toBe("solstice");
     unmount();
-    expect(document.documentElement.getAttribute("data-theme")).toBe("tech");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("midnight");
   });
 
   it('treats "default" as removing the attribute', () => {
-    document.documentElement.setAttribute("data-theme", "tech");
+    document.documentElement.setAttribute("data-theme", "midnight");
     render(<ViewRenderer spec={spec({ root: "x", theme: "default" })} />);
     expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
   });
 
   it("scoped mode writes data-theme to the wrapper and leaves <html> alone", () => {
     const { container } = render(
-      <ViewRenderer spec={spec({ root: "x", theme: "grimdark" })} themeMode="scoped" />,
+      <ViewRenderer spec={spec({ root: "x", theme: "aurora" })} themeMode="scoped" />,
     );
-    expect(container.querySelector("[data-rui-view]")?.getAttribute("data-theme")).toBe("grimdark");
+    expect(container.querySelector("[data-rui-view]")?.getAttribute("data-theme")).toBe("aurora");
     expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
   });
 
   it("the theme prop overrides the document's own theme", () => {
-    render(<ViewRenderer spec={spec({ root: "x", theme: "events" })} theme="tech" />);
-    expect(document.documentElement.getAttribute("data-theme")).toBe("tech");
+    render(<ViewRenderer spec={spec({ root: "x", theme: "solstice" })} theme="midnight" />);
+    expect(document.documentElement.getAttribute("data-theme")).toBe("midnight");
   });
 
   it("warns when two root-mode views compete for <html>", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     render(
       <>
-        <ViewRenderer spec={spec({ root: "a", theme: "events" })} />
-        <ViewRenderer spec={spec({ root: "b", theme: "grimdark" })} />
+        <ViewRenderer spec={spec({ root: "a", theme: "solstice" })} />
+        <ViewRenderer spec={spec({ root: "b", theme: "aurora" })} />
       </>,
     );
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("applying a theme to <html>"));
@@ -206,23 +206,23 @@ describe("theming", () => {
   it("leaves the host's theme alone when the document declares none", () => {
     // A view that says nothing about theming must not strip the host app's own
     // theme for as long as it happens to be mounted.
-    document.documentElement.setAttribute("data-theme", "events");
+    document.documentElement.setAttribute("data-theme", "solstice");
     const { unmount } = render(<ViewRenderer spec={spec({ root: "x" })} />);
-    expect(document.documentElement.getAttribute("data-theme")).toBe("events");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("solstice");
     unmount();
-    expect(document.documentElement.getAttribute("data-theme")).toBe("events");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("solstice");
   });
 
   it("hands overlapping views back in the right order", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    const a = render(<ViewRenderer spec={spec({ root: "a", theme: "grimdark" })} />);
-    const b = render(<ViewRenderer spec={spec({ root: "b", theme: "tech" })} />);
-    expect(document.documentElement.getAttribute("data-theme")).toBe("tech");
+    const a = render(<ViewRenderer spec={spec({ root: "a", theme: "aurora" })} />);
+    const b = render(<ViewRenderer spec={spec({ root: "b", theme: "midnight" })} />);
+    expect(document.documentElement.getAttribute("data-theme")).toBe("midnight");
 
     // Unmounting the FIRST view must not restore the pre-A document state and
     // wipe B, which is still on screen.
     a.unmount();
-    expect(document.documentElement.getAttribute("data-theme")).toBe("tech");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("midnight");
 
     b.unmount();
     expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
@@ -231,12 +231,12 @@ describe("theming", () => {
 
   it("restores the host's theme once overlapping views have all gone", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    document.documentElement.setAttribute("data-theme", "events");
-    const a = render(<ViewRenderer spec={spec({ root: "a", theme: "grimdark" })} />);
-    const b = render(<ViewRenderer spec={spec({ root: "b", theme: "tech" })} />);
+    document.documentElement.setAttribute("data-theme", "solstice");
+    const a = render(<ViewRenderer spec={spec({ root: "a", theme: "aurora" })} />);
+    const b = render(<ViewRenderer spec={spec({ root: "b", theme: "midnight" })} />);
     a.unmount();
     b.unmount();
-    expect(document.documentElement.getAttribute("data-theme")).toBe("events");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("solstice");
     warn.mockRestore();
   });
 
@@ -244,8 +244,8 @@ describe("theming", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     render(
       <>
-        <ViewRenderer spec={spec({ root: "a", theme: "grimdark" })} />
-        <ViewRenderer spec={spec({ root: "b", theme: "grimdark" })} />
+        <ViewRenderer spec={spec({ root: "a", theme: "aurora" })} />
+        <ViewRenderer spec={spec({ root: "b", theme: "aurora" })} />
       </>,
     );
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("applying a theme to <html>"));
@@ -254,10 +254,10 @@ describe("theming", () => {
 
   it("keeps the theme applied while a same-theme sibling is still mounted", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    const a = render(<ViewRenderer spec={spec({ root: "a", theme: "grimdark" })} />);
-    const b = render(<ViewRenderer spec={spec({ root: "b", theme: "grimdark" })} />);
+    const a = render(<ViewRenderer spec={spec({ root: "a", theme: "aurora" })} />);
+    const b = render(<ViewRenderer spec={spec({ root: "b", theme: "aurora" })} />);
     a.unmount();
-    expect(document.documentElement.getAttribute("data-theme")).toBe("grimdark");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("aurora");
     b.unmount();
     expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
     warn.mockRestore();

@@ -1,6 +1,10 @@
 import "./app.css";
 
-import { ToastProvider, useToast } from "@batthewz/response-ui-react-components";
+import {
+  EXAMPLE_THEMES,
+  ToastProvider,
+  useToast,
+} from "@batthewz/response-ui-react-components";
 import { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -69,7 +73,8 @@ const EXAMPLES: [string, ViewSpec][] = [
   ["themeOverrides demo", themedOverridesDemo],
 ];
 
-const THEMES = ["default", "events", "grimdark", "tech"] as const;
+// Dev harness only: the example themes are opt-in, and app.css imports them deliberately.
+const THEMES = EXAMPLE_THEMES;
 
 function IssueList({ issues }: { issues: ValidationIssue[] }) {
   if (issues.length === 0) {

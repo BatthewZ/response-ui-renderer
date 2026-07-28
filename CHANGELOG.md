@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+- **The example themes are no longer presented as a built-in set.** `response-ui-css` defines
+  exactly one theme name, `default`, which IS `:root`; `events`, `grimdark` and `tech` moved
+  to `@batthewz/response-ui-css/examples/themes/<name>` as opt-in worked examples that no
+  entry point imports. This package's docs, the `ThemeMode` docblock that ships into
+  `dist/*.d.ts`, and the theming test fixtures all said or implied otherwise. A `theme` name
+  now reads as "a theme your app defines" — which is the normal case — and every example uses
+  an invented name.
+- **The `:root` constraint is unchanged and still the point.** A theme authored
+  `:root[data-theme="…"]` matches `<html>` and nothing else, so `themeMode="scoped"` cannot
+  apply one; the worked examples, and the theme template most themes start from, are written
+  that way. The root-claim stack, the warning when more than one view claims `<html>`, and
+  the `--*`-keys-only rule for `themeOverrides` are untouched — only the wording changed.
+- **The dev playground opts into the example themes explicitly.** Its theme picker reads
+  `EXAMPLE_THEMES` from the components package rather than redeclaring the list, and
+  `dev/app.css` now imports each example theme file plus
+  `@batthewz/response-ui-react-components/examples/theme-tuning` by hand, because the
+  `@batthewz/response-ui-css` entry no longer brings them along. The dev dependency on
+  `@batthewz/response-ui-css` moves to `^0.11.0` for the same reason: `examples/themes/*` is
+  where those files live from 0.11.0 onward (0.10.1 still exported `./themes/*`). The peer range on
+  `@batthewz/response-ui-react-components` is unchanged at `^0.9.0`.
+
 ## 0.1.0
 
 Initial release. JSON (ViewSpec) → `@batthewz/response-ui-react-components`.
@@ -23,3 +46,10 @@ Initial release. JSON (ViewSpec) → `@batthewz/response-ui-react-components`.
 - **Two validators, one contract.** A dependency-free `validateViewSpec` plus an optional Zod
   schema and `viewSpecJsonSchema()` for constraining LLM generation, held in step by a
   cross-check suite.
+- **Targets `@batthewz/response-ui-react-components` 0.9.0.** The peer range is `^0.9.0`, up
+  from `^0.8.2`; the dev dependencies on the components package and on
+  `@batthewz/response-ui-css` move to `^0.9.0` alongside it, so `build`, `typecheck` and
+  `test` run against the same pair a consumer installs. Under npm's 0.x caret rule `^0.8.2`
+  resolves `>=0.8.2 <0.9.0`, so 0.9.0 does not satisfy the old range — this release does not
+  work against components 0.8.x, and that components release carries a breaking change of its
+  own (buttons now default to `type="button"`).
