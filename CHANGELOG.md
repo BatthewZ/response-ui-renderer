@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Peer range
+
+- Peer bumped to `@batthewz/response-ui-react-components@^0.11.0` (dev dep on
+  `@batthewz/response-ui-css@^0.13.0`), which redefines the surface ramp: rung 0 is now the raised
+  sheet in every theme and `--C-CANVAS` sits between rungs 1 and 2. Nothing in the renderer paints
+  a surface rung, so no ViewSpec or registry change follows — but a document rendered against the
+  new versions looks different by design: cards, dialogs and panels are the lightest surface and
+  the page behind them is a step darker. `Card`, `StatCard` and `Timeline.Card` are the visible
+  cases.
+
 ### Component parity
 
 The registry has always derived every name from the library's barrel, so naming a component
