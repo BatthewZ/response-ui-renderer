@@ -176,7 +176,9 @@ function checkEventHandler(value: unknown, path: string, at: Collector, severity
 
 /**
  * Checks that depend on the component rather than on any prop being present —
- * so they still fire on a node that declares no props at all.
+ * so they still fire on a node that declares no props at all. Takes the node's
+ * own path: what it reports is a fact about the node, and only some of those
+ * facts are addressable at a prop.
  */
 function checkComponentContract(
   component: string,
@@ -190,14 +192,14 @@ function checkComponentContract(
   // one that can express both.
   if (component === "Radio" && isPlainObject(props.value) && "$field" in props.value) {
     at.warn(
-      `${path}.value`,
+      `${path}.props.value`,
       'Radio needs its own "value"; bind it with the bare form — props: { "value": "…", "$field": "form.field" }',
     );
   }
 
   if (DIALOG_COMPONENTS.has(component) && typeof props.id !== "string") {
     at.warn(
-      `${path}.id`,
+      `${path}.props.id`,
       `${component} needs a literal string "id" for openDialog/closeDialog to target it; without one nothing can open it`,
     );
   }
@@ -313,7 +315,7 @@ function checkNode(node: unknown, path: string, depth: number, at: Collector): v
     }
     if (typeof node.component === "string") {
       const children = Array.isArray(node.children) ? node.children : [];
-      checkComponentContract(node.component, props ?? {}, children, `${path}.props`, at);
+      checkComponentContract(node.component, props ?? {}, children, path, at);
     }
     if (node.children !== undefined) {
       if (!Array.isArray(node.children)) at.error(`${path}.children`, "children must be an array");

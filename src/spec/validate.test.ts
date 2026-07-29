@@ -185,6 +185,41 @@ describe("validateViewSpec — data, forms and theme", () => {
   });
 });
 
+describe("component-contract warnings point at what they are about", () => {
+  const warn = (root: unknown) => warningsOf(validateViewSpec({ version: 1, title: "T", root }).issues);
+
+  // The hint is about the node's children, and it fires on a node that may
+  // declare no props at all — so `root.props` would name nothing that exists.
+  it("reports an identity-check hint at the node, not at its props", () => {
+    const issues = warn({
+      component: "Hero",
+      children: [{ component: "Hero.Background", props: { src: "/c.jpg", alt: "" } }],
+    });
+    expect(issues.map((i) => i.path)).toEqual(["root"]);
+  });
+
+  it("keeps the node path when the hint fires on a nested node", () => {
+    const issues = warn({
+      component: "Stack",
+      children: [{ component: "Table.Body", children: [{ component: "Table.Row" }] }],
+    });
+    expect(issues.map((i) => i.path)).toEqual(["root.children[0]"]);
+  });
+
+  // These two name a prop to set, so they stay addressed to that prop.
+  it("reports the dialog id hint at the prop to add", () => {
+    expect(warn({ component: "Dialog" }).map((i) => i.path)).toEqual(["root.props.id"]);
+  });
+
+  it("reports the Radio binding hint at the offending prop", () => {
+    const issues = warn({
+      component: "Radio",
+      props: { value: { $field: "form.choice" } },
+    });
+    expect(issues.map((i) => i.path)).toEqual(["root.props.value"]);
+  });
+});
+
 describe("isDangerousUrl", () => {
   it.each([
     "javascript:alert(1)",
