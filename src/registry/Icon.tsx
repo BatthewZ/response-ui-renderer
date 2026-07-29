@@ -8,6 +8,8 @@ import {
   useMemo,
 } from "react";
 
+import { RENDER_DIAGNOSTIC_CLASSES } from "../render/diagnostics";
+
 export type IconComponentProps = {
   size?: number | string;
   strokeWidth?: number;
@@ -83,7 +85,7 @@ export function Icon({ name, size = 24, ...rest }: IconProps) {
   if (!Resolved) {
     return (
       <span
-        className="rui-render-missing-icon"
+        className={RENDER_DIAGNOSTIC_CLASSES.missingIcon}
         role="img"
         aria-label={typeof name === "string" ? name : "icon"}
         data-icon-name={String(name)}

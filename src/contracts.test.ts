@@ -16,6 +16,7 @@ import { COMPONENT_TYPED_ICON_OWNERS } from "./registry/icon-slots";
 import { PROP_COERCION_OWNERS, PROP_COERCIONS } from "./registry/prop-coercions";
 import { defaultRegistry, listComponentNames } from "./registry/registry";
 import { lookupComponent } from "./registry/types";
+import { RENDER_DIAGNOSTIC_CLASSES, RENDER_DIAGNOSTIC_SELECTOR } from "./render/diagnostics";
 import { DIALOG_COMPONENTS } from "./spec/validate";
 
 /**
@@ -172,6 +173,25 @@ describe('RSC "use client" contract', () => {
     for (const file of ["src/index.ts", "src/spec/index.ts", "src/spec/types.ts", "src/spec/validate.ts", "src/zod.ts"]) {
       expect(read(path.join(root, file)), file).not.toMatch(/^\s*["']use client["']/);
     }
+  });
+});
+
+describe("render diagnostics are discoverable", () => {
+  it("declares every diagnostic class in one module", () => {
+    // The corpus gates ask the DOM "did anything go wrong?" via
+    // RENDER_DIAGNOSTIC_SELECTOR. A diagnostic rendered with a literal class
+    // would answer no — which is how a text-only gate missed three error boxes
+    // and a missing icon that renders no text at all.
+    const offenders = shippedFiles
+      .filter((file) => rel(file) !== "src/render/diagnostics.ts")
+      .filter((file) => /["'`]rui-render-/.test(read(file)))
+      .map(rel);
+    expect(offenders).toEqual([]);
+  });
+
+  it("matches every class the selector looks for", () => {
+    const declared = [...RENDER_DIAGNOSTIC_SELECTOR.matchAll(/\.([\w-]+)/g)].map((m) => m[1]).sort();
+    expect(declared).toEqual([...Object.values(RENDER_DIAGNOSTIC_CLASSES)].sort());
   });
 });
 

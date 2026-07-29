@@ -33,6 +33,7 @@ import {
   isUrlProp,
   MAX_NODE_DEPTH,
 } from "../spec/validate";
+import { RENDER_DIAGNOSTIC_CLASSES } from "./diagnostics";
 import { createEventCallback, type EventHandlerContext } from "./event-handler";
 import type { FormState } from "./form-state";
 import { NodeErrorBoundary } from "./NodeErrorBoundary";
@@ -140,7 +141,7 @@ export function NodeRenderer({
 
   if (depth > MAX_NODE_DEPTH) {
     return (
-      <div className="rui-render-error" role="alert">
+      <div className={RENDER_DIAGNOSTIC_CLASSES.error} role="alert">
         Node nesting exceeded {MAX_NODE_DEPTH} levels.
       </div>
     );
@@ -150,7 +151,7 @@ export function NodeRenderer({
 
   if (node == null || typeof node !== "object") {
     return (
-      <div className="rui-render-error" role="alert">
+      <div className={RENDER_DIAGNOSTIC_CLASSES.error} role="alert">
         Invalid node: {String(node)}
       </div>
     );
@@ -221,7 +222,7 @@ export function NodeRenderer({
 
   if (!isComponentNode(node)) {
     return (
-      <div className="rui-render-error" role="alert">
+      <div className={RENDER_DIAGNOSTIC_CLASSES.error} role="alert">
         Node must have one of: component, $ref, $each, $cond.
       </div>
     );
@@ -230,7 +231,7 @@ export function NodeRenderer({
   const Component = lookupComponent(registry, node.component);
   if (!Component) {
     return (
-      <div className="rui-render-warning" role="alert">
+      <div className={RENDER_DIAGNOSTIC_CLASSES.warning} role="alert">
         Unknown component: <strong>{node.component}</strong>
       </div>
     );

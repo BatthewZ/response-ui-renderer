@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { exampleSpecs } from "../examples";
 import type { ViewSpec } from "../spec/types";
+import { findRenderDiagnostics } from "./diagnostics";
 import { ViewRenderer } from "./ViewRenderer";
 
 const spec = (partial: Partial<ViewSpec> & Pick<ViewSpec, "root">): ViewSpec => ({
@@ -25,8 +26,7 @@ beforeEach(() => {
 describe("real generated documents", () => {
   it.each(Object.entries(exampleSpecs))("renders %s with no unknown components", (_name, doc) => {
     const { container } = render(<ViewRenderer spec={doc as ViewSpec} />);
-    expect(container.textContent).not.toContain("Unknown component");
-    expect(container.textContent).not.toContain("Render error");
+    expect(findRenderDiagnostics(container)).toEqual([]);
     expect(container.textContent?.trim().length ?? 0).toBeGreaterThan(0);
   });
 

@@ -2,6 +2,8 @@
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
+import { RENDER_DIAGNOSTIC_CLASSES } from "./diagnostics";
+
 type Props = {
   label: string;
   children: ReactNode;
@@ -39,7 +41,7 @@ export class NodeErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.message !== null) {
       return (
-        <div className="rui-render-error" role="alert">
+        <div className={RENDER_DIAGNOSTIC_CLASSES.error} role="alert">
           <strong>Render error</strong> ({this.props.label}): {this.state.message}
         </div>
       );

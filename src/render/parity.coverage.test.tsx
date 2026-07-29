@@ -7,6 +7,7 @@ import { lucideIcons } from "../icons";
 import { defaultRegistry, listComponentNames } from "../registry/registry";
 import type { ViewSpec } from "../spec/types";
 import { validateViewSpec } from "../spec/validate";
+import { findRenderDiagnostics } from "./diagnostics";
 import { ViewRenderer } from "./ViewRenderer";
 
 /**
@@ -44,8 +45,7 @@ describe("coverage corpus", () => {
     const { container } = render(
       <ViewRenderer spec={doc as ViewSpec} icons={lucideIcons} adapters={{ navigate: () => {} }} />,
     );
-    expect(container.textContent).not.toContain("Unknown component");
-    expect(container.textContent).not.toContain("Render error");
+    expect(findRenderDiagnostics(container)).toEqual([]);
     expect(container.querySelector("[data-rui-view]")?.children.length ?? 0).toBeGreaterThan(0);
   });
 
