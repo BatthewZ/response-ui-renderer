@@ -17,6 +17,13 @@ untested, check whether the environment can express it at all before concluding 
 Anything driven by `IntersectionObserver` renders at `opacity: 0` for ever in jsdom. Fixtures
 pass `animate: false` so the content is really asserted rather than merely present.
 
+The same gap has a second half worth knowing before you go looking: a dialog can be opened
+and closed through the `openDialog`/`closeDialog` actions, but the `onClose` prop the
+renderer injects cannot be reached at all. Firing it needs a native dismiss, and the stub
+does not raise one on Escape; the component ships no close control to click instead. A test
+that closes via the action passes whether or not that wiring exists — confirmed by breaking
+it — so do not read one as covering the other.
+
 ## Checks that cannot fail
 
 Two got written here and both had to be caught by re-reading, not by a failure:

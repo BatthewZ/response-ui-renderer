@@ -512,7 +512,24 @@ describe("icons", () => {
     expect(screen.getByTestId("icon-check")).toBeInTheDocument();
   });
 
-  it("accepts kebab and snake case names", () => {
+  // A single-word name cannot tell these spellings apart — "check" and "Check"
+  // differ only in case, so the separator-splitting half of normalizeIconName
+  // went untested under this title. Every case needs a multi-word name.
+  it.each(["trending-up", "trending_up", "trending up", "trendingUp", "TrendingUp"])(
+    "resolves the icon named %j",
+    (name) => {
+      const MultiWord = () => <span data-testid="icon-trending" />;
+      render(
+        <ViewRenderer
+          icons={{ TrendingUp: MultiWord }}
+          spec={spec({ root: { component: "Icon", props: { name } } })}
+        />,
+      );
+      expect(screen.getByTestId("icon-trending")).toBeInTheDocument();
+    },
+  );
+
+  it("accepts a single-word name in either case", () => {
     for (const name of ["check", "Check"]) {
       const { unmount } = render(
         <ViewRenderer

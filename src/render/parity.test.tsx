@@ -145,6 +145,51 @@ describe("controlled-only dialogs", () => {
     await user.click(screen.getByRole("button", { name: "Open" }));
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
   });
+
+  // Opening was proven; closing was not. This covers the `closeDialog` ACTION,
+  // which calls dialogs.close directly.
+  //
+  // It does NOT cover the `onClose` prop NodeRenderer injects — verified by
+  // breaking that wiring, which leaves this test green. That path needs a native
+  // dismiss, and jsdom's <dialog> is a stub, so Escape does nothing; the
+  // component ships no close control to click either. Untestable here, not
+  // untested by oversight.
+  it("closes again through closeDialog", async () => {
+    const user = userEvent.setup();
+    render(
+      <ViewRenderer
+        spec={spec({
+          root: {
+            component: "Stack",
+            children: [
+              {
+                component: "Button",
+                props: { onClick: { action: "openDialog", payload: { dialogId: "d" } } },
+                children: ["Open"],
+              },
+              {
+                component: "Dialog",
+                props: { id: "d" },
+                children: [
+                  {
+                    component: "Button",
+                    props: { onClick: { action: "closeDialog", payload: { dialogId: "d" } } },
+                    children: ["Close"],
+                  },
+                ],
+              },
+            ],
+          },
+        })}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Open" }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
 });
 
 describe("components that clone their child", () => {
