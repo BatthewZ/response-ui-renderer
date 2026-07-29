@@ -355,8 +355,6 @@ export function NodeRenderer({
       continue;
     }
 
-    if (isUrlProp(key) && isDangerousUrl(value)) continue;
-
     // Icon-name strings are coerced by key shape, so — unlike the `$` markers —
     // this stays at the top level: a data row with an `icon` column must not
     // silently become an element. Nested slots use `$node` instead.
@@ -388,7 +386,16 @@ export function NodeRenderer({
       continue;
     }
 
-    props[key] = coerceNested(value, key, 0);
+    const resolved = coerceNested(value, key, 0);
+
+    // Checked AFTER resolution, not before: a `$ref` is an object until it is
+    // resolved, so testing the literal passes every indirect spelling straight
+    // through. `data` can be an api binding, which makes a remote response able
+    // to put a `data:text/html` URL in an href. React blocks `javascript:`
+    // itself, which masked this — `vbscript:` and `data:` have no such backstop.
+    if (isUrlProp(key) && isDangerousUrl(resolved)) continue;
+
+    props[key] = resolved;
   }
 
   // The bare key is canonical, so it wins when both spellings appear.
