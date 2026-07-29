@@ -41,6 +41,14 @@ The related design rule: a warning's path should name the thing the message is a
 that says "set this prop" belongs at that prop even when it is absent, because the path is
 telling the author where to go; a hint about the node's children belongs at the node.
 
+## A smoke test is only as wide as what it looks for
+
+The corpus gates asserted `textContent` did not contain two particular sentences. The
+renderer reports five things, three of them worded differently, and one renders no text at
+all. Every one of those passed the gate. When a check stands in for "nothing went wrong",
+write down what the full set of wrong looks like and assert against the set — not against
+the two examples that were on your mind.
+
 ## The corpus is the reference
 
 `src/examples/coverage/` is authored and must model the advice the package gives — it is

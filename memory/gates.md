@@ -31,6 +31,36 @@ is the exact failure the gates exist to prevent.
 Be aware of the tail risk when a gate iterates a derived list: if the table were ever emptied,
 `it.each([])` registers no tests and the gate disappears without a failure.
 
+## A generator that compares against itself is not a gate
+
+`--check` regenerates the doc and diffs it against the committed file. That catches a
+stale commit and nothing else: anything the generator drops, it drops on both sides, so
+the comparison agrees and the gate passes. A whole category of components was missing
+from the reference for exactly this reason — bucketed by category, then never emitted,
+because the order map the emitter loops over had no entry for it.
+
+Two habits follow. Make the generator throw on input it cannot place rather than skipping
+it — silence is what let this sit. And assert the shipped artifact, not the pipeline: the
+test that would have caught it reads VIEWSPEC.md and checks every categorised component
+appears there. "Has a category" and "reaches the doc" are different claims.
+
+## A covariant type will not catch a list that shrinks
+
+Zod's `ZodType` is covariant in its output, so a schema whose union is a strict *subset*
+of the type it is declared against still typechecks. Only an *extra* member is an error.
+Adding a case and forgetting a mirror produces a subset — the direction the compiler
+cannot see. Derive both from one tuple, and if two expressions of one list must exist,
+assert them against each other in a test rather than trusting the types.
+
+## Ask the DOM, not the prose
+
+The renderer never throws at a bad document; it renders a diagnostic and carries on. That
+makes "did anything go wrong?" a DOM question. A gate matching particular *sentences* in
+`textContent` only finds the failures whose wording it already knew, and misses entirely
+any diagnostic that renders no text — a missing icon is an empty span. Query the
+diagnostic classes, and keep those class names in one module so a new diagnostic cannot
+be rendered without joining the set the query looks for.
+
 ## Source files must stay text
 
 A control character written raw into a string literal — a NUL, most likely, while testing
