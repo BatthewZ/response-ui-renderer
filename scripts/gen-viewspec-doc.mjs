@@ -149,6 +149,17 @@ function render(components, notes, notAddressable) {
     byCategory.get(meta.category).push({ ...component, ...meta });
   }
 
+  // A category with no entry here is bucketed and then never emitted, so its
+  // components vanish from the doc while `--check` still passes — it compares a
+  // generation against itself. `Action` was dropped this way, taking Button,
+  // IconButton and CopyButton with it.
+  const unordered = [...byCategory.keys()].filter((name) => !Object.hasOwn(CATEGORY_ORDER, name));
+  if (unordered.length > 0) {
+    throw new Error(
+      `component-notes.json categorises components as ${unordered.join(", ")}, which CATEGORY_ORDER does not list — they would be silently omitted.`,
+    );
+  }
+
   const lines = [];
   for (const category of Object.keys(CATEGORY_ORDER)) {
     const rows = byCategory.get(category);
@@ -170,6 +181,7 @@ function render(components, notes, notAddressable) {
 const CATEGORY_ORDER = {
   Layout: "Structure and spacing. The `r1`–`r6` scale is **inverted** — `r1` is the largest step.",
   Typography: "Text and inline marks.",
+  Action: 'Buttons and triggers. `Button` defaults to `type: "button"` — a submit control must say so explicitly.',
   Feedback: "Status, progress and loading.",
   Data: "Tables, metrics and lists driven by `data` + `$each`.",
   Form: "Bind every control with `$field`; declare the field in `spec.forms` first.",

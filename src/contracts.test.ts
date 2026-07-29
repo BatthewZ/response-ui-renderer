@@ -314,6 +314,18 @@ describe("VIEWSPEC.md curation", () => {
     expect(uncategorised).toEqual([]);
   });
 
+  it("lists every categorised component in the generated doc", () => {
+    // Categorising a component is not the same as documenting it. `Action` was
+    // absent from the generator's order map, so Button, IconButton and
+    // CopyButton were bucketed and then dropped — and `--check` still passed,
+    // because it compares a fresh generation against itself. Assert the shipped
+    // artifact instead, which is what an agent actually reads.
+    const doc = read(path.join(root, "VIEWSPEC.md"));
+    const documented = new Set([...doc.matchAll(/^\| `([A-Za-z0-9]+)` \|/gm)].map((m) => m[1]));
+    const missing = Object.keys(COMPONENT_NOTES).filter((name) => !documented.has(name));
+    expect(missing).toEqual([]);
+  });
+
   it("categorises nothing that does not exist", () => {
     const phantom = Object.keys(COMPONENT_NOTES).filter((name) => !topLevel.includes(name));
     expect(phantom).toEqual([]);

@@ -177,6 +177,16 @@ Text and inline marks.
 | `Kbd` | — | — |  |
 | `Text` | — | `variant?`: "h1"\|"h2"\|"h3"\|"h4"\|"h5"\|"h6"\|"body-1"\|"body-2"\|"body-3" · `weight?`: "semibold"\|"bold" · `color?`: "primary"\|"secondary"\|"muted"\|"inverse"\|"on-primary" · `as?`: T | A heading `variant` emits a real heading element — pass `as: "p"` for heading-sized body text. |
 
+### Action
+
+Buttons and triggers. `Button` defaults to `type: "button"` — a submit control must say so explicitly.
+
+| Component | Parts | Props | Notes |
+| --- | --- | --- | --- |
+| `Button` | — | `variant?`: "primary"\|"secondary"\|"ghost"\|"ghost-inverse"\|"danger"\|"link" · `size?`: "sm"\|"md"\|"lg" · `as?`: T | Defaults to `type="button"` — a submit button must say so explicitly. |
+| `CopyButton` | — | `value`: string · `timeout?`: number · `copiedLabel?`: string · `onCopyError?`: (error: Error) => void | Requires `value`. Silently no-ops outside a secure context. |
+| `IconButton` | — | — | Requires `aria-label`. The glyph is a **child** `Icon` node, not an `icon` prop. |
+
 ### Feedback
 
 Status, progress and loading.
