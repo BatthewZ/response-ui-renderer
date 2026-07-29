@@ -1,0 +1,617 @@
+{
+  "version": 1,
+  "title": "Coverage: media",
+  "description": "A film festival programme: a clipped parallax banner, an alternating strand spotlight, a poster rail and an archive grid — the media and animation families in one page.",
+  "data": {
+    "highlights": {
+      "type": "static",
+      "value": [
+        {
+          "id": "restorations",
+          "heading": "Restorations",
+          "body": "Six features scanned from the original negatives, four of them screening from 35mm for the first time since their release.",
+          "count": "6 films",
+          "cta": "Read the restoration notes",
+          "href": "/festival/strands/restorations",
+          "image": "https://picsum.photos/seed/festival-restorations/800/500",
+          "alt": "A projectionist threading a 35mm print"
+        },
+        {
+          "id": "first-features",
+          "heading": "First features",
+          "body": "Debut directors, every screening followed by a twenty-minute conversation with the filmmaker in the room.",
+          "count": "9 films",
+          "cta": "See the first features",
+          "href": "/festival/strands/first-features",
+          "image": "https://picsum.photos/seed/festival-first-features/800/500",
+          "alt": "A director answering questions in front of a cinema screen"
+        },
+        {
+          "id": "late-nights",
+          "heading": "Late nights",
+          "body": "Double bills from eleven until the small hours, with the bar open throughout and a taxi rank outside.",
+          "count": "5 double bills",
+          "cta": "Browse the late nights",
+          "href": "/festival/strands/late-nights",
+          "image": "https://picsum.photos/seed/festival-late-nights/800/500",
+          "alt": "A neon cinema marquee lit against a dark street"
+        }
+      ]
+    },
+    "programme": {
+      "type": "static",
+      "value": [
+        {
+          "id": "the-quiet-shore",
+          "title": "The Quiet Shore",
+          "meta": "2024 · Drama · 1h 52m",
+          "screening": "Thu 12 Sep · 19:30 · Roxy 1",
+          "badge": "Premiere",
+          "badgeVariant": "info",
+          "headingId": "film-the-quiet-shore",
+          "transitionName": "poster-the-quiet-shore",
+          "image": "https://picsum.photos/seed/the-quiet-shore/400/600",
+          "alt": "Poster for The Quiet Shore: a lone figure on a grey beach"
+        },
+        {
+          "id": "northern-lights",
+          "title": "Northern Lights",
+          "meta": "2023 · Documentary · 1h 18m",
+          "screening": "Fri 13 Sep · 18:00 · Roxy 2",
+          "badge": "Q&A",
+          "badgeVariant": "success",
+          "headingId": "film-northern-lights",
+          "transitionName": "poster-northern-lights",
+          "image": "https://picsum.photos/seed/northern-lights/400/600",
+          "alt": "Poster for Northern Lights: an aurora above a frozen lake"
+        },
+        {
+          "id": "the-analyst",
+          "title": "The Analyst",
+          "meta": "2025 · Thriller · 2h 04m",
+          "screening": "Sat 14 Sep · 21:15 · The Assembly",
+          "badge": "Sold out",
+          "badgeVariant": "warning",
+          "headingId": "film-the-analyst",
+          "transitionName": "poster-the-analyst",
+          "image": "https://picsum.photos/seed/the-analyst/400/600",
+          "alt": "Poster for The Analyst: a desk lamp over a wall of pinned notes"
+        },
+        {
+          "id": "slow-water",
+          "title": "Slow Water",
+          "meta": "2024 · Drama · 1h 41m",
+          "screening": "Sun 15 Sep · 15:00 · Harbour Studio",
+          "badge": "Last seats",
+          "badgeVariant": "error",
+          "headingId": "film-slow-water",
+          "transitionName": "poster-slow-water",
+          "image": "https://picsum.photos/seed/slow-water/400/600",
+          "alt": "Poster for Slow Water: a rowing boat adrift on flat water"
+        }
+      ]
+    },
+    "archive": {
+      "type": "static",
+      "value": [
+        {
+          "id": "harbour-lights",
+          "title": "Harbour Lights",
+          "year": "Screened 1998",
+          "headingId": "archive-harbour-lights",
+          "image": "https://picsum.photos/seed/archive-harbour-lights/600/600",
+          "alt": "A still of fishing boats moored at dusk"
+        },
+        {
+          "id": "the-long-platform",
+          "title": "The Long Platform",
+          "year": "Screened 2004",
+          "headingId": "archive-the-long-platform",
+          "image": "https://picsum.photos/seed/archive-long-platform/600/600",
+          "alt": "A still of an empty railway platform at night"
+        },
+        {
+          "id": "eleven-summers",
+          "title": "Eleven Summers",
+          "year": "Screened 2011",
+          "headingId": "archive-eleven-summers",
+          "image": "https://picsum.photos/seed/archive-eleven-summers/600/600",
+          "alt": "A still of children running through a sprinkler"
+        },
+        {
+          "id": "the-cartographer",
+          "title": "The Cartographer",
+          "year": "Screened 2017",
+          "headingId": "archive-the-cartographer",
+          "image": "https://picsum.photos/seed/archive-cartographer/600/600",
+          "alt": "A still of a hand drawing a coastline onto a map"
+        }
+      ]
+    }
+  },
+  "state": {
+    "noticeOpen": true
+  },
+  "root": {
+    "component": "Container",
+    "props": { "size": "lg" },
+    "children": [
+      {
+        "component": "Stack",
+        "props": { "gap": "r1" },
+        "children": [
+          {
+            "component": "Stack",
+            "props": { "gap": "r4" },
+            "children": [
+              {
+                "component": "ViewTransition",
+                "props": { "name": "programme-masthead" },
+                "children": [
+                  {
+                    "component": "Text",
+                    "props": { "as": "h1", "variant": "h1" },
+                    "children": ["Northwood Film Festival"]
+                  }
+                ]
+              },
+              {
+                "component": "Text",
+                "props": { "variant": "body-1", "color": "secondary" },
+                "children": [
+                  "Eleven days of premieres, restorations and late-night double bills across four venues."
+                ]
+              },
+              {
+                "component": "Row",
+                "props": { "gap": "r5", "wrap": true },
+                "children": [
+                  {
+                    "$cond": "state.noticeOpen",
+                    "then": {
+                      "component": "Button",
+                      "props": {
+                        "variant": "secondary",
+                        "size": "sm",
+                        "onClick": {
+                          "action": "setState",
+                          "payload": { "key": "noticeOpen", "value": false }
+                        }
+                      },
+                      "children": ["Dismiss the booking notice"]
+                    },
+                    "else": {
+                      "component": "Button",
+                      "props": {
+                        "variant": "secondary",
+                        "size": "sm",
+                        "onClick": {
+                          "action": "setState",
+                          "payload": { "key": "noticeOpen", "value": true }
+                        }
+                      },
+                      "children": ["Show the booking notice"]
+                    }
+                  },
+                  {
+                    "component": "Button",
+                    "props": {
+                      "variant": "primary",
+                      "size": "sm",
+                      "onClick": {
+                        "action": "showToast",
+                        "payload": {
+                          "message": "The programme PDF is on its way to your inbox.",
+                          "variant": "info"
+                        }
+                      }
+                    },
+                    "children": ["Email me the programme"]
+                  }
+                ]
+              },
+              {
+                "component": "AnimatePresence",
+                "props": {
+                  "show": { "$ref": "state.noticeOpen" },
+                  "enterClass": "fade-up",
+                  "exitClass": "fade-out",
+                  "role": "status"
+                },
+                "children": [
+                  {
+                    "component": "Card",
+                    "props": { "padding": "r3", "shadow": "sm" },
+                    "children": [
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-2" },
+                        "children": [
+                          "Members book from 9am on Thursday. General sale opens the following Monday, and returns go back on sale an hour before each screening."
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          { "component": "Divider" },
+          {
+            "component": "Card",
+            "props": { "padding": "r6", "shadow": "lg", "className": "overflow-hidden" },
+            "children": [
+              {
+                "component": "Parallax",
+                "props": { "rate": 0.12, "clamp": 48 },
+                "children": [
+                  {
+                    "component": "MediaCard",
+                    "props": { "orientation": "landscape", "aria-labelledby": "gala-heading" },
+                    "children": [
+                      {
+                        "component": "MediaCard.Image",
+                        "props": {
+                          "src": "https://picsum.photos/seed/festival-gala/1600/900",
+                          "alt": "",
+                          "loading": "eager"
+                        }
+                      },
+                      { "component": "MediaCard.Overlay" },
+                      {
+                        "component": "MediaCard.Badge",
+                        "children": [
+                          {
+                            "component": "Badge",
+                            "props": { "variant": "warning" },
+                            "children": ["Waiting list only"]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "MediaCard.Content",
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "as": "h2", "variant": "h3", "id": "gala-heading" },
+                            "children": ["Opening gala: The Quiet Shore"]
+                          },
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-3", "color": "secondary" },
+                            "children": ["Thursday 12 September · 19:30 · Roxy 1"]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "MediaCard.Action",
+                        "children": [
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "primary",
+                              "size": "sm",
+                              "onClick": {
+                                "action": "showToast",
+                                "payload": {
+                                  "message": "You are on the waiting list for the opening gala.",
+                                  "variant": "success"
+                                }
+                              }
+                            },
+                            "children": ["Join the waiting list"]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "component": "ScrollReveal",
+            "props": {
+              "as": "section",
+              "animation": "fade-up",
+              "animate": false,
+              "aria-label": "Festival strands"
+            },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r3" },
+                "children": [
+                  {
+                    "component": "Text",
+                    "props": { "as": "h2", "variant": "h2" },
+                    "children": ["Three strands, eleven days"]
+                  },
+                  {
+                    "component": "Spotlight",
+                    "props": { "animate": false },
+                    "children": [
+                      {
+                        "$each": "data.highlights",
+                        "as": "strand",
+                        "node": {
+                          "component": "Spotlight.Item",
+                          "children": [
+                            {
+                              "component": "Spotlight.Image",
+                              "props": {
+                                "src": { "$ref": "strand.image" },
+                                "alt": { "$ref": "strand.alt" },
+                                "className": "h-64",
+                                "parallax": true,
+                                "parallaxRate": 0.06,
+                                "parallaxClamp": 24,
+                                "imgProps": { "loading": "lazy", "width": 800, "height": 500 }
+                              }
+                            },
+                            {
+                              "component": "Spotlight.Content",
+                              "children": [
+                                {
+                                  "component": "Stack",
+                                  "props": { "gap": "r5" },
+                                  "children": [
+                                    {
+                                      "component": "Text",
+                                      "props": { "as": "h3", "variant": "h3" },
+                                      "children": [{ "$ref": "strand.heading" }]
+                                    },
+                                    {
+                                      "component": "Text",
+                                      "props": { "variant": "body-2", "color": "secondary" },
+                                      "children": [{ "$ref": "strand.body" }]
+                                    },
+                                    {
+                                      "component": "Row",
+                                      "props": { "gap": "r5", "wrap": true },
+                                      "children": [
+                                        {
+                                          "component": "Badge",
+                                          "children": [{ "$ref": "strand.count" }]
+                                        },
+                                        {
+                                          "component": "Button",
+                                          "props": {
+                                            "variant": "link",
+                                            "size": "sm",
+                                            "onClick": {
+                                              "action": "navigate",
+                                              "payload": { "path": { "$ref": "strand.href" } }
+                                            }
+                                          },
+                                          "children": [{ "$ref": "strand.cta" }]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          { "component": "Divider" },
+          {
+            "component": "Stack",
+            "props": { "gap": "r3" },
+            "children": [
+              {
+                "component": "Stagger",
+                "props": { "staggerDelay": "80ms", "className": "flex flex-wrap gap-r5" },
+                "children": [
+                  { "component": "Badge", "children": ["Drama"] },
+                  { "component": "Badge", "children": ["Documentary"] },
+                  { "component": "Badge", "children": ["Thriller"] },
+                  { "component": "Badge", "children": ["Restoration"] }
+                ]
+              },
+              {
+                "component": "Carousel",
+                "props": {
+                  "title": {
+                    "$node": {
+                      "component": "Text",
+                      "props": { "as": "h2", "variant": "h4" },
+                      "children": ["Screening this week"]
+                    }
+                  },
+                  "prevLabel": "Earlier screenings",
+                  "nextLabel": "Later screenings",
+                  "style": { "--carousel-item-width": "12rem" }
+                },
+                "children": [
+                  {
+                    "component": "Carousel.Track",
+                    "props": { "aria-label": "Films screening this week" },
+                    "children": [
+                      {
+                        "$each": "data.programme",
+                        "as": "film",
+                        "node": {
+                          "component": "Carousel.Item",
+                          "props": { "aria-label": { "$ref": "film.title" } },
+                          "children": [
+                            {
+                              "component": "ViewTransition",
+                              "props": { "name": { "$ref": "film.transitionName" } },
+                              "children": [
+                                {
+                                  "component": "MediaCard",
+                                  "props": {
+                                    "orientation": "portrait",
+                                    "aria-labelledby": { "$ref": "film.headingId" }
+                                  },
+                                  "children": [
+                                    {
+                                      "component": "MediaCard.Image",
+                                      "props": {
+                                        "src": { "$ref": "film.image" },
+                                        "alt": { "$ref": "film.alt" }
+                                      }
+                                    },
+                                    {
+                                      "component": "MediaCard.Badge",
+                                      "children": [
+                                        {
+                                          "component": "Badge",
+                                          "props": { "variant": { "$ref": "film.badgeVariant" } },
+                                          "children": [{ "$ref": "film.badge" }]
+                                        }
+                                      ]
+                                    },
+                                    { "component": "MediaCard.Overlay" },
+                                    {
+                                      "component": "MediaCard.Content",
+                                      "children": [
+                                        {
+                                          "component": "Text",
+                                          "props": {
+                                            "as": "h3",
+                                            "variant": "h5",
+                                            "id": { "$ref": "film.headingId" }
+                                          },
+                                          "children": [{ "$ref": "film.title" }]
+                                        },
+                                        {
+                                          "component": "Text",
+                                          "props": { "variant": "body-3", "color": "secondary" },
+                                          "children": [{ "$ref": "film.meta" }]
+                                        },
+                                        {
+                                          "component": "Text",
+                                          "props": { "variant": "body-3", "color": "secondary" },
+                                          "children": [{ "$ref": "film.screening" }]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          { "component": "Divider" },
+          {
+            "component": "Stack",
+            "props": { "gap": "r3" },
+            "children": [
+              {
+                "component": "Text",
+                "props": { "as": "h2", "variant": "h2" },
+                "children": ["From the archive"]
+              },
+              {
+                "component": "Grid",
+                "props": { "columns": { "base": 2, "md": 4 }, "gap": "r4" },
+                "children": [
+                  {
+                    "$each": "data.archive",
+                    "as": "reel",
+                    "node": {
+                      "component": "MediaCard",
+                      "props": {
+                        "orientation": "square",
+                        "aria-labelledby": { "$ref": "reel.headingId" }
+                      },
+                      "children": [
+                        {
+                          "component": "MediaCard.Image",
+                          "props": {
+                            "src": { "$ref": "reel.image" },
+                            "alt": { "$ref": "reel.alt" }
+                          }
+                        },
+                        { "component": "MediaCard.Overlay" },
+                        {
+                          "component": "MediaCard.Content",
+                          "children": [
+                            {
+                              "component": "Text",
+                              "props": {
+                                "as": "h3",
+                                "variant": "h5",
+                                "id": { "$ref": "reel.headingId" }
+                              },
+                              "children": [{ "$ref": "reel.title" }]
+                            },
+                            {
+                              "component": "Text",
+                              "props": { "variant": "body-3", "color": "secondary" },
+                              "children": [{ "$ref": "reel.year" }]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "component": "Center",
+                "children": [
+                  {
+                    "component": "Button",
+                    "props": {
+                      "variant": "secondary",
+                      "onClick": {
+                        "action": "showToast",
+                        "payload": {
+                          "message": "Loading the rest of the archive.",
+                          "variant": "info"
+                        }
+                      }
+                    },
+                    "children": ["Load the rest of the archive"]
+                  }
+                ]
+              }
+            ]
+          },
+          { "component": "Divider" },
+          {
+            "component": "Row",
+            "props": { "gap": "r5" },
+            "children": [
+              {
+                "component": "Text",
+                "props": { "variant": "body-3", "color": "muted" },
+                "children": ["Programme correct at the time of publication."]
+              },
+              { "component": "Spacer" },
+              {
+                "component": "Button",
+                "props": {
+                  "variant": "ghost",
+                  "size": "sm",
+                  "onClick": {
+                    "action": "navigate",
+                    "payload": { "path": "/festival/access" }
+                  }
+                },
+                "children": ["Access information"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

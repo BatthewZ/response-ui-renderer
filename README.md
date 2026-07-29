@@ -12,8 +12,10 @@ import { ViewRenderer } from "@batthewz/response-ui-renderer";
 <ViewRenderer spec={await res.json()} />;
 ```
 
-- **Every component the library exports is addressable.** 97 components and 60 compound
-  parts, derived from the library's own barrel at runtime — not a hand-copied list.
+- **Every component the library exports is addressable, and proven to render.** 98 components
+  and 66 compound parts, derived from the library's own barrel at runtime — not a hand-copied
+  list — and a coverage corpus renders every one of them. 7 need host code; they are named,
+  with the reason, in [VIEWSPEC.md](VIEWSPEC.md).
 - **Zero runtime dependencies.** React and response-ui are peers; nothing else ships.
 - **Host-agnostic.** No router, no server routes, no auth model. Navigation, network and
   toasts are injected.
@@ -44,6 +46,9 @@ your build.
 
 ## The ViewSpec format
 
+**[VIEWSPEC.md](VIEWSPEC.md) is the terse reference to hand a model** — the whole format plus
+every component, its compound parts and its props, generated from the live library.
+
 ```jsonc
 {
   "version": 1,
@@ -52,6 +57,7 @@ your build.
   "themeOverrides": { "--C-PRIMARY": "oklch(0.6 0.15 220)" },  // optional
   "data": { "members": { "type": "static", "value": [{ "name": "Ada" }] } },
   "forms": { "contact": { "fields": { "email": { "initialValue": "" } } } },
+  "state": { "page": 1 },                       // optional — seeds `state.…` refs
   "root": { "component": "Stack", "children": ["Hello"] }
 }
 ```
@@ -90,7 +96,12 @@ A prop value may be a literal, or one of:
 ```jsonc
 { "$ref": "data.user.name" }                              // resolved value
 { "action": "showToast", "payload": { "message": "Hi" } } // event callback
+{ "$node": { "component": "Badge", "children": ["New"] } }  // a ViewNode in a prop
 ```
+
+`$ref`, `$node` and complete handler objects resolve **inside array and object props** too, so
+`CommandPalette.items[].onSelect` and a `DataTable` column's `render` template work. Ordinary
+data is left alone — a row that happens to carry an `action` string stays a row.
 
 Two-way form binding uses a bare `$field` key, which wires `value`/`checked` and `onChange`
 together:
@@ -124,6 +135,19 @@ contract has to live in the wire format.
 `setState`. Payloads are `$ref`-resolved before dispatch (except `apiCall.endpoint` and
 `setState.key`, read literally so state shape can't depend on data). Handler chains
 (`onSuccess`/`onError`/`onSubmit`) stop at depth 5.
+
+Inside a payload, **`event` names the callback's arguments** — `event.value` for the first one
+(DOM events unwrapped), `event.args.N` for the rest. Without it a controlled component could
+never report anything back, so `Pagination` — controlled-only, with no `defaultPage` — could
+not move at all:
+
+```jsonc
+"onPageChange": { "action": "setState",
+                  "payload": { "key": "page", "value": { "$ref": "event.value" } } }
+```
+
+`event` resolves to nothing outside a handler. Prefer an uncontrolled seed (`defaultValue`,
+`defaultOpen`) where the component has one.
 
 ```jsonc
 {

@@ -1,9 +1,16 @@
 "use client";
 
-import { type ChangeEvent, createElement, type ReactNode, useId } from "react";
+import { createElement, type ReactNode, useId } from "react";
 
+import { composeProp, inspectsChildren } from "../registry/child-introspection";
 import { Icon } from "../registry/Icon";
 import { wantsIconComponent } from "../registry/icon-slots";
+import {
+  parseIsoDate,
+  parseIsoDateRange,
+  propCoercion,
+  toKeyAccessor,
+} from "../registry/prop-coercions";
 import { type ComponentRegistry, lookupComponent } from "../registry/types";
 import {
   FIELD_BINDING_KEY,
@@ -12,23 +19,43 @@ import {
   isEachNode,
   isEventHandlerSpec,
   isFieldBinding,
+  isNestedEventHandlerSpec,
+  isNodeValue,
   isRefNode,
   isRefValue,
   type ViewNode,
 } from "../spec/types";
-import { FORBIDDEN_PROPS, isDangerousUrl, isUrlProp, MAX_NODE_DEPTH } from "../spec/validate";
+import {
+  DIALOG_COMPONENTS,
+  EVENT_ACTIONS,
+  FORBIDDEN_PROPS,
+  isDangerousUrl,
+  isUrlProp,
+  MAX_NODE_DEPTH,
+} from "../spec/validate";
 import { createEventCallback, type EventHandlerContext } from "./event-handler";
 import type { FormState } from "./form-state";
 import { NodeErrorBoundary } from "./NodeErrorBoundary";
+import { readReportedValue } from "./reported-value";
 import { type RefContext, refToText, resolveRef } from "./resolve-ref";
 import { useViewData, ViewContextExtender } from "./ViewDataProvider";
 
+/**
+ * The four named props are the renderer's own. Everything else on this element
+ * was put there by a parent that clones its child — `Tooltip`, and the
+ * `asChild` triggers of `DropdownMenu` / `Popover` / `HoverCard` — and is
+ * forwarded onto the element the node produces.
+ *
+ * Without the forward those components are inert: they inject a ref and their
+ * handlers by cloning, and a clone of `NodeRenderer` drops every one of them, so
+ * a tooltip never opens.
+ */
 type NodeRendererProps = {
   node: ViewNode;
   registry: ComponentRegistry;
   eventContext: EventHandlerContext;
   depth?: number;
-};
+} & { [injected: string]: unknown };
 
 /** Splits `"contact.email"` and looks up the live form. */
 function resolveFormField(
@@ -71,27 +98,21 @@ function nodeKey(node: ViewNode, index: number): string {
   return `n${index}`;
 }
 
+/** Bounds recursion through a prop value, matching `resolveDeep`'s own cap. */
+const MAX_PROP_DEPTH = 20;
+
 /** `icon`, `leftIcon`, `trailingIcon`… — slots typed ReactNode in the library. */
 function isIconProp(key: string): boolean {
   return key === "icon" || (key.length > 4 && key.endsWith("Icon"));
 }
 
-/** Coerces the DOM value for a `$field`-bound control. */
-function readInputValue(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): unknown {
-  const target = event.target;
-  if (target instanceof HTMLInputElement) {
-    if (target.type === "checkbox") return target.checked;
-    if (target.type === "radio") return target.value;
-    if (target.type === "number" || target.type === "range") {
-      if (target.value === "") return "";
-      const num = Number(target.value);
-      return Number.isNaN(num) ? target.value : num;
-    }
-  }
-  return target.value;
-}
-
-export function NodeRenderer({ node, registry, eventContext, depth = 0 }: NodeRendererProps) {
+export function NodeRenderer({
+  node,
+  registry,
+  eventContext,
+  depth = 0,
+  ...injected
+}: NodeRendererProps) {
   const view = useViewData();
   const autoDialogId = useId();
 
@@ -133,7 +154,16 @@ export function NodeRenderer({ node, registry, eventContext, depth = 0 }: NodeRe
     if (branch === undefined) return null;
     return (
       <NodeErrorBoundary label="$cond">
-        <NodeRenderer node={branch} registry={registry} eventContext={eventContext} depth={depth + 1} />
+        {/* `$cond` resolves to exactly one node, so anything a cloning parent
+            injected is still addressed to a single element and must carry on
+            down — otherwise a Tooltip around a `$cond` silently never opens. */}
+        <NodeRenderer
+          {...injected}
+          node={branch}
+          registry={registry}
+          eventContext={eventContext}
+          depth={depth + 1}
+        />
       </NodeErrorBoundary>
     );
   }
@@ -182,14 +212,25 @@ export function NodeRenderer({ node, registry, eventContext, depth = 0 }: NodeRe
 
   const props: Record<string, unknown> = {};
 
-  /** Both binding spellings converge here. */
+  /** Both binding spellings converge here, after every literal prop is in place. */
   const applyFieldBinding = (path: string): void => {
     const bound = resolveFormField(path, view.forms);
     if (!bound) return;
     const { fieldName, formState } = bound;
     const current = formState.values[fieldName];
 
-    if (node.component === "Checkbox" || node.component === "Switch") {
+    // Switch declares `onChange?: never` and destructures it away; it reports
+    // through `onCheckedChange`, so a binding wired to `onChange` renders the
+    // stored value and can never write back.
+    if (node.component === "Switch") {
+      props.checked = Boolean(current);
+      props.onCheckedChange = (checked: boolean) => {
+        formState.setValue(fieldName, checked);
+      };
+      return;
+    }
+
+    if (node.component === "Checkbox") {
       props.checked = Boolean(current);
     } else if (node.component === "Radio") {
       props.checked = current === props.value;
@@ -197,12 +238,84 @@ export function NodeRenderer({ node, registry, eventContext, depth = 0 }: NodeRe
       props.value = current == null ? "" : (current);
     }
 
-    props.onChange = (
-      event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-    ) => {
-      formState.setValue(fieldName, readInputValue(event));
+    props.onChange = (reported: unknown) => {
+      formState.setValue(fieldName, readReportedValue(reported));
     };
   };
+
+  /**
+   * Resolves the format's markers wherever they appear inside a prop value.
+   *
+   * `$ref` and `$node` recurse unconditionally — the `$` prefix is reserved by
+   * the wire format, so finding one inside an array is unambiguous. A nested
+   * handler must be exactly handler-shaped, because nested values are normally
+   * data and a row carrying an `action` string must stay a row.
+   */
+  const coerceNested = (value: unknown, path: string, valueDepth: number): unknown => {
+    if (valueDepth > MAX_PROP_DEPTH) return value;
+
+    if (isRefValue(value)) return resolveRef(value.$ref, refContext);
+
+    if (isNodeValue(value)) {
+      return (
+        <NodeErrorBoundary key={path} label={`${node.component}.${path}`}>
+          <NodeRenderer
+            node={value.$node}
+            registry={registry}
+            eventContext={eventContext}
+            depth={depth + 1}
+          />
+        </NodeErrorBoundary>
+      );
+    }
+
+    if (isNestedEventHandlerSpec(value, EVENT_ACTIONS)) {
+      return createEventCallback(value, eventContext);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item, index) => coerceNested(item, `${path}.${index}`, valueDepth + 1));
+    }
+
+    if (typeof value === "object" && value !== null && Object.getPrototypeOf(value) === Object.prototype) {
+      const out: Record<string, unknown> = {};
+      for (const [key, item] of Object.entries(value)) {
+        out[key] = coerceNested(item, `${path}.${key}`, valueDepth + 1);
+      }
+      return out;
+    }
+
+    return value;
+  };
+
+  /**
+   * A column's `render` is `(row, index) => ReactNode`. A document supplies a
+   * `$node` template instead, rendered once per row with the row bound as
+   * `row` / `rowIndex` — the same names `$each` would give it.
+   */
+  const coerceColumnDef = (column: unknown): unknown => {
+    if (typeof column !== "object" || column === null || Array.isArray(column)) return column;
+    const def = column as Record<string, unknown>;
+    if (!isNodeValue(def.render)) return def;
+    const template = def.render.$node;
+    return {
+      ...def,
+      render: (row: unknown, index: number) => (
+        <ViewContextExtender vars={{ row, rowIndex: index }}>
+          <NodeRenderer
+            node={template}
+            registry={registry}
+            eventContext={eventContext}
+            depth={depth + 1}
+          />
+        </ViewContextExtender>
+      ),
+    };
+  };
+
+  // Deferred so the binding lands after every literal prop and every other
+  // handler: an `onChange` declared alongside a binding must not displace it.
+  let boundFieldPath: string | undefined;
 
   for (const [key, value] of Object.entries(node.props ?? {})) {
     // Never let a document reach into React's escape hatches.
@@ -212,11 +325,8 @@ export function NodeRenderer({ node, registry, eventContext, depth = 0 }: NodeRe
     // loop so it wins over a literal `value` declared alongside it.
     if (key === FIELD_BINDING_KEY) continue;
 
-    if (isRefValue(value)) {
-      props[key] = resolveRef(value.$ref, refContext);
-      continue;
-    }
-
+    // A top-level handler is not required to be handler-shaped-and-nothing-else:
+    // the spelling is long-established and the position is unambiguous.
     if (isEventHandlerSpec(value)) {
       props[key] = createEventCallback(value, eventContext);
       continue;
@@ -224,12 +334,15 @@ export function NodeRenderer({ node, registry, eventContext, depth = 0 }: NodeRe
 
     // Accepted spelling: `props: { value: { $field: "contact.email" } }`.
     if (isFieldBinding(value)) {
-      applyFieldBinding(value.$field);
+      boundFieldPath = value.$field;
       continue;
     }
 
     if (isUrlProp(key) && isDangerousUrl(value)) continue;
 
+    // Icon-name strings are coerced by key shape, so — unlike the `$` markers —
+    // this stays at the top level: a data row with an `icon` column must not
+    // silently become an element. Nested slots use `$node` instead.
     if (isIconProp(key) && typeof value === "string") {
       // Most slots are typed ReactNode and want an element; a few are typed
       // LucideIcon and are invoked as a component. Handing over the wrong one
@@ -240,16 +353,36 @@ export function NodeRenderer({ node, registry, eventContext, depth = 0 }: NodeRe
       continue;
     }
 
-    props[key] = value;
+    const coercion = propCoercion(node.component, key);
+    if (coercion === "isoDate") {
+      props[key] = parseIsoDate(value);
+      continue;
+    }
+    if (coercion === "isoDateRange") {
+      props[key] = parseIsoDateRange(value);
+      continue;
+    }
+    if (coercion === "keyAccessor") {
+      props[key] = toKeyAccessor(value);
+      continue;
+    }
+    if (coercion === "columnDefs" && Array.isArray(value)) {
+      props[key] = value.map((column) => coerceColumnDef(column));
+      continue;
+    }
+
+    props[key] = coerceNested(value, key, 0);
   }
 
-  const fieldPath = node.props?.[FIELD_BINDING_KEY];
-  if (typeof fieldPath === "string") applyFieldBinding(fieldPath);
+  // The bare key is canonical, so it wins when both spellings appear.
+  const bareFieldPath = node.props?.[FIELD_BINDING_KEY];
+  if (typeof bareFieldPath === "string") boundFieldPath = bareFieldPath;
+  if (boundFieldPath !== undefined) applyFieldBinding(boundFieldPath);
 
   // Dialog visibility is owned by the renderer so openDialog/closeDialog work.
   // Without an explicit id the dialog is still controllable by its own onClose,
   // but no action can target it — useId keeps that fallback stable across renders.
-  if (node.component === "Dialog" || node.component === "Drawer") {
+  if (DIALOG_COMPONENTS.has(node.component)) {
     const dialogId = typeof node.props?.id === "string" ? node.props.id : autoDialogId;
     props.open = view.dialogStates[dialogId] ?? node.props?.open === true;
     props.onClose = () => eventContext.dialogs.close(dialogId);
@@ -291,19 +424,44 @@ export function NodeRenderer({ node, registry, eventContext, depth = 0 }: NodeRe
     }
   }
 
-  const childNodes = node.children?.map((child, index) => (
-    <NodeErrorBoundary key={nodeKey(child, index)} label={`${node.component}[${index}]`}>
-      <NodeRenderer node={child} registry={registry} eventContext={eventContext} depth={depth + 1} />
-    </NodeErrorBoundary>
-  ));
+  // A cloning parent injected these; they must reach the real element.
+  for (const [key, value] of Object.entries(injected)) {
+    if (FORBIDDEN_PROPS.has(key) && key !== "ref") continue;
+    props[key] = composeProp(key, props[key], value);
+  }
+
+  // A parent that clones or identity-checks its children cannot see past a
+  // boundary. The view's own top-level boundary still contains a throw; only the
+  // per-sibling isolation is traded away, and only at these positions.
+  const parentInspectsChildren = inspectsChildren(node.component, node.props);
+
+  const childNodes = node.children?.map((child, index) =>
+    parentInspectsChildren ? (
+      <NodeRenderer
+        key={nodeKey(child, index)}
+        node={child}
+        registry={registry}
+        eventContext={eventContext}
+        depth={depth + 1}
+      />
+    ) : (
+      <NodeErrorBoundary key={nodeKey(child, index)} label={`${node.component}[${index}]`}>
+        <NodeRenderer node={child} registry={registry} eventContext={eventContext} depth={depth + 1} />
+      </NodeErrorBoundary>
+    ),
+  );
 
   const children = optionChildren ? [...optionChildren, ...(childNodes ?? [])] : childNodes;
 
-  // Passing `children` as a JSX child would clobber a `children` prop that came
-  // from a $ref or a literal, so only spread when the document supplied nodes.
+  // Spread rather than passing the array, so one child arrives as one element
+  // exactly as JSX would deliver it. Components typed `children: ReactElement`
+  // — `Tooltip` — reject an array of one and render nothing at all.
+  //
+  // Omitted entirely when the document supplied no nodes, so a `children` prop
+  // that came from a $ref or a literal is not clobbered by an empty list.
   const element =
     children && children.length > 0
-      ? createElement(Component, props, children)
+      ? createElement(Component, props, ...children)
       : createElement(Component, props);
 
   return <NodeErrorBoundary label={node.component}>{element}</NodeErrorBoundary>;

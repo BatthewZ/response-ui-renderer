@@ -7,6 +7,11 @@ export {
   type ToastOptions,
 } from "./adapters/types";
 export {
+  CHILD_INSPECTING_PARENTS,
+  IDENTITY_CHECKED_PARENTS,
+} from "./registry/child-introspection";
+export { COMPONENT_NOTES,type ComponentNote } from "./registry/component-notes";
+export {
   Icon,
   type IconComponentProps,
   type IconProps,
@@ -16,6 +21,12 @@ export {
   normalizeIconName,
   useIconSet,
 } from "./registry/Icon";
+export {
+  parseIsoDate,
+  parseIsoDateRange,
+  PROP_COERCIONS,
+  type PropCoercion,
+} from "./registry/prop-coercions";
 export { defaultRegistry, listComponentNames } from "./registry/registry";
 export {
   type ComponentRegistry,
@@ -27,6 +38,7 @@ export {
 } from "./registry/types";
 export {
   createEventCallback,
+  EVENT_REF_ROOT,
   type EventHandlerContext,
   validateField,
   validateForm,
@@ -34,6 +46,7 @@ export {
 export { type FormState, toFormRefState, useFormsState } from "./render/form-state";
 export { NodeErrorBoundary } from "./render/NodeErrorBoundary";
 export { NodeRenderer } from "./render/NodeRenderer";
+export { readReportedValue } from "./render/reported-value";
 export {
   EMPTY_REF_CONTEXT,
   type FormRefState,

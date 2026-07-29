@@ -1,3 +1,4 @@
+import { IDENTITY_CHECKED_PARENTS } from "../registry/child-introspection";
 import {
   type DataBinding,
   type EventAction,
@@ -53,7 +54,8 @@ export const warningsOf = (issues: readonly ValidationIssue[]): ValidationIssue[
  */
 export const MAX_NODE_DEPTH = 50;
 
-const EVENT_ACTIONS: ReadonlySet<string> = new Set<EventAction>([
+/** Every action the renderer dispatches. Shared so nothing re-lists them. */
+export const EVENT_ACTIONS: ReadonlySet<string> = new Set<EventAction>([
   "submitForm",
   "resetForm",
   "navigate",
@@ -65,6 +67,21 @@ const EVENT_ACTIONS: ReadonlySet<string> = new Set<EventAction>([
 ]);
 
 const BINDING_TYPES: ReadonlySet<string> = new Set(["static", "api", "source"]);
+
+/**
+ * Components whose open/closed state the renderer owns so `openDialog` and
+ * `closeDialog` can reach them. Each is a controlled-only `<dialog>` with no
+ * uncontrolled fallback, so without this a document could render one and never
+ * open it.
+ *
+ * Shared with the renderer rather than duplicated, and gated by a test that
+ * asserts every name still resolves in the live registry.
+ */
+export const DIALOG_COMPONENTS: ReadonlySet<string> = new Set([
+  "Dialog",
+  "Drawer",
+  "CommandPalette",
+]);
 
 /** Keys that must never reach `createElement`, whatever the document says. */
 export const FORBIDDEN_PROPS: ReadonlySet<string> = new Set([
@@ -158,6 +175,80 @@ function checkEventHandler(value: unknown, path: string, at: Collector, severity
 }
 
 /**
+ * Checks that depend on the component rather than on any prop being present —
+ * so they still fire on a node that declares no props at all.
+ */
+function checkComponentContract(
+  component: string,
+  props: Record<string, unknown>,
+  children: readonly unknown[],
+  path: string,
+  at: Collector,
+): void {
+  // A radio's `value` is the option's identity, so it cannot also carry the
+  // binding — the two spellings collide on one key. The bare form is the only
+  // one that can express both.
+  if (component === "Radio" && isPlainObject(props.value) && "$field" in props.value) {
+    at.warn(
+      `${path}.value`,
+      'Radio needs its own "value"; bind it with the bare form — props: { "value": "…", "$field": "form.field" }',
+    );
+  }
+
+  if (DIALOG_COMPONENTS.has(component) && typeof props.id !== "string") {
+    at.warn(
+      `${path}.id`,
+      `${component} needs a literal string "id" for openDialog/closeDialog to target it; without one nothing can open it`,
+    );
+  }
+
+  // These decide something by comparing a child's element type, which can never
+  // match through the renderer — the child's type is always the renderer's own
+  // node component. The feature is not broken, it just has to be stated rather
+  // than inferred, so say so instead of leaving it silently absent.
+  const hint = IDENTITY_CHECKED_PARENTS[component];
+  if (hint !== undefined && identityCheckWillFail(component, props, children)) {
+    at.warn(path, `${component}: ${hint}`);
+  }
+}
+
+const childComponent = (child: unknown): string | undefined =>
+  isPlainObject(child) && typeof child.component === "string" ? child.component : undefined;
+
+const childProps = (child: unknown): Record<string, unknown> =>
+  isPlainObject(child) && isPlainObject(child.props) ? child.props : {};
+
+/**
+ * Only warns when the document is actually relying on the inference — a `Table`
+ * with no `striped` never needed the row numbering, and a warning it cannot act
+ * on teaches an author to ignore warnings.
+ */
+function identityCheckWillFail(
+  component: string,
+  props: Record<string, unknown>,
+  children: readonly unknown[],
+): boolean {
+  const named = (name: string) => children.some((child) => childComponent(child) === name);
+  const missingProp = (name: string, prop: string) =>
+    children.some((child) => childComponent(child) === name && childProps(child)[prop] === undefined);
+
+  switch (component) {
+    case "Hero":
+      return props.overlay === undefined && named("Hero.Background");
+    case "AvatarGroup":
+      return props.size !== undefined && missingProp("Avatar", "size");
+    case "Table.Body":
+      return missingProp("Table.Row", "index");
+    case "Breadcrumbs":
+      return named("Breadcrumbs.Separator");
+    case "Combobox.Content":
+      return missingProp("Combobox.Item", "index");
+    default:
+      return false;
+  }
+}
+
+/**
  * Props are validated as policy, not structure: the Zod mirror types `props` as
  * an open record, so flagging these as errors would make the two validators
  * disagree about conformance. The renderer drops each offending prop.
@@ -214,9 +305,15 @@ function checkNode(node: unknown, path: string, depth: number, at: Collector): v
     if (typeof node.component !== "string" || node.component.length === 0) {
       at.error(`${path}.component`, "component must be a non-empty string");
     }
-    if (node.props !== undefined) {
-      if (!isPlainObject(node.props)) at.error(`${path}.props`, "props must be an object");
-      else checkProps(node.props, `${path}.props`, at);
+    const props = isPlainObject(node.props) ? node.props : undefined;
+    if (node.props !== undefined && props === undefined) {
+      at.error(`${path}.props`, "props must be an object");
+    } else if (props) {
+      checkProps(props, `${path}.props`, at);
+    }
+    if (typeof node.component === "string") {
+      const children = Array.isArray(node.children) ? node.children : [];
+      checkComponentContract(node.component, props ?? {}, children, `${path}.props`, at);
     }
     if (node.children !== undefined) {
       if (!Array.isArray(node.children)) at.error(`${path}.children`, "children must be an array");
@@ -369,6 +466,10 @@ export function validateViewSpec(input: unknown): ValidationResult {
         checkForm(form, `forms.${key}`, at);
       }
     }
+  }
+
+  if (input.state !== undefined && !isPlainObject(input.state)) {
+    at.error("state", "state must be an object");
   }
 
   if (input.root === undefined) at.error("root", "root is required");

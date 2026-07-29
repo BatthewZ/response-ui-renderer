@@ -8,6 +8,7 @@
     "dist",
     "src",
     "AGENTS.md",
+    "VIEWSPEC.md",
     "CHANGELOG.md",
     "README.md",
     "LICENSE"
@@ -48,9 +49,10 @@
     "lint": "eslint src",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "bun run build && bun run typecheck && bun run test",
+    "prepublishOnly": "bun run build && bun run typecheck && bun run docs:viewspec -- --check && bun run test",
     "dev": "vite --config dev/vite.config.ts",
-    "dev:build": "vite build --config dev/vite.config.ts"
+    "dev:build": "vite build --config dev/vite.config.ts",
+    "docs:viewspec": "node scripts/gen-viewspec-doc.mjs"
   },
   "peerDependencies": {
     "@batthewz/response-ui-react-components": "^0.9.0",

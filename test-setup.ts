@@ -31,6 +31,43 @@ if (typeof globalThis.ResizeObserver === "undefined") {
   } as unknown as typeof ResizeObserver;
 }
 
+// Also absent from jsdom. Any component that keeps an active option in view
+// (CommandPalette, Combobox, MultiSelect) calls it from an effect on mount.
+if (typeof Element !== "undefined" && typeof Element.prototype.scrollIntoView !== "function") {
+  Element.prototype.scrollIntoView = function scrollIntoView() {
+    /* jsdom has no layout to scroll */
+  };
+}
+
+// jsdom implements <dialog> as an element but ships none of its methods, and
+// Dialog/Drawer/CommandPalette all call showModal() from a mount effect. Without
+// these, opening one throws and the renderer's error boundary reports it as a
+// render failure — so nothing could assert a dialog ever opens.
+if (typeof HTMLDialogElement !== "undefined") {
+  const proto = HTMLDialogElement.prototype as HTMLDialogElement & {
+    showModal?: () => void;
+    show?: () => void;
+    close?: (returnValue?: string) => void;
+  };
+  if (typeof proto.showModal !== "function") {
+    proto.showModal = function showModal(this: HTMLDialogElement) {
+      this.open = true;
+    };
+  }
+  if (typeof proto.show !== "function") {
+    proto.show = function show(this: HTMLDialogElement) {
+      this.open = true;
+    };
+  }
+  if (typeof proto.close !== "function") {
+    proto.close = function close(this: HTMLDialogElement, returnValue?: string) {
+      this.open = false;
+      if (returnValue !== undefined) this.returnValue = returnValue;
+      this.dispatchEvent(new Event("close"));
+    };
+  }
+}
+
 afterEach(() => {
   cleanup();
 });

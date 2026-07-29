@@ -1,0 +1,829 @@
+{
+  "version": 1,
+  "title": "Coverage: display",
+  "description": "A platform status console — stat cards, rollout bars, saturation meters, availability rings and a runbook snippet — naming every display component the registry exposes.",
+  "data": {
+    "degraded": { "type": "static", "value": true },
+    "uptime": { "type": "static", "value": "99.98% over 30 days" },
+    "metrics": {
+      "type": "static",
+      "value": [
+        {
+          "id": "requests",
+          "label": "Requests / min",
+          "value": "48.2k",
+          "icon": "Activity",
+          "trend": 6.4,
+          "direction": "up",
+          "series": [31, 34, 33, 38, 41, 39, 44, 46, 48]
+        },
+        {
+          "id": "error-budget",
+          "label": "Error budget left",
+          "value": "62%",
+          "icon": "ShieldAlert",
+          "trend": 12.5,
+          "direction": "down",
+          "series": [98, 94, 89, 85, 80, 74, 71, 66, 62]
+        },
+        {
+          "id": "p95",
+          "label": "p95 latency",
+          "value": "184 ms",
+          "icon": "Timer",
+          "trend": 0.3,
+          "direction": "neutral",
+          "series": [182, 186, 181, 185, 183, 184, 182, 185, 184]
+        },
+        {
+          "id": "deploys",
+          "label": "Deploys today",
+          "value": "17",
+          "icon": "Rocket",
+          "trend": 21.4,
+          "direction": "up",
+          "series": [6, 8, 7, 11, 9, 13, 12, 15, 17]
+        }
+      ]
+    },
+    "rollouts": {
+      "type": "static",
+      "value": [
+        {
+          "id": "ingest",
+          "name": "ingest-worker v4.2.0",
+          "percent": 100,
+          "display": "100% — complete",
+          "color": "success",
+          "variant": "default"
+        },
+        {
+          "id": "gateway",
+          "name": "edge-gateway v2.9.1",
+          "percent": 64,
+          "display": "64% — 32 of 50 pods",
+          "color": "accent",
+          "variant": "striped"
+        },
+        {
+          "id": "search",
+          "name": "search-index v1.14.0",
+          "percent": 18,
+          "display": "18% — canary only",
+          "color": "warning",
+          "variant": "gradient"
+        }
+      ]
+    },
+    "resources": {
+      "type": "static",
+      "value": [
+        {
+          "id": "cpu",
+          "label": "CPU",
+          "reading": "41% of 96 vCPU",
+          "value": 41,
+          "warningAt": 70,
+          "criticalAt": 90
+        },
+        {
+          "id": "memory",
+          "label": "Memory",
+          "reading": "77% of 384 GiB",
+          "value": 77,
+          "warningAt": 70,
+          "criticalAt": 90
+        },
+        {
+          "id": "disk",
+          "label": "Disk",
+          "reading": "93% of 8 TiB",
+          "value": 93,
+          "warningAt": 70,
+          "criticalAt": 90
+        },
+        {
+          "id": "queue",
+          "label": "Queue depth",
+          "reading": "12k of 50k messages",
+          "value": 24,
+          "warningAt": 60,
+          "criticalAt": 85
+        }
+      ]
+    },
+    "regions": {
+      "type": "static",
+      "value": [
+        { "id": "eu-west-1", "name": "eu-west-1", "availability": 100, "display": "100%", "color": "success" },
+        { "id": "us-east-2", "name": "us-east-2", "availability": 97, "display": "97%", "color": "accent" },
+        { "id": "ap-south-1", "name": "ap-south-1", "availability": 82, "display": "82%", "color": "warning" }
+      ]
+    },
+    "oncall": {
+      "type": "static",
+      "value": [
+        { "id": "rk", "name": "Rina Kobayashi", "status": "online", "role": "Primary" },
+        { "id": "ad", "name": "Adaeze Duru", "status": "online", "role": "Secondary" },
+        { "id": "mf", "name": "Marco Ferreira", "status": "away", "role": "Comms" },
+        { "id": "sh", "name": "Sofia Haugen", "status": "offline", "role": "Escalation" }
+      ]
+    },
+    "latency": {
+      "type": "static",
+      "value": [212, 205, 231, 198, 187, 194, 176, 181, 168, 172, 184, 179]
+    },
+    "release": {
+      "type": "static",
+      "value": {
+        "version": "2026.7.3",
+        "commit": "9f4c1ab",
+        "shippedBy": "Adaeze Duru",
+        "shippedAt": "28 Jul 2026, 09:14 UTC",
+        "traceId": "trace_01J9XQ2M4RZK7B",
+        "channel": "Stable"
+      }
+    },
+    "runbook": {
+      "type": "static",
+      "value": "# Drain the node, then roll the worker set.\nkubectl drain node/ingest-07 --ignore-daemonsets\nkubectl rollout restart deploy/ingest-worker -n platform\nkubectl rollout status deploy/ingest-worker -n platform --timeout=5m"
+    },
+    "hasIncidents": { "type": "static", "value": false },
+    "incidents": { "type": "static", "value": [] },
+    "tracesLoading": { "type": "static", "value": true },
+    "satisfaction": { "type": "static", "value": 4.5 }
+  },
+  "state": {
+    "toastOpen": true,
+    "rating": 4
+  },
+  "root": {
+    "component": "Container",
+    "props": { "size": "lg" },
+    "children": [
+      {
+        "component": "Stack",
+        "props": { "gap": "r2" },
+        "children": [
+          {
+            "component": "Row",
+            "props": { "gap": "r4", "align": "center" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r6" },
+                "children": [
+                  { "component": "Text", "props": { "variant": "h2" }, "children": ["Platform status"] },
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-2", "color": "secondary" },
+                    "children": ["Four regions, 62 services. Refreshed a moment ago."]
+                  }
+                ]
+              },
+              { "component": "Spacer" },
+              {
+                "component": "Badge",
+                "props": { "variant": "success", "statusIcon": "CircleCheck" },
+                "children": [{ "$ref": "data.uptime" }]
+              },
+              {
+                "component": "AvatarGroup",
+                "props": { "size": "sm" },
+                "children": [
+                  {
+                    "$each": "data.oncall",
+                    "as": "person",
+                    "node": {
+                      "component": "Avatar",
+                      "props": {
+                        "size": "sm",
+                        "name": { "$ref": "person.name" },
+                        "status": { "$ref": "person.status" },
+                        "title": { "$ref": "person.role" }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "component": "IconButton",
+                "props": {
+                  "aria-label": "Refresh status",
+                  "onClick": { "action": "showToast", "payload": { "message": "Refreshing platform status…", "variant": "info" } }
+                },
+                "children": [{ "component": "Icon", "props": { "name": "RefreshCw", "size": 16 } }]
+              },
+              {
+                "component": "Button",
+                "props": {
+                  "variant": "secondary",
+                  "size": "sm",
+                  "onClick": { "action": "navigate", "payload": { "path": "/status/history" } }
+                },
+                "children": ["View history"]
+              }
+            ]
+          },
+
+          {
+            "$cond": "state.toastOpen",
+            "then": {
+              "component": "Toast",
+              "props": {
+                "variant": "success",
+                "title": "Rollback complete",
+                "onDismiss": { "action": "setState", "payload": { "key": "toastOpen", "value": false } }
+              },
+              "children": ["edge-gateway v2.9.0 is serving every region again."]
+            }
+          },
+
+          {
+            "$cond": "data.degraded",
+            "then": {
+              "component": "Alert",
+              "props": { "variant": "warning", "statusIcon": "CloudOff" },
+              "children": [
+                "ap-south-1 is running on reduced capacity while we replace two failed nodes. Writes are unaffected."
+              ]
+            },
+            "else": {
+              "component": "Alert",
+              "props": { "variant": "success" },
+              "children": ["Every region is healthy."]
+            }
+          },
+
+          {
+            "component": "Grid",
+            "props": { "columns": { "base": 1, "md": 2, "lg": 4 }, "gap": "r4" },
+            "children": [
+              {
+                "$each": "data.metrics",
+                "as": "metric",
+                "node": {
+                  "component": "StatCard",
+                  "children": [
+                    {
+                      "component": "StatCard.Icon",
+                      "children": [{ "component": "Icon", "props": { "name": { "$ref": "metric.icon" }, "size": 18 } }]
+                    },
+                    { "component": "StatCard.Value", "children": [{ "$ref": "metric.value" }] },
+                    { "component": "StatCard.Label", "children": [{ "$ref": "metric.label" }] },
+                    {
+                      "component": "StatCard.Trend",
+                      "props": { "value": { "$ref": "metric.trend" }, "direction": { "$ref": "metric.direction" } }
+                    },
+                    {
+                      "component": "StatCard.Sparkline",
+                      "props": {
+                        "values": { "$ref": "metric.series" },
+                        "direction": { "$ref": "metric.direction" },
+                        "variant": "area",
+                        "aria-label": "Last nine samples"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+
+          { "component": "Divider" },
+
+          {
+            "component": "Grid",
+            "props": { "columns": { "base": 1, "lg": 2 }, "gap": "r4" },
+            "children": [
+              {
+                "component": "Card",
+                "props": { "padding": "r4" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h5" }, "children": ["Rollouts in flight"] },
+                      {
+                        "$each": "data.rollouts",
+                        "as": "rollout",
+                        "node": {
+                          "component": "Stack",
+                          "props": { "gap": "r6" },
+                          "children": [
+                            {
+                              "component": "Row",
+                              "props": { "gap": "r5", "align": "baseline" },
+                              "children": [
+                                {
+                                  "component": "ProgressBar.Label",
+                                  "props": { "id": { "$ref": "rollout.id" } },
+                                  "children": [{ "$ref": "rollout.name" }]
+                                },
+                                { "component": "Spacer" },
+                                { "component": "ProgressBar.Value", "children": [{ "$ref": "rollout.display" }] }
+                              ]
+                            },
+                            {
+                              "component": "ProgressBar",
+                              "props": {
+                                "value": { "$ref": "rollout.percent" },
+                                "max": 100,
+                                "size": "md",
+                                "color": { "$ref": "rollout.color" },
+                                "variant": { "$ref": "rollout.variant" },
+                                "aria-labelledby": { "$ref": "rollout.id" }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "component": "Card",
+                "props": { "padding": "r4" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h5" }, "children": ["Fleet saturation"] },
+                      {
+                        "$each": "data.resources",
+                        "as": "resource",
+                        "node": {
+                          "component": "Stack",
+                          "props": { "gap": "r6" },
+                          "children": [
+                            {
+                              "component": "Row",
+                              "props": { "gap": "r5", "align": "baseline" },
+                              "children": [
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-2", "as": "span", "weight": "semibold" },
+                                  "children": [{ "$ref": "resource.label" }]
+                                },
+                                { "component": "Spacer" },
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-3", "as": "span", "color": "secondary" },
+                                  "children": [{ "$ref": "resource.reading" }]
+                                }
+                              ]
+                            },
+                            {
+                              "component": "Meter",
+                              "props": {
+                                "value": { "$ref": "resource.value" },
+                                "min": 0,
+                                "max": 100,
+                                "segments": 12,
+                                "warningAt": { "$ref": "resource.warningAt" },
+                                "criticalAt": { "$ref": "resource.criticalAt" },
+                                "aria-label": { "$ref": "resource.label" }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "component": "Card",
+            "props": { "padding": "r4" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r4" },
+                "children": [
+                  {
+                    "component": "Row",
+                    "props": { "gap": "r5", "align": "center" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h5" }, "children": ["Availability by region"] },
+                      { "component": "Spacer" },
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r6", "align": "center" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-3", "as": "span", "color": "secondary" },
+                            "children": ["p95 latency, last 12 hours"]
+                          },
+                          {
+                            "component": "Sparkline",
+                            "props": {
+                              "values": { "$ref": "data.latency" },
+                              "variant": "line",
+                              "width": 140,
+                              "height": 28,
+                              "aria-label": "p95 latency fell from 212 ms to 179 ms over the last twelve hours"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Row",
+                    "props": { "gap": "r3", "align": "start", "wrap": true },
+                    "children": [
+                      {
+                        "$each": "data.regions",
+                        "as": "region",
+                        "node": {
+                          "component": "Stack",
+                          "props": { "gap": "r6" },
+                          "children": [
+                            {
+                              "component": "Center",
+                              "children": [
+                                {
+                                  "component": "ProgressRing",
+                                  "props": {
+                                    "value": { "$ref": "region.availability" },
+                                    "max": 100,
+                                    "size": 72,
+                                    "thickness": 7,
+                                    "color": { "$ref": "region.color" },
+                                    "aria-label": { "$ref": "region.name" }
+                                  },
+                                  "children": [
+                                    {
+                                      "component": "Text",
+                                      "props": { "variant": "body-2", "as": "span", "weight": "bold" },
+                                      "children": [{ "$ref": "region.display" }]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "component": "Center",
+                              "children": [
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-3", "as": "span", "color": "secondary" },
+                                  "children": [{ "$ref": "region.name" }]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      { "component": "Divider", "props": { "orientation": "vertical" } },
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r6" },
+                        "children": [
+                          {
+                            "$each": "data.oncall",
+                            "as": "person",
+                            "node": {
+                              "component": "Row",
+                              "props": { "gap": "r5", "align": "center" },
+                              "children": [
+                                {
+                                  "component": "Avatar",
+                                  "props": {
+                                    "size": "xs",
+                                    "name": { "$ref": "person.name" },
+                                    "status": { "$ref": "person.status" }
+                                  }
+                                },
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-3", "as": "span" },
+                                  "children": [{ "$ref": "person.name" }]
+                                },
+                                { "component": "Badge", "children": [{ "$ref": "person.role" }] }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "component": "Grid",
+            "props": { "columns": { "base": 1, "lg": 2 }, "gap": "r4" },
+            "children": [
+              {
+                "component": "Card",
+                "props": { "padding": "r4" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h5" }, "children": ["Current release"] },
+                      {
+                        "component": "DescriptionList",
+                        "props": { "layout": "horizontal" },
+                        "children": [
+                          { "component": "DescriptionList.Term", "children": ["Version"] },
+                          { "component": "DescriptionList.Detail", "children": [{ "$ref": "data.release.version" }] },
+                          { "component": "DescriptionList.Term", "children": ["Channel"] },
+                          {
+                            "component": "DescriptionList.Detail",
+                            "children": [
+                              { "component": "Badge", "props": { "variant": "info" }, "children": [{ "$ref": "data.release.channel" }] }
+                            ]
+                          },
+                          { "component": "DescriptionList.Term", "children": ["Commit"] },
+                          { "component": "DescriptionList.Detail", "children": [{ "$ref": "data.release.commit" }] },
+                          { "component": "DescriptionList.Term", "children": ["Shipped by"] },
+                          { "component": "DescriptionList.Detail", "children": [{ "$ref": "data.release.shippedBy" }] },
+                          { "component": "DescriptionList.Term", "children": ["Shipped at"] },
+                          { "component": "DescriptionList.Detail", "children": [{ "$ref": "data.release.shippedAt" }] },
+                          { "component": "DescriptionList.Term", "children": ["Trace"] },
+                          {
+                            "component": "DescriptionList.Detail",
+                            "children": [
+                              {
+                                "component": "Row",
+                                "props": { "gap": "r6", "align": "center" },
+                                "children": [
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-3", "as": "span" },
+                                    "children": [{ "$ref": "data.release.traceId" }]
+                                  },
+                                  {
+                                    "component": "CopyButton",
+                                    "props": {
+                                      "value": "trace_01J9XQ2M4RZK7B",
+                                      "aria-label": "Copy trace id",
+                                      "copiedLabel": "Trace id copied"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "component": "Card",
+                "props": { "padding": "r4" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
+                    "children": [
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r5", "align": "center" },
+                        "children": [
+                          { "component": "Text", "props": { "variant": "h5" }, "children": ["Runbook — restart the ingest worker"] },
+                          { "component": "Spacer" },
+                          {
+                            "component": "IconButton",
+                            "props": {
+                              "aria-label": "Open the full runbook",
+                              "onClick": { "action": "navigate", "payload": { "path": "/runbooks/ingest-worker" } }
+                            },
+                            "children": [{ "component": "Icon", "props": { "name": "ExternalLink", "size": 16 } }]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "CodeBlock",
+                        "props": {
+                          "code": { "$ref": "data.runbook" },
+                          "language": "bash",
+                          "filename": "restart-ingest-worker.sh",
+                          "showLineNumbers": true
+                        }
+                      },
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r6", "align": "center" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-3", "as": "span", "color": "muted" },
+                            "children": ["Press"]
+                          },
+                          { "component": "Kbd", "children": ["⌘"] },
+                          { "component": "Kbd", "children": ["K"] },
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-3", "as": "span", "color": "muted" },
+                            "children": ["to search every runbook."]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "component": "Card",
+            "props": { "padding": "r4" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r4" },
+                "children": [
+                  { "component": "Text", "props": { "variant": "h5" }, "children": ["Trace samples"] },
+                  {
+                    "$cond": "data.tracesLoading",
+                    "then": {
+                      "component": "Stack",
+                      "props": { "gap": "r5" },
+                      "children": [
+                        {
+                          "component": "Row",
+                          "props": { "gap": "r5", "align": "center" },
+                          "children": [
+                            { "component": "Skeleton", "props": { "variant": "circular", "width": 32, "height": 32 } },
+                            { "component": "Skeleton", "props": { "variant": "text", "width": "40%", "height": 12 } }
+                          ]
+                        },
+                        { "component": "Skeleton", "props": { "variant": "rounded", "width": "100%", "height": 56 } },
+                        { "component": "Skeleton", "props": { "variant": "rectangular", "width": "72%", "height": 12 } },
+                        {
+                          "component": "Row",
+                          "props": { "gap": "r5", "align": "center" },
+                          "children": [
+                            { "component": "Spinner", "props": { "size": "sm" }, "children": ["Sampling traces"] },
+                            {
+                              "component": "Text",
+                              "props": { "variant": "body-3", "as": "span", "color": "muted" },
+                              "children": ["Pulling the last 500 spans from ap-south-1…"]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "else": {
+                      "component": "Text",
+                      "props": { "variant": "body-2", "color": "secondary" },
+                      "children": ["500 spans sampled. Nothing exceeded the 1 s budget."]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "$cond": "data.hasIncidents",
+            "then": {
+              "component": "Stack",
+              "props": { "gap": "r5" },
+              "children": [
+                {
+                  "$each": "data.incidents",
+                  "as": "incident",
+                  "node": {
+                    "component": "Card",
+                    "props": { "padding": "r4" },
+                    "children": [
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r5", "align": "center" },
+                        "children": [
+                          {
+                            "component": "Badge",
+                            "props": { "variant": "error", "statusIcon": "CircleX" },
+                            "children": [{ "$ref": "incident.severity" }]
+                          },
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "as": "span" },
+                            "children": [{ "$ref": "incident.summary" }]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "else": {
+              "component": "EmptyState",
+              "props": { "size": "md" },
+              "children": [
+                {
+                  "component": "EmptyStateIcon",
+                  "children": [{ "component": "Icon", "props": { "name": "ShieldCheck", "size": 32 } }]
+                },
+                { "component": "EmptyStateTitle", "props": { "as": "h3" }, "children": ["No open incidents"] },
+                {
+                  "component": "EmptyStateDescription",
+                  "children": [
+                    "The last page fired 19 days ago and was resolved in 11 minutes. Alerting is live across all four regions."
+                  ]
+                },
+                {
+                  "component": "EmptyStateActions",
+                  "children": [
+                    {
+                      "component": "Button",
+                      "props": {
+                        "variant": "secondary",
+                        "onClick": { "action": "navigate", "payload": { "path": "/incidents/archive" } }
+                      },
+                      "children": ["Browse the archive"]
+                    },
+                    {
+                      "component": "Button",
+                      "props": {
+                        "variant": "primary",
+                        "onClick": { "action": "showToast", "payload": { "message": "Incident draft created.", "variant": "info" } }
+                      },
+                      "children": ["Declare an incident"]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+
+          { "component": "Divider" },
+
+          {
+            "component": "Row",
+            "props": { "gap": "r5", "align": "center", "wrap": true },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r6" },
+                "children": [
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-2", "weight": "semibold" },
+                    "children": ["How useful was this console today?"]
+                  },
+                  {
+                    "component": "Rating",
+                    "props": {
+                      "aria-label": "Rate this console",
+                      "value": { "$ref": "state.rating" },
+                      "max": 5,
+                      "onValueChange": {
+                        "action": "setState",
+                        "payload": { "key": "rating", "value": { "$ref": "event.value" } }
+                      }
+                    }
+                  }
+                ]
+              },
+              { "component": "Spacer" },
+              {
+                "component": "Row",
+                "props": { "gap": "r6", "align": "center" },
+                "children": [
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-3", "as": "span", "color": "secondary" },
+                    "children": ["Team average"]
+                  },
+                  {
+                    "component": "Rating",
+                    "props": {
+                      "aria-label": "Team average rating",
+                      "value": { "$ref": "data.satisfaction" },
+                      "allowHalf": true,
+                      "readOnly": true
+                    }
+                  },
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-3", "as": "span", "color": "muted" },
+                    "children": ["4.5 from 128 responses"]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

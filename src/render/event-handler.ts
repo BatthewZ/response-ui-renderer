@@ -12,10 +12,40 @@ import {
   type ValidationRules,
 } from "../spec/types";
 import type { FormState } from "./form-state";
+import { readReportedValue } from "./reported-value";
 import { type RefContext, resolveDeep } from "./resolve-ref";
 
 /** Guards against a document wiring onSuccess → onError → onSuccess forever. */
 const MAX_HANDLER_DEPTH = 5;
+
+/**
+ * Reserved ref root, readable only from inside a handler payload.
+ *
+ * Without it a callback's argument is unreachable, so no component can report a
+ * value back — `Pagination` (controlled-only, no `defaultPage`) could never
+ * move, and every `onValueChange` was write-only. It shadows a `$each` alias of
+ * the same name, so `event` is reserved inside handlers.
+ */
+export const EVENT_REF_ROOT = "event";
+
+/**
+ * `event.value` — the first argument, DOM events unwrapped to their value.
+ * `event.args.0`, `event.args.1`, … — raw positionals, for callbacks that
+ * report more than one thing.
+ *
+ * Deliberately not propagated into `onSuccess`/`onError` chains: those run after
+ * a request, not in response to the original interaction, so an `event` there
+ * would name a value that is no longer the one the user acted on.
+ */
+function withEventScope(base: RefContext, args: readonly unknown[]): RefContext {
+  return {
+    ...base,
+    vars: {
+      ...base.vars,
+      [EVENT_REF_ROOT]: { value: readReportedValue(args[0]), args },
+    },
+  };
+}
 
 export type EventHandlerContext = {
   adapters: RendererAdapters;
@@ -112,15 +142,16 @@ export function createEventCallback(
   handler: EventHandlerSpec,
   context: EventHandlerContext,
   depth = 0,
-): () => void {
+): (...args: unknown[]) => void {
   if (depth > MAX_HANDLER_DEPTH) {
     warn(`handler nesting exceeded ${MAX_HANDLER_DEPTH}; ignoring`);
     return () => undefined;
   }
 
-  return () => {
+  return (...args: unknown[]) => {
     const raw = handler.payload ?? {};
-    const { adapters, refContext } = context;
+    const { adapters } = context;
+    const refContext = withEventScope(context.refContext, args);
     const payload = resolveDeep(raw, refContext) as Record<string, unknown>;
 
     switch (handler.action) {

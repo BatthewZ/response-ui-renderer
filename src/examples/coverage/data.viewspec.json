@@ -1,0 +1,650 @@
+{
+  "version": 1,
+  "title": "Coverage: data",
+  "description": "An order operations console: a paged DataTable of orders, a hand-authored audit Table driven by $each, a windowed ledger, and the day's activity as a feed and a timeline.",
+  "state": {
+    "page": 3,
+    "auditSort": "when"
+  },
+  "data": {
+    "orders": {
+      "type": "static",
+      "value": [
+        {
+          "id": "ORD-4417",
+          "customer": "Ada Lovelace",
+          "region": "EU-West",
+          "items": 3,
+          "total": "£248.00",
+          "placed": "2026-07-18",
+          "status": "Shipped",
+          "tone": "success"
+        },
+        {
+          "id": "ORD-4418",
+          "customer": "Grace Hopper",
+          "region": "US-East",
+          "items": 1,
+          "total": "£64.50",
+          "placed": "2026-07-18",
+          "status": "Awaiting payment",
+          "tone": "warning"
+        },
+        {
+          "id": "ORD-4419",
+          "customer": "Karen Spärck Jones",
+          "region": "EU-West",
+          "items": 7,
+          "total": "£1,310.00",
+          "placed": "2026-07-19",
+          "status": "Shipped",
+          "tone": "success"
+        },
+        {
+          "id": "ORD-4420",
+          "customer": "Radia Perlman",
+          "region": "US-West",
+          "items": 2,
+          "total": "£188.20",
+          "placed": "2026-07-20",
+          "status": "Held for review",
+          "tone": "error"
+        },
+        {
+          "id": "ORD-4421",
+          "customer": "Barbara Liskov",
+          "region": "EU-North",
+          "items": 4,
+          "total": "£402.75",
+          "placed": "2026-07-21",
+          "status": "Packing",
+          "tone": "info"
+        },
+        {
+          "id": "ORD-4422",
+          "customer": "Margaret Hamilton",
+          "region": "US-East",
+          "items": 12,
+          "total": "£2,940.00",
+          "placed": "2026-07-22",
+          "status": "Shipped",
+          "tone": "success"
+        },
+        {
+          "id": "ORD-4423",
+          "customer": "Shafi Goldwasser",
+          "region": "EU-West",
+          "items": 1,
+          "total": "£39.99",
+          "placed": "2026-07-23",
+          "status": "Refunded",
+          "tone": "default"
+        },
+        {
+          "id": "ORD-4424",
+          "customer": "Frances Allen",
+          "region": "APAC",
+          "items": 5,
+          "total": "£611.40",
+          "placed": "2026-07-24",
+          "status": "Packing",
+          "tone": "info"
+        }
+      ]
+    },
+    "auditEntries": {
+      "type": "static",
+      "value": [
+        {
+          "id": "aud-9001",
+          "when": "09:12",
+          "actor": "j.okafor",
+          "event": "Refund issued",
+          "target": "ORD-4423",
+          "outcome": "Allowed",
+          "tone": "success"
+        },
+        {
+          "id": "aud-9002",
+          "when": "09:47",
+          "actor": "payments-bot",
+          "event": "Capture retried",
+          "target": "ORD-4418",
+          "outcome": "Deferred",
+          "tone": "warning"
+        },
+        {
+          "id": "aud-9003",
+          "when": "11:03",
+          "actor": "s.nakamura",
+          "event": "Address amended",
+          "target": "ORD-4420",
+          "outcome": "Allowed",
+          "tone": "success"
+        },
+        {
+          "id": "aud-9004",
+          "when": "11:58",
+          "actor": "fraud-screen",
+          "event": "Manual review opened",
+          "target": "ORD-4420",
+          "outcome": "Blocked",
+          "tone": "error"
+        },
+        {
+          "id": "aud-9005",
+          "when": "14:26",
+          "actor": "warehouse-eu",
+          "event": "Consignment split",
+          "target": "ORD-4419",
+          "outcome": "Allowed",
+          "tone": "success"
+        }
+      ]
+    },
+    "ledger": {
+      "type": "static",
+      "value": [
+        { "id": "TXN-100001", "posted": "2026-07-24 08:02", "account": "Receivables", "reference": "ORD-4424", "amount": "£611.40", "direction": "Debit" },
+        { "id": "TXN-100002", "posted": "2026-07-24 08:14", "account": "Card settlement", "reference": "ORD-4424", "amount": "£611.40", "direction": "Credit" },
+        { "id": "TXN-100003", "posted": "2026-07-23 16:41", "account": "Refunds", "reference": "ORD-4423", "amount": "£39.99", "direction": "Debit" },
+        { "id": "TXN-100004", "posted": "2026-07-23 16:41", "account": "Card settlement", "reference": "ORD-4423", "amount": "£39.99", "direction": "Credit" },
+        { "id": "TXN-100005", "posted": "2026-07-22 19:20", "account": "Receivables", "reference": "ORD-4422", "amount": "£2,940.00", "direction": "Debit" },
+        { "id": "TXN-100006", "posted": "2026-07-22 19:22", "account": "Shipping recovery", "reference": "ORD-4422", "amount": "£48.00", "direction": "Credit" },
+        { "id": "TXN-100007", "posted": "2026-07-22 09:05", "account": "Duty and tax", "reference": "ORD-4421", "amount": "£80.55", "direction": "Credit" },
+        { "id": "TXN-100008", "posted": "2026-07-21 13:37", "account": "Receivables", "reference": "ORD-4421", "amount": "£402.75", "direction": "Debit" },
+        { "id": "TXN-100009", "posted": "2026-07-21 10:11", "account": "Chargeback reserve", "reference": "ORD-4420", "amount": "£188.20", "direction": "Credit" },
+        { "id": "TXN-100010", "posted": "2026-07-20 17:54", "account": "Receivables", "reference": "ORD-4420", "amount": "£188.20", "direction": "Debit" },
+        { "id": "TXN-100011", "posted": "2026-07-20 08:30", "account": "Shipping recovery", "reference": "ORD-4419", "amount": "£26.00", "direction": "Credit" },
+        { "id": "TXN-100012", "posted": "2026-07-19 15:02", "account": "Receivables", "reference": "ORD-4419", "amount": "£1,310.00", "direction": "Debit" },
+        { "id": "TXN-100013", "posted": "2026-07-19 15:04", "account": "Card settlement", "reference": "ORD-4419", "amount": "£1,310.00", "direction": "Credit" },
+        { "id": "TXN-100014", "posted": "2026-07-18 12:48", "account": "Receivables", "reference": "ORD-4418", "amount": "£64.50", "direction": "Debit" },
+        { "id": "TXN-100015", "posted": "2026-07-18 12:49", "account": "Payment gateway fees", "reference": "ORD-4418", "amount": "£1.87", "direction": "Credit" },
+        { "id": "TXN-100016", "posted": "2026-07-18 09:33", "account": "Receivables", "reference": "ORD-4417", "amount": "£248.00", "direction": "Debit" },
+        { "id": "TXN-100017", "posted": "2026-07-18 09:35", "account": "Card settlement", "reference": "ORD-4417", "amount": "£248.00", "direction": "Credit" },
+        { "id": "TXN-100018", "posted": "2026-07-17 21:15", "account": "Duty and tax", "reference": "ORD-4416", "amount": "£12.40", "direction": "Credit" },
+        { "id": "TXN-100019", "posted": "2026-07-17 18:02", "account": "Receivables", "reference": "ORD-4416", "amount": "£95.00", "direction": "Debit" },
+        { "id": "TXN-100020", "posted": "2026-07-17 11:44", "account": "Refunds", "reference": "ORD-4415", "amount": "£220.00", "direction": "Debit" },
+        { "id": "TXN-100021", "posted": "2026-07-16 20:19", "account": "Chargeback reserve", "reference": "ORD-4412", "amount": "£75.00", "direction": "Credit" },
+        { "id": "TXN-100022", "posted": "2026-07-16 09:58", "account": "Receivables", "reference": "ORD-4412", "amount": "£75.00", "direction": "Debit" }
+      ]
+    },
+    "activity": {
+      "type": "static",
+      "value": [
+        {
+          "id": "act-1",
+          "icon": "package-check",
+          "actor": "warehouse-eu",
+          "action": "picked",
+          "target": "ORD-4419",
+          "timestamp": "18 minutes ago",
+          "note": "Split across two consignments; the second leaves on tomorrow's van."
+        },
+        {
+          "id": "act-2",
+          "icon": "shield-alert",
+          "actor": "fraud-screen",
+          "action": "flagged",
+          "target": "ORD-4420",
+          "timestamp": "52 minutes ago",
+          "note": "Billing country and shipping country disagree."
+        },
+        {
+          "id": "act-3",
+          "icon": "credit-card",
+          "actor": "payments-bot",
+          "action": "retried the capture on",
+          "target": "ORD-4418",
+          "timestamp": "2 hours ago"
+        },
+        {
+          "id": "act-4",
+          "icon": "undo-2",
+          "actor": "j.okafor",
+          "action": "refunded",
+          "target": "ORD-4423",
+          "timestamp": "5 hours ago"
+        },
+        {
+          "id": "act-5",
+          "icon": "truck",
+          "actor": "carrier-webhook",
+          "action": "confirmed delivery of",
+          "target": "ORD-4417",
+          "timestamp": "yesterday"
+        }
+      ]
+    },
+    "milestones": {
+      "type": "static",
+      "value": [
+        {
+          "id": "ms-1",
+          "date": "22 July",
+          "title": "Order placed",
+          "detail": "Twelve items reserved from the US-East warehouse.",
+          "icon": "file-clock"
+        },
+        {
+          "id": "ms-2",
+          "date": "22 July",
+          "title": "Payment captured",
+          "detail": "£2,940.00 settled by card, net of an £8.51 gateway fee.",
+          "icon": "credit-card"
+        },
+        {
+          "id": "ms-3",
+          "date": "23 July",
+          "title": "Handed to the carrier",
+          "detail": "Two parcels, tracked as 1Z-9K4 and 1Z-9K5.",
+          "icon": "truck"
+        },
+        {
+          "id": "ms-4",
+          "date": "24 July",
+          "title": "Delivered and signed for",
+          "detail": "Signature on file; the order closes automatically in 14 days.",
+          "icon": "circle-check"
+        }
+      ]
+    },
+    "flags": {
+      "type": "static",
+      "value": { "heldForReview": 1 }
+    }
+  },
+  "root": {
+    "component": "Container",
+    "props": { "size": "full" },
+    "children": [
+      {
+        "component": "Stack",
+        "props": { "gap": "r6" },
+        "children": [
+          {
+            "component": "Row",
+            "props": { "justify": "between", "align": "start" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r1" },
+                "children": [
+                  { "component": "Text", "props": { "variant": "h2" }, "children": ["Order operations"] },
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-2", "color": "muted" },
+                    "children": ["Everything that happened to the order book in the last 24 hours."]
+                  }
+                ]
+              },
+              {
+                "component": "Row",
+                "props": { "gap": "r2" },
+                "children": [
+                  { "component": "Badge", "props": { "variant": "info" }, "children": ["Live"] },
+                  {
+                    "$cond": "data.flags.heldForReview",
+                    "then": {
+                      "component": "Badge",
+                      "props": { "variant": "error" },
+                      "children": ["1 order held for review"]
+                    },
+                    "else": {
+                      "component": "Badge",
+                      "props": { "variant": "success" },
+                      "children": ["Review queue clear"]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+
+          { "component": "Divider" },
+
+          {
+            "component": "Card",
+            "props": { "padding": "r4" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r4" },
+                "children": [
+                  {
+                    "component": "Row",
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h4" }, "children": ["Recent orders"] },
+                      { "component": "Spacer" },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-3", "color": "muted" },
+                        "children": ["Five to a page, newest first"]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "DataTable",
+                    "props": {
+                      "data": { "$ref": "data.orders" },
+                      "rowKey": "id",
+                      "pageSize": 5,
+                      "density": "comfortable",
+                      "striped": true,
+                      "stickyHeader": true,
+                      "maxHeight": 360,
+                      "defaultSort": { "key": "placed", "direction": "desc" },
+                      "columns": [
+                        { "key": "id", "header": "Order", "width": 120, "sortable": true },
+                        { "key": "customer", "header": "Customer", "sortable": true },
+                        { "key": "region", "header": "Region", "width": 110 },
+                        { "key": "items", "header": "Items", "align": "right", "width": 90, "sortable": true },
+                        { "key": "total", "header": "Total", "align": "right", "width": 120 },
+                        { "key": "placed", "header": "Placed", "width": 120, "sortable": true },
+                        {
+                          "key": "status",
+                          "header": "Status",
+                          "width": 190,
+                          "render": {
+                            "$node": {
+                              "component": "Badge",
+                              "props": { "variant": { "$ref": "row.tone" } },
+                              "children": [{ "$ref": "row.status" }]
+                            }
+                          }
+                        }
+                      ],
+                      "footer": {
+                        "$node": {
+                          "component": "Text",
+                          "props": { "variant": "body-3", "color": "muted" },
+                          "children": ["Eight orders in this window. Anything older is in the archive."]
+                        }
+                      },
+                      "emptyContent": {
+                        "$node": {
+                          "component": "Center",
+                          "children": [
+                            {
+                              "component": "Text",
+                              "props": { "variant": "body-2", "color": "muted" },
+                              "children": ["No orders were placed in this window."]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "component": "Card",
+            "props": { "padding": "r4" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r4" },
+                "children": [
+                  { "component": "Text", "props": { "variant": "h4" }, "children": ["Audit log"] },
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-3", "color": "muted" },
+                    "children": [
+                      "Built from Table's own parts rather than from DataTable, because the server owns both the sort and the paging here."
+                    ]
+                  },
+                  {
+                    "component": "Table",
+                    "props": {
+                      "density": "comfortable",
+                      "striped": true,
+                      "stickyHeader": true,
+                      "maxHeight": 320,
+                      "tableProps": { "aria-label": "Audit log, page 3 of 9" }
+                    },
+                    "children": [
+                      {
+                        "component": "Table.Head",
+                        "children": [
+                          {
+                            "component": "Table.Row",
+                            "children": [
+                              {
+                                "component": "Table.HeaderCell",
+                                "props": {
+                                  "scope": "col",
+                                  "sortDirection": "desc",
+                                  "onSort": {
+                                    "action": "setState",
+                                    "payload": { "key": "auditSort", "value": "when" }
+                                  }
+                                },
+                                "children": ["Time"]
+                              },
+                              {
+                                "component": "Table.HeaderCell",
+                                "props": {
+                                  "scope": "col",
+                                  "onSort": {
+                                    "action": "setState",
+                                    "payload": { "key": "auditSort", "value": "actor" }
+                                  }
+                                },
+                                "children": ["Actor"]
+                              },
+                              { "component": "Table.HeaderCell", "props": { "scope": "col" }, "children": ["Event"] },
+                              { "component": "Table.HeaderCell", "props": { "scope": "col" }, "children": ["Order"] },
+                              { "component": "Table.HeaderCell", "props": { "scope": "col" }, "children": ["Outcome"] }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Table.Body",
+                        "children": [
+                          {
+                            "$each": "data.auditEntries",
+                            "as": "entry",
+                            "node": {
+                              "component": "Table.Row",
+                              "props": { "index": { "$ref": "entryIndex" } },
+                              "children": [
+                                { "component": "Table.Cell", "children": [{ "$ref": "entry.when" }] },
+                                { "component": "Table.Cell", "children": [{ "$ref": "entry.actor" }] },
+                                { "component": "Table.Cell", "children": [{ "$ref": "entry.event" }] },
+                                { "component": "Table.Cell", "children": [{ "$ref": "entry.target" }] },
+                                {
+                                  "component": "Table.Cell",
+                                  "children": [
+                                    {
+                                      "component": "Badge",
+                                      "props": { "variant": { "$ref": "entry.tone" } },
+                                      "children": [{ "$ref": "entry.outcome" }]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Center",
+                    "children": [
+                      {
+                        "component": "Pagination",
+                        "props": {
+                          "page": { "$ref": "state.page" },
+                          "totalPages": 9,
+                          "siblingCount": 1,
+                          "showEdges": true,
+                          "compactBelow": "40rem",
+                          "aria-label": "Audit log pages",
+                          "onPageChange": {
+                            "action": "setState",
+                            "payload": { "key": "page", "value": { "$ref": "event.value" } }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "component": "Grid",
+            "props": { "columns": { "base": 1, "md": 2 }, "gap": "r5" },
+            "children": [
+              {
+                "component": "Card",
+                "props": { "padding": "r4" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h4" }, "children": ["Activity"] },
+                      {
+                        "component": "ActivityFeed",
+                        "children": [
+                          {
+                            "$each": "data.activity",
+                            "as": "item",
+                            "node": {
+                              "component": "ActivityFeed.Item",
+                              "props": {
+                                "icon": { "$ref": "item.icon" },
+                                "actor": { "$ref": "item.actor" },
+                                "action": { "$ref": "item.action" },
+                                "target": { "$ref": "item.target" },
+                                "timestamp": { "$ref": "item.timestamp" }
+                              },
+                              "children": [
+                                {
+                                  "$cond": "item.note",
+                                  "then": {
+                                    "component": "Text",
+                                    "props": { "variant": "body-3", "color": "secondary" },
+                                    "children": [{ "$ref": "item.note" }]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "component": "Card",
+                "props": { "padding": "r4" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h4" }, "children": ["ORD-4422, end to end"] },
+                      {
+                        "component": "Timeline",
+                        "props": { "animate": false },
+                        "children": [
+                          {
+                            "$each": "data.milestones",
+                            "as": "milestone",
+                            "node": {
+                              "component": "Timeline.Item",
+                              "props": {
+                                "date": { "$ref": "milestone.date" },
+                                "title": { "$ref": "milestone.title" },
+                                "titleAs": "h5",
+                                "icon": { "$ref": "milestone.icon" }
+                              },
+                              "children": [
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-3", "color": "secondary" },
+                                  "children": [{ "$ref": "milestone.detail" }]
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "component": "Card",
+            "props": { "padding": "r4" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r4" },
+                "children": [
+                  {
+                    "component": "Row",
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h4" }, "children": ["Ledger"] },
+                      { "component": "Spacer" },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-3", "color": "muted" },
+                        "children": ["Windowed, so the whole journal scrolls without mounting every row."]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "VirtualizedDataTable",
+                    "props": {
+                      "data": { "$ref": "data.ledger" },
+                      "rowKey": "id",
+                      "rowHeight": 44,
+                      "height": 320,
+                      "overscan": 6,
+                      "density": "dense",
+                      "striped": true,
+                      "stickyHeader": true,
+                      "columns": [
+                        { "key": "id", "header": "Entry", "width": 140 },
+                        { "key": "posted", "header": "Posted", "width": 160, "sortable": true },
+                        { "key": "account", "header": "Account", "sortable": true },
+                        { "key": "reference", "header": "Order", "width": 120 },
+                        { "key": "amount", "header": "Amount", "align": "right", "width": 120 },
+                        {
+                          "key": "direction",
+                          "header": "Direction",
+                          "align": "right",
+                          "width": 110,
+                          "render": {
+                            "$node": {
+                              "component": "Badge",
+                              "props": { "variant": "default" },
+                              "children": [{ "$ref": "row.direction" }]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

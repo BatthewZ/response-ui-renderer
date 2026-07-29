@@ -1,0 +1,752 @@
+{
+  "version": 1,
+  "title": "Coverage: forms",
+  "description": "Workspace settings and a studio booking request — every input control the library ships, bound to two declared forms.",
+  "data": {
+    "roles": {
+      "type": "static",
+      "value": [
+        { "value": "designer", "label": "Designer" },
+        { "value": "engineer", "label": "Engineer" },
+        { "value": "producer", "label": "Producer" },
+        { "value": "admin", "label": "Workspace admin" }
+      ]
+    },
+    "integrations": {
+      "type": "static",
+      "value": [
+        { "value": "figma", "label": "Figma" },
+        { "value": "github", "label": "GitHub" },
+        { "value": "linear", "label": "Linear" },
+        { "value": "slack", "label": "Slack" },
+        { "value": "notion", "label": "Notion", "disabled": true }
+      ]
+    },
+    "plans": {
+      "type": "static",
+      "value": [
+        { "id": "monthly", "label": "Monthly", "note": "Billed every month, cancel any time." },
+        { "id": "annual", "label": "Annual", "note": "Two months free, billed once a year." },
+        { "id": "studio", "label": "Studio", "note": "Custom terms for teams over fifty seats." }
+      ]
+    }
+  },
+  "forms": {
+    "profile": {
+      "fields": {
+        "fullName": {
+          "initialValue": "Ada Whitfield",
+          "validation": { "required": true, "minLength": 2, "maxLength": 60 }
+        },
+        "email": {
+          "initialValue": "ada@auroralabs.dev",
+          "validation": {
+            "required": true,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[a-zA-Z]{2,}$",
+            "message": "Enter a work address, like ada@auroralabs.dev"
+          }
+        },
+        "bio": {
+          "initialValue": "Design systems, motion, and the occasional synth patch.",
+          "validation": { "maxLength": 280 }
+        },
+        "role": { "initialValue": "designer" },
+        "accent": { "initialValue": "#5b6cff" },
+        "memberQuery": { "initialValue": "" },
+        "skills": { "initialValue": ["design systems", "motion"] },
+        "integrations": {
+          "initialValue": ["figma", "linear"],
+          "validation": { "required": true, "message": "Pick at least one integration." }
+        },
+        "plan": { "initialValue": "annual" },
+        "digest": { "initialValue": true },
+        "twoFactor": { "initialValue": true },
+        "recoveryCode": {
+          "initialValue": "",
+          "validation": { "minLength": 6, "message": "The recovery code is six digits." }
+        },
+        "seats": {
+          "initialValue": 12,
+          "validation": { "required": true, "min": 1, "max": 250 }
+        },
+        "density": { "initialValue": 60 },
+        "budget": { "initialValue": [800, 2400] }
+      },
+      "onSubmit": {
+        "action": "showToast",
+        "payload": { "title": "Saved", "message": "Workspace settings updated.", "variant": "success" }
+      }
+    },
+    "booking": {
+      "fields": {
+        "notes": { "initialValue": "", "validation": { "maxLength": 200 } },
+        "agreed": {
+          "initialValue": false,
+          "validation": { "required": true, "message": "Please accept the studio rules before booking." }
+        }
+      },
+      "onSubmit": {
+        "action": "showToast",
+        "payload": { "title": "Request sent", "message": "The studio team will confirm within a day.", "variant": "success" }
+      }
+    }
+  },
+  "root": {
+    "component": "Container",
+    "props": { "size": "lg" },
+    "children": [
+      {
+        "component": "Stack",
+        "props": { "gap": "r3" },
+        "children": [
+          {
+            "component": "Stack",
+            "props": { "gap": "r5" },
+            "children": [
+              { "component": "Text", "props": { "variant": "h2" }, "children": ["Workspace settings"] },
+              {
+                "component": "Text",
+                "props": { "variant": "body-2", "color": "secondary" },
+                "children": [
+                  "Everything about your profile, your team's access, and the plan you pay for — plus a request for studio time."
+                ]
+              }
+            ]
+          },
+          { "component": "Divider" },
+
+          {
+            "component": "Card",
+            "props": { "padding": "r3" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r4" },
+                "children": [
+                  {
+                    "component": "Row",
+                    "props": { "gap": "r5", "align": "baseline" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h4" }, "children": ["Profile"] },
+                      { "component": "Spacer" },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-3", "color": "muted" },
+                        "children": ["Visible to everyone in the workspace"]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Grid",
+                    "props": { "columns": { "base": 1, "md": 2 }, "gap": "r4" },
+                    "children": [
+                      {
+                        "component": "Field",
+                        "props": { "name": "profile.fullName" },
+                        "children": [
+                          { "component": "Label", "props": { "htmlFor": "profile-full-name" }, "children": ["Full name"] },
+                          {
+                            "component": "Input",
+                            "props": {
+                              "id": "profile-full-name",
+                              "placeholder": "Ada Whitfield",
+                              "autoComplete": "name",
+                              "$field": "profile.fullName"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Field",
+                        "props": { "name": "profile.email" },
+                        "children": [
+                          { "component": "Label", "props": { "htmlFor": "profile-email" }, "children": ["Work email"] },
+                          {
+                            "component": "Input",
+                            "props": {
+                              "id": "profile-email",
+                              "type": "email",
+                              "placeholder": "you@studio.dev",
+                              "autoComplete": "email",
+                              "$field": "profile.email"
+                            }
+                          },
+                          { "component": "FieldError", "props": { "name": "profile.email" } }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Field",
+                    "children": [
+                      { "component": "Label", "props": { "htmlFor": "profile-bio" }, "children": ["Short bio"] },
+                      {
+                        "component": "Textarea",
+                        "props": {
+                          "id": "profile-bio",
+                          "rows": 3,
+                          "maxLength": 280,
+                          "placeholder": "What do you work on?",
+                          "$field": "profile.bio"
+                        }
+                      },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-3", "color": "muted" },
+                        "children": ["280 characters at most."]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Row",
+                    "props": { "gap": "r4", "align": "end", "wrap": true },
+                    "children": [
+                      {
+                        "component": "Field",
+                        "children": [
+                          { "component": "Label", "props": { "htmlFor": "profile-role" }, "children": ["Role"] },
+                          {
+                            "component": "Select",
+                            "props": {
+                              "id": "profile-role",
+                              "options": { "$ref": "data.roles" },
+                              "$field": "profile.role"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Field",
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "weight": "semibold" },
+                            "children": ["Accent colour"]
+                          },
+                          {
+                            "component": "ColorPicker",
+                            "props": {
+                              "aria-label": "Accent colour",
+                              "presets": ["#5b6cff", "#12b886", "#f59f00", "#e03131", "#7048e8"],
+                              "$field": "profile.accent"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "component": "Card",
+            "props": { "padding": "r3" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r4" },
+                "children": [
+                  { "component": "Text", "props": { "variant": "h4" }, "children": ["Team and access"] },
+                  {
+                    "component": "Field",
+                    "children": [
+                      { "component": "Label", "props": { "htmlFor": "member-search" }, "children": ["Find a teammate"] },
+                      {
+                        "component": "SearchInput",
+                        "props": {
+                          "id": "member-search",
+                          "placeholder": "Search by name or email",
+                          "$field": "profile.memberQuery"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Field",
+                    "children": [
+                      { "component": "Label", "props": { "htmlFor": "timezone-input" }, "children": ["Time zone"] },
+                      {
+                        "component": "Combobox",
+                        "props": { "defaultValue": "Europe/London", "defaultInputValue": "Europe/London" },
+                        "children": [
+                          {
+                            "component": "Combobox.Input",
+                            "props": {
+                              "id": "timezone-input",
+                              "placeholder": "Start typing a city",
+                              "toggleLabel": "Show time zones"
+                            }
+                          },
+                          {
+                            "component": "Combobox.Content",
+                            "props": { "loadingLabel": "Loading time zones" },
+                            "children": [
+                              {
+                                "component": "Combobox.Item",
+                                "props": { "index": 0, "value": "Europe/London" },
+                                "children": ["Europe/London — GMT+1"]
+                              },
+                              {
+                                "component": "Combobox.Item",
+                                "props": { "index": 1, "value": "Europe/Berlin" },
+                                "children": ["Europe/Berlin — GMT+2"]
+                              },
+                              {
+                                "component": "Combobox.Item",
+                                "props": { "index": 2, "value": "America/New_York" },
+                                "children": ["America/New_York — GMT-4"]
+                              },
+                              {
+                                "component": "Combobox.Item",
+                                "props": { "index": 3, "value": "Asia/Tokyo" },
+                                "children": ["Asia/Tokyo — GMT+9"]
+                              },
+                              {
+                                "component": "Combobox.Empty",
+                                "children": ["No time zone matches that."]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Field",
+                    "children": [
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-2", "weight": "semibold" },
+                        "children": ["Connected tools"]
+                      },
+                      {
+                        "component": "MultiSelect",
+                        "props": {
+                          "aria-label": "Connected tools",
+                          "placeholder": "Choose the tools this workspace syncs with",
+                          "options": { "$ref": "data.integrations" },
+                          "$field": "profile.integrations"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Field",
+                    "children": [
+                      { "component": "Label", "props": { "htmlFor": "profile-skills" }, "children": ["Skills"] },
+                      {
+                        "component": "TagInput",
+                        "props": {
+                          "id": "profile-skills",
+                          "placeholder": "Type a skill and press Enter",
+                          "maxTags": 8,
+                          "$field": "profile.skills"
+                        }
+                      }
+                    ]
+                  },
+                  { "component": "Divider" },
+                  {
+                    "component": "Row",
+                    "props": { "gap": "r4", "align": "start", "justify": "between" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r6" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "weight": "semibold" },
+                            "children": ["Two-factor authentication"]
+                          },
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-3", "color": "muted" },
+                            "children": ["Required for anyone who can change billing."]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Switch",
+                        "props": { "aria-label": "Two-factor authentication", "$field": "profile.twoFactor" }
+                      }
+                    ]
+                  },
+                  {
+                    "$cond": "forms.profile.twoFactor",
+                    "then": {
+                      "component": "Field",
+                      "children": [
+                        {
+                          "component": "Text",
+                          "props": { "id": "recovery-code-label", "variant": "body-2", "weight": "semibold" },
+                          "children": ["Recovery code"]
+                        },
+                        {
+                          "component": "OTPInput",
+                          "props": {
+                            "aria-labelledby": "recovery-code-label",
+                            "length": 6,
+                            "mode": "numeric",
+                            "$field": "profile.recoveryCode"
+                          }
+                        },
+                        {
+                          "component": "Text",
+                          "props": { "variant": "body-3", "color": "muted" },
+                          "children": ["Enter the six digits from your authenticator app."]
+                        }
+                      ]
+                    },
+                    "else": {
+                      "component": "Text",
+                      "props": { "variant": "body-3", "color": "muted" },
+                      "children": ["Turn two-factor on to set a recovery code."]
+                    }
+                  },
+                  {
+                    "component": "Row",
+                    "props": { "gap": "r6", "align": "center" },
+                    "children": [
+                      { "component": "Checkbox", "props": { "id": "profile-digest", "$field": "profile.digest" } },
+                      {
+                        "component": "Label",
+                        "props": { "htmlFor": "profile-digest" },
+                        "children": ["Email me a weekly digest"]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "component": "Card",
+            "props": { "padding": "r3" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r4" },
+                "children": [
+                  { "component": "Text", "props": { "variant": "h4" }, "children": ["Plan and seats"] },
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r5" },
+                    "children": [
+                      {
+                        "$each": "data.plans",
+                        "as": "plan",
+                        "node": {
+                          "component": "Row",
+                          "props": { "gap": "r6", "align": "start" },
+                          "children": [
+                            {
+                              "component": "Radio",
+                              "props": {
+                                "name": "billing-plan",
+                                "value": { "$ref": "plan.id" },
+                                "aria-label": { "$ref": "plan.label" },
+                                "$field": "profile.plan"
+                              }
+                            },
+                            {
+                              "component": "Stack",
+                              "props": { "gap": "r6" },
+                              "children": [
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-2", "weight": "semibold" },
+                                  "children": [{ "$ref": "plan.label" }]
+                                },
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-3", "color": "muted" },
+                                  "children": [{ "$ref": "plan.note" }]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Grid",
+                    "props": { "columns": { "base": 1, "md": 2 }, "gap": "r4" },
+                    "children": [
+                      {
+                        "component": "Field",
+                        "children": [
+                          { "component": "Label", "props": { "htmlFor": "profile-seats" }, "children": ["Paid seats"] },
+                          {
+                            "component": "NumberInput",
+                            "props": {
+                              "id": "profile-seats",
+                              "min": 1,
+                              "max": 250,
+                              "step": 1,
+                              "$field": "profile.seats"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Field",
+                        "children": [
+                          {
+                            "component": "Label",
+                            "props": { "htmlFor": "profile-density" },
+                            "children": ["Interface density"]
+                          },
+                          {
+                            "component": "Slider",
+                            "props": {
+                              "id": "profile-density",
+                              "min": 0,
+                              "max": 100,
+                              "step": 5,
+                              "$field": "profile.density"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Field",
+                    "children": [
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-2", "weight": "semibold" },
+                        "children": ["Monthly budget"]
+                      },
+                      {
+                        "component": "RangeSlider",
+                        "props": {
+                          "min": 0,
+                          "max": 5000,
+                          "step": 100,
+                          "minDistance": 200,
+                          "minLabel": "Lowest monthly spend",
+                          "maxLabel": "Highest monthly spend",
+                          "$field": "profile.budget"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "component": "FormActions",
+                    "children": [
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "ghost",
+                          "onClick": { "action": "resetForm", "payload": { "form": "profile" } }
+                        },
+                        "children": ["Discard changes"]
+                      },
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "primary",
+                          "onClick": { "action": "submitForm", "payload": { "form": "profile" } }
+                        },
+                        "children": ["Save settings"]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "component": "Card",
+            "props": { "padding": "r3" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r4" },
+                "children": [
+                  { "component": "Text", "props": { "variant": "h4" }, "children": ["Book studio time"] },
+                  {
+                    "component": "Row",
+                    "props": { "gap": "r4", "align": "start", "wrap": true },
+                    "children": [
+                      {
+                        "component": "Field",
+                        "children": [
+                          {
+                            "component": "Label",
+                            "props": { "htmlFor": "booking-first-session" },
+                            "children": ["First session"]
+                          },
+                          {
+                            "component": "DatePicker",
+                            "props": {
+                              "id": "booking-first-session",
+                              "defaultValue": "2026-08-14",
+                              "min": "2026-08-01",
+                              "max": "2026-12-19",
+                              "placeholder": "Pick a day",
+                              "clearable": true
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Field",
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "weight": "semibold" },
+                            "children": ["Residency window"]
+                          },
+                          {
+                            "component": "DateRangePicker",
+                            "props": {
+                              "defaultValue": { "start": "2026-08-14", "end": "2026-08-21" },
+                              "defaultMonth": "2026-08-01",
+                              "min": "2026-08-01",
+                              "max": "2026-12-19",
+                              "labels": { "startDate": "Arrival", "endDate": "Departure" }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Grid",
+                    "props": { "columns": { "base": 1, "lg": 2 }, "gap": "r4" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r6" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "weight": "semibold" },
+                            "children": ["Mixdown day"]
+                          },
+                          {
+                            "component": "Center",
+                            "children": [
+                              {
+                                "component": "Calendar",
+                                "props": {
+                                  "aria-label": "Mixdown day",
+                                  "defaultValue": "2026-08-20",
+                                  "defaultMonth": "2026-08-01",
+                                  "min": "2026-08-01",
+                                  "max": "2026-12-19",
+                                  "showToday": true,
+                                  "weekStartsOn": 1
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r6" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "weight": "semibold" },
+                            "children": ["Block out the whole run"]
+                          },
+                          {
+                            "component": "Center",
+                            "children": [
+                              {
+                                "component": "RangeCalendar",
+                                "props": {
+                                  "aria-label": "Block out the whole run",
+                                  "defaultValue": { "start": "2026-08-14", "end": "2026-08-21" },
+                                  "defaultMonth": "2026-08-01",
+                                  "min": "2026-08-01",
+                                  "max": "2026-12-19",
+                                  "numberOfMonths": 1,
+                                  "weekStartsOn": 1
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Field",
+                    "children": [
+                      {
+                        "component": "Label",
+                        "props": { "htmlFor": "booking-notes" },
+                        "children": ["Anything we should set up?"]
+                      },
+                      {
+                        "component": "Textarea",
+                        "props": {
+                          "id": "booking-notes",
+                          "rows": 3,
+                          "maxLength": 200,
+                          "placeholder": "Mic list, backline, engineer preferences…",
+                          "$field": "booking.notes"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Field",
+                    "props": { "name": "booking.agreed" },
+                    "children": [
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r6", "align": "center" },
+                        "children": [
+                          { "component": "Checkbox", "props": { "id": "booking-agreed", "$field": "booking.agreed" } },
+                          {
+                            "component": "Label",
+                            "props": { "htmlFor": "booking-agreed" },
+                            "children": ["I've read the studio rules"]
+                          }
+                        ]
+                      },
+                      { "component": "FieldError", "props": { "name": "booking.agreed" } }
+                    ]
+                  },
+                  {
+                    "component": "FormActions",
+                    "children": [
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "ghost",
+                          "onClick": { "action": "resetForm", "payload": { "form": "booking" } }
+                        },
+                        "children": ["Clear"]
+                      },
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "primary",
+                          "onClick": { "action": "submitForm", "payload": { "form": "booking" } }
+                        },
+                        "children": ["Request booking"]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

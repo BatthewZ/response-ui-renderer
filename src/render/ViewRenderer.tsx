@@ -117,7 +117,7 @@ export function ViewRenderer({
   const formStates = useFormsState(formDefs);
 
   const [dialogStates, setDialogStates] = useState<Record<string, boolean>>({});
-  const [viewState, setViewState] = useState<Record<string, unknown>>({});
+  const [viewState, setViewState] = useState<Record<string, unknown>>(spec.state ?? {});
 
   // A new document is a new view: stale dialog and state values must not leak
   // across it. Reset during render so the first paint is already correct.
@@ -125,7 +125,7 @@ export function ViewRenderer({
   if (prevSpec !== spec) {
     setPrevSpec(spec);
     setDialogStates({});
-    setViewState({});
+    setViewState(spec.state ?? {});
   }
 
   const dialogs = useMemo(

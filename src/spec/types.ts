@@ -73,7 +73,7 @@ export type FormDef = {
 export type StaticBinding = { type: "static"; value: unknown };
 
 /**
- * An HTTP request issued on mount. Resolved by `adapters.fetchData`, which
+ * An HTTP request issued on mount. Resolved by `adapters.fetch`, which
  * defaults to `globalThis.fetch` — the renderer never rewrites the URL.
  */
 export type ApiBinding = {
@@ -107,6 +107,14 @@ export type ViewSpec = {
   themeOverrides?: Record<string, string>;
   data?: Record<string, DataBinding>;
   forms?: Record<string, FormDef>;
+  /**
+   * Seed values for `state.…` refs, which the `setState` action then replaces.
+   *
+   * A controlled component has to render something on the first paint: without
+   * a seed, `{"$ref": "state.page"}` resolves to nothing and the component
+   * renders empty until the user interacts with something that cannot be seen.
+   */
+  state?: Record<string, unknown>;
   root: ViewNode;
 };
 
@@ -133,3 +141,35 @@ export const isRefValue = (v: unknown): v is RefNode =>
 export const isEventHandlerSpec = (v: unknown): v is EventHandlerSpec =>
   typeof v === "object" && v !== null && "action" in v &&
   typeof (v as EventHandlerSpec).action === "string";
+
+/**
+ * Renders a ViewNode into a prop the library types `ReactNode` — `Wizard`'s
+ * `steps[].content`, `RequireAuth`'s fallbacks, `Breadcrumbs.separator`,
+ * `DataTable`'s `emptyContent`/`footer`.
+ *
+ * Explicitly marked rather than sniffed for `{ component }`, so a document can
+ * still hand a prop a literal object that happens to have that key.
+ */
+export const NODE_PROP_KEY = "$node";
+
+export type NodeValue = { $node: ViewNode };
+
+export const isNodeValue = (v: unknown): v is NodeValue =>
+  typeof v === "object" && v !== null && NODE_PROP_KEY in v;
+
+/**
+ * A handler nested inside an array or object prop — `CommandPalette.items[]`.
+ *
+ * Stricter than the top-level test on purpose: nested values are usually data,
+ * and a row that merely happens to carry an `action` string ("merged", "opened")
+ * must stay data. Requiring the object to be *only* a handler — a known action
+ * and nothing beyond `payload` — makes a false positive essentially impossible.
+ */
+export const isNestedEventHandlerSpec = (
+  v: unknown,
+  knownActions: ReadonlySet<string>,
+): v is EventHandlerSpec => {
+  if (!isEventHandlerSpec(v)) return false;
+  if (!knownActions.has(v.action)) return false;
+  return Object.keys(v).every((key) => key === "action" || key === "payload");
+};

@@ -1,12 +1,22 @@
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { globSync } from "glob";
 import { describe, expect, it } from "vitest";
 
+import { NOT_ADDRESSABLE } from "./examples/not-addressable";
+import {
+  CHILD_INSPECTING_MODULES,
+  CHILD_INSPECTING_PARENTS,
+  IDENTITY_CHECKED_PARENTS,
+} from "./registry/child-introspection";
+import { COMPONENT_NOTES } from "./registry/component-notes";
 import { COMPONENT_TYPED_ICON_OWNERS } from "./registry/icon-slots";
-import { defaultRegistry } from "./registry/registry";
+import { PROP_COERCION_OWNERS, PROP_COERCIONS } from "./registry/prop-coercions";
+import { defaultRegistry, listComponentNames } from "./registry/registry";
 import { lookupComponent } from "./registry/types";
+import { DIALOG_COMPONENTS } from "./spec/validate";
 
 /**
  * Contracts this package commits to, enforced rather than documented.
@@ -182,5 +192,130 @@ describe("icon-slot map stays in step with the library", () => {
     // Hand-maintained list — this converts an upstream rename into a test
     // failure instead of a runtime crash in a consumer's browser.
     expect(lookupComponent(defaultRegistry, name)).toBeTruthy();
+  });
+});
+
+/**
+ * Every table that names a component by hand is drift-prone. The registry is
+ * derived from the library's barrel precisely so nothing has to be, but three
+ * coercion tables cannot be derived — they encode which props the library types
+ * with something JSON cannot express. Each is gated instead.
+ */
+describe("hand-maintained coercion tables", () => {
+  // The library publishes its own `src` (its `files` includes it), so these
+  // gates read the real upstream source rather than a copy that could drift.
+  // Resolved by path because its `exports` map deliberately hides package.json.
+  const libraryRoot = path.join(root, "node_modules/@batthewz/response-ui-react-components");
+
+  it.each([...DIALOG_COMPONENTS])("%s is a real component whose open state we own", (name) => {
+    expect(lookupComponent(defaultRegistry, name)).toBeTruthy();
+  });
+
+  it.each([...CHILD_INSPECTING_PARENTS.keys()])("%s still exists upstream", (name) => {
+    expect(lookupComponent(defaultRegistry, name)).toBeTruthy();
+  });
+
+  it.each(Object.keys(IDENTITY_CHECKED_PARENTS))("%s still exists upstream", (name) => {
+    expect(lookupComponent(defaultRegistry, name)).toBeTruthy();
+  });
+
+  it.each(PROP_COERCION_OWNERS)("%s still exists upstream", (name) => {
+    expect(lookupComponent(defaultRegistry, name)).toBeTruthy();
+  });
+
+  it("every coerced prop is still declared by its component upstream", () => {
+    // A prop renamed upstream would leave the coercion silently inert, which is
+    // worse than a crash: the document looks right and the value never lands.
+    const missing: string[] = [];
+    for (const key of PROP_COERCIONS.keys()) {
+      const dot = key.lastIndexOf(".");
+      const owner = key.slice(0, dot).split(".")[0];
+      const prop = key.slice(dot + 1);
+      const declaration = globSync(`src/components/**/${owner}.tsx`, {
+        cwd: libraryRoot,
+        absolute: true,
+      })[0];
+      if (!declaration) {
+        missing.push(`${key} (no ${owner}.tsx upstream)`);
+        continue;
+      }
+      if (!new RegExp(`\\b${prop}\\??:`).test(read(declaration))) {
+        missing.push(`${key} (prop not declared)`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it("names every library module that clones or identity-checks its children", () => {
+    // The renderer stands between such a parent and the real element. A
+    // component that starts doing either without being named here silently stops
+    // working — nothing throws, the behaviour simply never happens.
+    const inspecting = globSync("src/components/**/*.tsx", { cwd: libraryRoot })
+      .filter((file) => !/\.(test|examples)\.tsx$/.test(file))
+      .filter((file) => {
+        const source = read(path.join(libraryRoot, file));
+        // `child.type === X` compares element identity; `target.type === "text"`
+        // is a DOM input type and is not a child inspection.
+        return /\bcloneElement\b/.test(source) || /\.type\s*[!=]==\s*[A-Z]/.test(source);
+      })
+      .map((file) => file.replace(/^src\//, ""))
+      .sort();
+
+    expect(inspecting).toEqual([...CHILD_INSPECTING_MODULES].sort());
+  });
+});
+
+describe("VIEWSPEC.md curation", () => {
+  const topLevel = listComponentNames(defaultRegistry).filter((name) => !name.includes("."));
+
+  it("categorises every addressable component", () => {
+    // The doc is generated from the live barrel; a component with no category
+    // would silently vanish from it. This forces the decision instead.
+    const uncategorised = topLevel.filter(
+      (name) => !Object.hasOwn(COMPONENT_NOTES, name) && !Object.hasOwn(NOT_ADDRESSABLE, name),
+    );
+    expect(uncategorised).toEqual([]);
+  });
+
+  it("categorises nothing that does not exist", () => {
+    const phantom = Object.keys(COMPONENT_NOTES).filter((name) => !topLevel.includes(name));
+    expect(phantom).toEqual([]);
+  });
+
+  it("never names one of the design system's example themes", () => {
+    // CLAUDE.md: the example themes are examples. Naming one in a reference an
+    // agent generates against would make it look like a built-in set.
+    const doc = read(path.join(root, "VIEWSPEC.md"));
+    for (const example of ["events", "grimdark", "tech"]) {
+      expect(doc, `VIEWSPEC.md names the example theme "${example}"`).not.toMatch(
+        new RegExp(`["'\`]${example}["'\`]`),
+      );
+    }
+  });
+});
+
+describe("VIEWSPEC.md stays in step with the library", () => {
+  it("is byte-identical to a fresh generation", () => {
+    // Mirrors the library's own verify-docs script: the doc is generated, so a
+    // stale one is a lie an agent would author against.
+    const result = spawnSync("node", ["scripts/gen-viewspec-doc.mjs", "--check"], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    expect(result.stderr + result.stdout).toContain("up to date");
+    expect(result.status).toBe(0);
+  });
+});
+
+describe("README claims", () => {
+  it("states the component counts the registry actually has", () => {
+    // A number in prose is a claim; this makes it fail rather than drift.
+    const all = listComponentNames(defaultRegistry);
+    const top = all.filter((name) => !name.includes("."));
+    // Collapsed because the claim is line-wrapped in the source.
+    const readme = read(path.join(root, "README.md")).replace(/\s+/g, " ");
+    // `Icon` is this package's own addition, not one the library exports.
+    expect(readme).toContain(`${top.length - 1} components and ${all.length - top.length} compound`);
+    expect(readme).toContain(`${Object.keys(NOT_ADDRESSABLE).length} need host code`);
   });
 });

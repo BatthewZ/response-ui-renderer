@@ -127,6 +127,7 @@ export const viewSpecSchema: z.ZodType<ViewSpec> = z.object({
   themeOverrides: z.record(z.string(), z.string()).optional(),
   data: z.record(z.string(), dataBindingSchema).optional(),
   forms: z.record(z.string(), formDefSchema).optional(),
+  state: z.record(z.string(), z.unknown()).optional(),
   root: viewNodeSchema,
 });
 

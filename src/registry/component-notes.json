@@ -1,0 +1,374 @@
+{
+  "Accordion": {
+    "category": "Navigation",
+    "note": "`.Item` needs `value`; open one with `defaultValue`. Wrap panel content in a single element."
+  },
+  "ActivityFeed": {
+    "category": "Data",
+    "note": "`.Item` must be a direct child. `avatar` short-circuits `icon`."
+  },
+  "Alert": {
+    "category": "Feedback",
+    "note": "`statusIcon` accepts an icon-name string; `statusIcon: null` drops the glyph."
+  },
+  "AnimatePresence": {
+    "category": "Animation",
+    "note": "`show` is required. `setState` writes a literal, so use two controls rather than a toggle."
+  },
+  "AppShell": {
+    "category": "Navigation",
+    "note": "`.SidebarLink` needs `to`; its `icon` takes an icon-name string. Router-aware links need a host adapter."
+  },
+  "Avatar": {
+    "category": "Data",
+    "note": "Falls back to initials from `name`. `AvatarGroup`'s `size` does not reach children through the renderer \u2014 set it per avatar."
+  },
+  "AvatarGroup": {
+    "category": "Data",
+    "note": ""
+  },
+  "Badge": {
+    "category": "Typography",
+    "note": "`statusIcon` accepts an icon-name string. A `<span>` \u2014 never make it clickable."
+  },
+  "Breadcrumbs": {
+    "category": "Navigation",
+    "note": "`aria-current` is manual \u2014 set `current: true` on the last crumb."
+  },
+  "Button": {
+    "category": "Action",
+    "note": "Defaults to `type=\"button\"` \u2014 a submit button must say so explicitly."
+  },
+  "Calendar": {
+    "category": "Form",
+    "note": "Date props accept ISO `YYYY-MM-DD` strings. `isDateDisabled` is a predicate and unreachable."
+  },
+  "Card": {
+    "category": "Layout",
+    "note": ""
+  },
+  "Carousel": {
+    "category": "Media",
+    "note": "`.Track` is **not** optional \u2014 without it the arrows never appear. No autoplay."
+  },
+  "Center": {
+    "category": "Layout",
+    "note": ""
+  },
+  "Checkbox": {
+    "category": "Form",
+    "note": "`$field` binds `checked`."
+  },
+  "CodeBlock": {
+    "category": "Typography",
+    "note": "Takes a `code` string and no children. No syntax highlighting."
+  },
+  "Collapsible": {
+    "category": "Navigation",
+    "note": "Use `defaultOpen`. Never pass `id` to `.Trigger` or `.Content` \u2014 it breaks the aria wiring silently."
+  },
+  "ColorPicker": {
+    "category": "Form",
+    "note": "Hex only; anything else silently becomes `#000000`. Submits nothing."
+  },
+  "Combobox": {
+    "category": "Form",
+    "note": "Owns no data: every `.Item` needs a gapless `index` and a `value`. Filtering is the author's job."
+  },
+  "CommandPalette": {
+    "category": "Overlay",
+    "note": "Give it a literal `id`. `items[].onSelect` accepts a declarative handler object."
+  },
+  "Container": {
+    "category": "Layout",
+    "note": "Always a `<div>` \u2014 use `Stack as=\"section\"` when you need the landmark."
+  },
+  "ContextMenu": {
+    "category": "Overlay",
+    "note": "Every `.Item` needs a gapless `index`. `.Trigger` has no accessible name \u2014 give it one. Scope it to an object, never a page."
+  },
+  "CopyButton": {
+    "category": "Action",
+    "note": "Requires `value`. Silently no-ops outside a secure context."
+  },
+  "DataTable": {
+    "category": "Data",
+    "note": "`rowKey` is required: pass the **column name as a string**. A column may carry a `render` cell template as `{\"$node\": \u2026}`, bound to `row`/`rowIndex`."
+  },
+  "DatePicker": {
+    "category": "Form",
+    "note": "ISO date strings on `value`/`defaultValue`/`min`/`max`. Pass `name` or nothing is submitted."
+  },
+  "DateRangePicker": {
+    "category": "Form",
+    "note": "`value`/`defaultValue` are `{ start, end }` of ISO strings. Rest props land on the wrapper."
+  },
+  "DescriptionList": {
+    "category": "Data",
+    "note": ""
+  },
+  "Dialog": {
+    "category": "Overlay",
+    "note": "Give it a literal `id` \u2014 the renderer owns `open`/`onClose` so `openDialog`/`closeDialog` can target it. No close button and no accessible name of its own."
+  },
+  "Divider": {
+    "category": "Layout",
+    "note": "A vertical divider renders nothing outside a flex/grid parent with a cross-axis height."
+  },
+  "Drawer": {
+    "category": "Overlay",
+    "note": "As `Dialog`. Escape is the only built-in dismissal \u2014 render your own close control."
+  },
+  "DropdownMenu": {
+    "category": "Overlay",
+    "note": "Every `.Item` needs a gapless `index`. `onSelect` takes a handler directly. Avoid `asChild`."
+  },
+  "EmptyState": {
+    "category": "Feedback",
+    "note": "Its four parts are flat exports (`EmptyStateIcon`, **not** `EmptyState.Icon`) but must nest inside this root."
+  },
+  "EmptyStateActions": {
+    "category": "Feedback",
+    "note": ""
+  },
+  "EmptyStateDescription": {
+    "category": "Feedback",
+    "note": ""
+  },
+  "EmptyStateIcon": {
+    "category": "Feedback",
+    "note": ""
+  },
+  "EmptyStateTitle": {
+    "category": "Feedback",
+    "note": ""
+  },
+  "ErrorBoundary": {
+    "category": "Overlay",
+    "note": "Largely redundant: the renderer already wraps every node. Its `fallback` is unreachable from JSON."
+  },
+  "Field": {
+    "category": "Form",
+    "note": "`name: \"form.field\"` surfaces the live error. It does **not** wire `Label`/control ids \u2014 do that yourself."
+  },
+  "FieldError": {
+    "category": "Form",
+    "note": "`name: \"form.field\"`. Renders nothing when there is no error, so it is safe to always include."
+  },
+  "FormActions": {
+    "category": "Form",
+    "note": ""
+  },
+  "Grid": {
+    "category": "Layout",
+    "note": "1\u20136 columns only; anything else silently falls back to one."
+  },
+  "Hero": {
+    "category": "Layout",
+    "note": "`Hero.Background` takes no children. Put anything that must stay legible in `Hero.Content`."
+  },
+  "HoverCard": {
+    "category": "Overlay",
+    "note": "Never opens on touch and its content is unreachable by keyboard \u2014 never put unique information there."
+  },
+  "Icon": {
+    "category": "Typography",
+    "note": "Added by this package, not the library. `name` is resolved from the injected icon set."
+  },
+  "IconButton": {
+    "category": "Action",
+    "note": "Requires `aria-label`. The glyph is a **child** `Icon` node, not an `icon` prop."
+  },
+  "Input": {
+    "category": "Form",
+    "note": "The first-class `$field` target."
+  },
+  "Kbd": {
+    "category": "Typography",
+    "note": ""
+  },
+  "Label": {
+    "category": "Form",
+    "note": "No automatic association \u2014 pair `htmlFor` with the control's `id`."
+  },
+  "MasonryGrid": {
+    "category": "Layout",
+    "note": "Pass `animate: false` unless a viewport observer will run \u2014 items start at `opacity: 0`."
+  },
+  "MediaCard": {
+    "category": "Media",
+    "note": "`.Image` requires `alt`. The card is only as tall as its image and clips overflow."
+  },
+  "Meter": {
+    "category": "Feedback",
+    "note": "Requires `value` and `aria-label`. Thresholds compare the raw value, not a fraction."
+  },
+  "MultiSelect": {
+    "category": "Form",
+    "note": "Requires `options`. Give it `aria-label` \u2014 it derives no name and posts nothing natively."
+  },
+  "NumberInput": {
+    "category": "Form",
+    "note": "Submits raw text \u2014 `min`/`max`/`step` are advisory only."
+  },
+  "OTPInput": {
+    "category": "Form",
+    "note": "Name it with `aria-labelledby` \u2014 a `<div>` cannot be a `Label` target."
+  },
+  "Pagination": {
+    "category": "Data",
+    "note": "Controlled-only \u2014 no `defaultPage`. Seed `spec.state` and feed `onPageChange` from `event.value`."
+  },
+  "Parallax": {
+    "category": "Animation",
+    "note": "Moves outside its own layout box \u2014 clip on a parent."
+  },
+  "Popover": {
+    "category": "Overlay",
+    "note": "`openDialog` does **not** reach it \u2014 use `defaultOpen` or its own trigger. Name `.Content`."
+  },
+  "Portal": {
+    "category": "Layout",
+    "note": "Renders to `document.body`. `themeOverrides` scoped to the view do not reach it."
+  },
+  "ProgressBar": {
+    "category": "Feedback",
+    "note": "Takes no children: `.Label` and `.Value` are **siblings** of the bar. Needs `value` and a name."
+  },
+  "ProgressRing": {
+    "category": "Feedback",
+    "note": "No default accessible name \u2014 pass `aria-label`. The centre slot is decorative."
+  },
+  "Radio": {
+    "category": "Form",
+    "note": "`value` is the option's identity, so use the **bare** binding: `{ \"value\": \"\u2026\", \"$field\": \"\u2026\" }`."
+  },
+  "RangeCalendar": {
+    "category": "Form",
+    "note": "`value`/`defaultValue` are `{ start, end }` of ISO strings."
+  },
+  "RangeSlider": {
+    "category": "Form",
+    "note": "`defaultValue` is a two-number array. No native form participation."
+  },
+  "Rating": {
+    "category": "Data",
+    "note": "Requires `aria-label`. Not a form control; `readOnly` is the JSON-native shape."
+  },
+  "RequireAuth": {
+    "category": "Overlay",
+    "note": "`status` is a string, so `{\"$ref\": \u2026}` drives it. Always supply `redirect` \u2014 otherwise `unauthenticated` renders nothing."
+  },
+  "Row": {
+    "category": "Layout",
+    "note": "`align` defaults to `center`, not `stretch`."
+  },
+  "ScrollReveal": {
+    "category": "Animation",
+    "note": "Starts at `opacity: 0`. Set `animate: false` wherever the text is the point."
+  },
+  "SearchInput": {
+    "category": "Form",
+    "note": "Controlled-only: bind it with `$field` or it cannot be typed in."
+  },
+  "Select": {
+    "category": "Form",
+    "note": "Takes an `options` array; the renderer turns it into `<option>` children."
+  },
+  "Skeleton": {
+    "category": "Feedback",
+    "note": "Size with the `width`/`height` props \u2014 utility classes are inert."
+  },
+  "Slider": {
+    "category": "Form",
+    "note": "Pass `aria-label`, and `aria-valuetext` on any non-percentage scale."
+  },
+  "Spacer": {
+    "category": "Layout",
+    "note": ""
+  },
+  "Sparkline": {
+    "category": "Data",
+    "note": "Requires `values`. Set `min: 0` or the lowest bar has no height."
+  },
+  "Spinner": {
+    "category": "Feedback",
+    "note": ""
+  },
+  "Spotlight": {
+    "category": "Media",
+    "note": "`.Item`s must be flat children of the root. `.Image` requires `src`. Pass `animate: false`."
+  },
+  "Stack": {
+    "category": "Layout",
+    "note": "`as` is a document's only route to a raw HTML tag (`\"section\"`, `\"ul\"`, `\"form\"`)."
+  },
+  "Stagger": {
+    "category": "Animation",
+    "note": "Ships no animation of its own; inert unless the host styles `.stagger-item`."
+  },
+  "StatCard": {
+    "category": "Data",
+    "note": "`.Trend` needs `value` and `direction` and takes no children. `.Sparkline` needs `values`."
+  },
+  "Stepper": {
+    "category": "Navigation",
+    "note": "`activeStep` is required and fully controlled; it may equal the step count, meaning \"all done\"."
+  },
+  "Swimlane": {
+    "category": "Layout",
+    "note": "Requires `title`. It does **not** scroll despite the name; nest a `Carousel` or an overflow `Row`."
+  },
+  "Switch": {
+    "category": "Form",
+    "note": "`$field` binds `checked` and writes back through `onCheckedChange`. Needs `aria-label`."
+  },
+  "Table": {
+    "category": "Data",
+    "note": "Presentational only \u2014 it sorts nothing. Rest props land on a wrapper; name it via `tableProps`."
+  },
+  "Tabs": {
+    "category": "Navigation",
+    "note": "`defaultValue` is required, and every `.Tab`/`.Panel` `value` must match or the tab is dead. `.Panel` is a sibling of `.List`."
+  },
+  "TagInput": {
+    "category": "Form",
+    "note": "Values are plain strings; `$field` stores an array."
+  },
+  "Text": {
+    "category": "Typography",
+    "note": "A heading `variant` emits a real heading element \u2014 pass `as: \"p\"` for heading-sized body text."
+  },
+  "Textarea": {
+    "category": "Form",
+    "note": ""
+  },
+  "ThemeSwitcher": {
+    "category": "Navigation",
+    "note": "`themes` doubles as a filter, and persistence is write-only. It fights `spec.theme` over the same attribute."
+  },
+  "Timeline": {
+    "category": "Data",
+    "note": "`.Item` requires `title`. Pass `animate: false` \u2014 every item otherwise builds its own observer."
+  },
+  "Toast": {
+    "category": "Feedback",
+    "note": "Prefer the `showToast` action. Rendered by hand it needs `onDismiss` and its own `$cond` to unmount."
+  },
+  "Tooltip": {
+    "category": "Overlay",
+    "note": "Takes `content` and exactly one child."
+  },
+  "ViewTransition": {
+    "category": "Animation",
+    "note": "`name` must be unique. Inert unless the host's navigate adapter wraps `startViewTransition`."
+  },
+  "VirtualizedDataTable": {
+    "category": "Data",
+    "note": "As `DataTable`, plus a numeric `rowHeight` and `height`. No `className` on the root at all."
+  },
+  "Wizard": {
+    "category": "Navigation",
+    "note": "`steps[].content` is a ReactNode \u2014 express it as `{\"$node\": \u2026}`."
+  }
+}

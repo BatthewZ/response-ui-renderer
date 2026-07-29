@@ -1,0 +1,635 @@
+{
+  "version": 1,
+  "title": "Coverage: navigation",
+  "description": "The order screen of a fulfilment console — app shell, breadcrumb trail, tabbed detail, a fulfilment tracker, a returns wizard and an FAQ — exercising every navigation component the library ships.",
+  "state": {
+    "detailTab": "summary"
+  },
+  "data": {
+    "themes": {
+      "type": "static",
+      "value": ["default", "aurora", "midnight"]
+    },
+    "order": {
+      "type": "static",
+      "value": {
+        "ref": "ORD-2043",
+        "customer": "Northwind Traders",
+        "placed": "22 July 2026",
+        "total": "£1,284.00",
+        "lines": 6,
+        "carrier": "Kestrel Freight",
+        "tracking": "KF-88-441-209",
+        "eta": "Thursday 30 July, before 12:00",
+        "expedited": true,
+        "address": "Unit 14, Sowerby Trading Estate, Leeds LS12 6QP"
+      }
+    },
+    "faqs": {
+      "type": "static",
+      "value": [
+        {
+          "id": "returns",
+          "question": "How long does the customer have to return an item?",
+          "answer": "Thirty days from delivery for stock lines, fourteen for anything cut or mixed to order. The window starts on the carrier's delivered scan, not on the dispatch date."
+        },
+        {
+          "id": "partial",
+          "question": "Can an order ship in more than one consignment?",
+          "answer": "Yes. A split despatch raises a second consignment against the same order reference, and the tracker above advances only when the last consignment leaves the warehouse."
+        },
+        {
+          "id": "address",
+          "question": "Can the delivery address change after despatch?",
+          "answer": "Only while the consignment is still with us. Once the carrier has scanned it, the address is theirs to change and you will need to raise it with Kestrel directly."
+        }
+      ]
+    }
+  },
+  "root": {
+    "component": "AppShell",
+    "props": { "defaultCollapsed": false },
+    "children": [
+      {
+        "component": "AppShell.Navbar",
+        "children": [
+          { "component": "AppShell.Toggle" },
+          { "component": "AppShell.Brand", "children": ["Northwind Console"] },
+          {
+            "component": "AppShell.NavbarActions",
+            "children": [
+              {
+                "component": "ThemeSwitcher",
+                "props": {
+                  "themes": { "$ref": "data.themes" },
+                  "labels": { "default": "Default", "aurora": "Aurora", "midnight": "Midnight" },
+                  "aria-label": "Colour theme"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "AppShell.Sidebar",
+        "children": [
+          {
+            "component": "AppShell.SidebarSection",
+            "props": { "title": "Workspace" },
+            "children": [
+              {
+                "component": "AppShell.SidebarLink",
+                "props": { "to": "/dashboard", "icon": "LayoutDashboard" },
+                "children": ["Dashboard"]
+              },
+              {
+                "component": "AppShell.SidebarLink",
+                "props": { "to": "/orders", "icon": "ClipboardList" },
+                "children": ["Orders"]
+              },
+              {
+                "component": "AppShell.SidebarLink",
+                "props": { "to": "/inventory", "icon": "Boxes" },
+                "children": ["Inventory"]
+              },
+              {
+                "component": "AppShell.SidebarLink",
+                "props": { "to": "/shipments", "icon": "Truck" },
+                "children": ["Shipments"]
+              }
+            ]
+          },
+          {
+            "component": "AppShell.SidebarSection",
+            "props": { "title": "Account", "titleAs": "h3" },
+            "children": [
+              {
+                "component": "AppShell.SidebarLink",
+                "props": { "to": "/team", "icon": "Users" },
+                "children": ["Team"]
+              },
+              {
+                "component": "AppShell.SidebarLink",
+                "props": { "to": "/billing", "icon": "CreditCard" },
+                "children": ["Billing"]
+              },
+              {
+                "component": "AppShell.SidebarLink",
+                "props": { "to": "/support", "icon": "LifeBuoy" },
+                "children": ["Support"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "AppShell.Main",
+        "props": { "id": "content", "tabIndex": -1 },
+        "children": [
+          {
+            "component": "Container",
+            "props": { "size": "xl" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r3" },
+                "children": [
+                  {
+                    "component": "Breadcrumbs",
+                    "props": { "separator": "›" },
+                    "props": { "separator": "›", "aria-label": "Order trail" },
+                    "children": [
+                      {
+                        "component": "Breadcrumbs.Item",
+                        "props": { "href": "/" },
+                        "children": ["Console"]
+                      },
+                      {
+                        "component": "Breadcrumbs.Item",
+                        "props": { "href": "/orders" },
+                        "children": ["Orders"]
+                      },
+                      {
+                        "component": "Breadcrumbs.Item",
+                        "props": { "current": true },
+                        "children": [{ "$ref": "order.ref" }]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Row",
+                    "props": { "align": "start", "wrap": true, "gap": "r5" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r6" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "h3" },
+                            "children": [{ "$ref": "order.ref" }]
+                          },
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "color": "secondary" },
+                            "children": [
+                              { "$ref": "order.customer" },
+                              " · placed ",
+                              { "$ref": "order.placed" },
+                              " · ",
+                              { "$ref": "order.total" }
+                            ]
+                          }
+                        ]
+                      },
+                      { "component": "Spacer" },
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "secondary",
+                          "onClick": { "action": "navigate", "payload": { "path": "/orders" } }
+                        },
+                        "children": ["Back to orders"]
+                      }
+                    ]
+                  },
+                  {
+                    "$cond": "order.expedited",
+                    "then": {
+                      "component": "Text",
+                      "props": { "variant": "body-3", "color": "muted" },
+                      "children": ["Expedited — this order is picked ahead of the standard queue."]
+                    },
+                    "else": {
+                      "component": "Text",
+                      "props": { "variant": "body-3", "color": "muted" },
+                      "children": ["Standard fulfilment queue."]
+                    }
+                  },
+                  {
+                    "component": "Card",
+                    "props": { "padding": "r4" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r5" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "h5" },
+                            "children": ["Fulfilment"]
+                          },
+                          {
+                            "component": "Stepper",
+                            "props": { "activeStep": 2, "aria-label": "Fulfilment progress" },
+                            "children": [
+                              {
+                                "component": "Stepper.Step",
+                                "props": {
+                                  "title": "Placed",
+                                  "description": "22 July, 09:14",
+                                  "icon": "Receipt"
+                                }
+                              },
+                              {
+                                "component": "Stepper.Step",
+                                "props": {
+                                  "title": "Picked",
+                                  "description": "6 of 6 lines",
+                                  "icon": "ClipboardList"
+                                }
+                              },
+                              {
+                                "component": "Stepper.Step",
+                                "props": {
+                                  "title": "In transit",
+                                  "description": "Kestrel Freight",
+                                  "icon": "Truck"
+                                }
+                              },
+                              {
+                                "component": "Stepper.Step",
+                                "props": {
+                                  "title": "Delivered",
+                                  "description": "Estimated Thursday",
+                                  "icon": "MapPin"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Tabs",
+                    "props": {
+                      "defaultValue": "summary",
+                      "variant": "enclosed",
+                      "value": { "$ref": "state.detailTab" },
+                      "onValueChange": {
+                        "action": "setState",
+                        "payload": { "key": "detailTab", "value": { "$ref": "event.value" } }
+                      }
+                    },
+                    "children": [
+                      {
+                        "component": "Tabs.List",
+                        "props": { "aria-label": "Order detail" },
+                        "children": [
+                          {
+                            "component": "Tabs.Tab",
+                            "props": { "value": "summary" },
+                            "children": ["Summary"]
+                          },
+                          {
+                            "component": "Tabs.Tab",
+                            "props": { "value": "consignment" },
+                            "children": ["Consignment"]
+                          },
+                          {
+                            "component": "Tabs.Tab",
+                            "props": { "value": "invoice", "disabled": true },
+                            "children": ["Invoice"]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Tabs.Panel",
+                        "props": { "value": "summary" },
+                        "children": [
+                          {
+                            "component": "Grid",
+                            "props": { "columns": { "base": 1, "md": 3 }, "gap": "r4" },
+                            "children": [
+                              {
+                                "component": "Stack",
+                                "props": { "gap": "r6" },
+                                "children": [
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-3", "color": "muted" },
+                                    "children": ["Customer"]
+                                  },
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-2" },
+                                    "children": [{ "$ref": "order.customer" }]
+                                  }
+                                ]
+                              },
+                              {
+                                "component": "Stack",
+                                "props": { "gap": "r6" },
+                                "children": [
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-3", "color": "muted" },
+                                    "children": ["Lines"]
+                                  },
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-2" },
+                                    "children": [{ "$ref": "order.lines" }]
+                                  }
+                                ]
+                              },
+                              {
+                                "component": "Stack",
+                                "props": { "gap": "r6" },
+                                "children": [
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-3", "color": "muted" },
+                                    "children": ["Order total"]
+                                  },
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-2" },
+                                    "children": [{ "$ref": "order.total" }]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Tabs.Panel",
+                        "props": { "value": "consignment" },
+                        "children": [
+                          {
+                            "component": "Stack",
+                            "props": { "gap": "r6" },
+                            "children": [
+                              {
+                                "component": "Text",
+                                "props": { "variant": "body-2" },
+                                "children": [
+                                  { "$ref": "order.carrier" },
+                                  " · ",
+                                  { "$ref": "order.tracking" }
+                                ]
+                              },
+                              {
+                                "component": "Text",
+                                "props": { "variant": "body-2", "color": "secondary" },
+                                "children": ["Arriving ", { "$ref": "order.eta" }]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Tabs.Panel",
+                        "props": { "value": "invoice" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "color": "secondary" },
+                            "children": ["The invoice is raised once every consignment is delivered."]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  { "component": "Divider" },
+                  {
+                    "component": "Grid",
+                    "props": { "columns": { "base": 1, "md": 2 }, "gap": "r4" },
+                    "children": [
+                      {
+                        "component": "Card",
+                        "props": { "padding": "r4" },
+                        "children": [
+                          {
+                            "component": "Collapsible",
+                            "props": { "defaultOpen": true },
+                            "children": [
+                              {
+                                "component": "Collapsible.Trigger",
+                                "props": {
+                                  "className": "flex w-full items-center justify-between text-body-2 text-fg-primary"
+                                },
+                                "children": ["Delivery instructions"]
+                              },
+                              {
+                                "component": "Collapsible.Content",
+                                "children": [
+                                  {
+                                    "component": "Stack",
+                                    "props": { "gap": "r6" },
+                                    "children": [
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "body-2", "color": "secondary" },
+                                        "children": [{ "$ref": "order.address" }]
+                                      },
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "body-3", "color": "muted" },
+                                        "children": [
+                                          "Goods-in closes at 15:30. Anything arriving later is refused at the gate."
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Card",
+                        "props": { "padding": "r4" },
+                        "children": [
+                          {
+                            "component": "Stack",
+                            "props": { "gap": "r5" },
+                            "children": [
+                              {
+                                "component": "Text",
+                                "props": { "variant": "h6" },
+                                "children": ["Payment"]
+                              },
+                              {
+                                "component": "Stepper",
+                                "props": {
+                                  "activeStep": 3,
+                                  "orientation": "vertical",
+                                  "aria-label": "Payment progress"
+                                },
+                                "children": [
+                                  {
+                                    "component": "Stepper.Step",
+                                    "props": {
+                                      "title": "Authorised",
+                                      "description": "22 July, 09:14"
+                                    }
+                                  },
+                                  {
+                                    "component": "Stepper.Step",
+                                    "props": { "title": "Captured", "description": "£1,284.00" }
+                                  },
+                                  {
+                                    "component": "Stepper.Step",
+                                    "props": { "title": "Reconciled", "description": "Ledger 07-26" }
+                                  }
+                                ]
+                              },
+                              {
+                                "component": "Text",
+                                "props": { "variant": "body-3", "color": "muted" },
+                                "children": [
+                                  "activeStep equals the step count, so every marker reads complete and nothing is current."
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Card",
+                    "props": { "padding": "r4" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r5" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "h5" },
+                            "children": ["Frequently asked"]
+                          },
+                          {
+                            "component": "Accordion",
+                            "props": { "defaultValue": "returns", "headingLevel": 4 },
+                            "children": [
+                              {
+                                "$each": "data.faqs",
+                                "as": "faq",
+                                "node": {
+                                  "component": "Accordion.Item",
+                                  "props": { "value": { "$ref": "faq.id" } },
+                                  "children": [
+                                    {
+                                      "component": "Accordion.Trigger",
+                                      "children": [{ "$ref": "faq.question" }]
+                                    },
+                                    {
+                                      "component": "Accordion.Content",
+                                      "children": [
+                                        {
+                                          "component": "Text",
+                                          "props": { "variant": "body-2", "color": "secondary" },
+                                          "children": [{ "$ref": "faq.answer" }]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Card",
+                    "props": { "padding": "r4" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r5" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "h5" },
+                            "children": ["Start a return"]
+                          },
+                          {
+                            "component": "Wizard",
+                            "props": {
+                              "defaultStep": 1,
+                              "backLabel": "Back",
+                              "nextLabel": "Continue",
+                              "finishLabel": "Raise return",
+                              "aria-label": "Return request",
+                              "onComplete": {
+                                "action": "navigate",
+                                "payload": { "path": "/orders/ORD-2043/returns" }
+                              },
+                              "steps": [
+                                {
+                                  "title": "Lines",
+                                  "description": "What is coming back",
+                                  "content": {
+                                    "$node": {
+                                      "component": "Text",
+                                      "props": { "variant": "body-2", "color": "secondary" },
+                                      "children": [
+                                        "Two of the six lines on this order are eligible: the cut lengths are not."
+                                      ]
+                                    }
+                                  }
+                                },
+                                {
+                                  "title": "Reason",
+                                  "description": "Why it is coming back",
+                                  "content": {
+                                    "$node": {
+                                      "component": "Stack",
+                                      "props": { "gap": "r6" },
+                                      "children": [
+                                        {
+                                          "component": "Text",
+                                          "props": { "variant": "body-2" },
+                                          "children": ["Damaged in transit — pallet 2 of 3."]
+                                        },
+                                        {
+                                          "component": "Text",
+                                          "props": { "variant": "body-3", "color": "muted" },
+                                          "children": [
+                                            "A damage claim is opened with ",
+                                            { "$ref": "order.carrier" },
+                                            " at the same time."
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                },
+                                {
+                                  "title": "Collection",
+                                  "description": "When we take it away",
+                                  "content": {
+                                    "$node": {
+                                      "component": "Text",
+                                      "props": { "variant": "body-2", "color": "secondary" },
+                                      "children": [
+                                        "Collection is booked for the next working day from ",
+                                        { "$ref": "order.address" }
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

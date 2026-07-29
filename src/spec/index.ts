@@ -1,6 +1,8 @@
 export * from "./types";
 export {
+  DIALOG_COMPONENTS,
   errorsOf,
+  EVENT_ACTIONS,
   FORBIDDEN_PROPS,
   isDangerousUrl,
   type IssueSeverity,

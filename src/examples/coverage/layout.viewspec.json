@@ -1,0 +1,492 @@
+{
+  "version": 1,
+  "title": "Coverage: layout",
+  "description": "A product overview page — hero, metrics band, feature grid, integration shelf and a changelog pinboard — exercising every layout primitive the library ships.",
+  "state": {
+    "announcementVisible": true
+  },
+  "data": {
+    "hero": {
+      "type": "static",
+      "value": {
+        "headline": "Every survey, every measurement, one workspace",
+        "subhead": "Meridian turns field data into decisions your whole team can act on — captured offline, reconciled the moment you get signal.",
+        "image": "/images/survey-team-at-dawn.jpg",
+        "imageAlt": "Two surveyors setting up a tripod on a ridge at first light",
+        "release": "Version 4.2 — shipped 14 July 2026"
+      }
+    },
+    "metrics": {
+      "type": "static",
+      "value": [
+        { "id": "sites", "value": "18,400", "label": "Sites surveyed last quarter" },
+        { "id": "sync", "value": "1.2s", "label": "Median reconcile time" },
+        { "id": "uptime", "value": "99.98%", "label": "Uptime, rolling 90 days" },
+        { "id": "teams", "value": "640", "label": "Field teams on Meridian" }
+      ]
+    },
+    "pillars": {
+      "type": "static",
+      "value": [
+        {
+          "id": "capture",
+          "title": "Capture without a signal",
+          "body": "Forms, photos and GPS traces are written to the device first. Nothing waits on a connection, and nothing is lost when the van drives into a valley.",
+          "beta": false
+        },
+        {
+          "id": "reconcile",
+          "title": "Reconcile, don't overwrite",
+          "body": "Two crews editing the same parcel produce one record with both edits attributed — not a last-write-wins mess someone has to unpick on Monday.",
+          "beta": false
+        },
+        {
+          "id": "publish",
+          "title": "Publish to the people who asked",
+          "body": "Turn a finished survey into a shareable brief in a couple of clicks: the same numbers, without handing anyone your raw dataset.",
+          "beta": true
+        }
+      ]
+    },
+    "integrations": {
+      "type": "static",
+      "value": [
+        { "id": "atlas", "name": "Atlas GIS", "category": "Mapping · two-way sync" },
+        { "id": "quarry", "name": "Quarry", "category": "Warehouse · nightly export" },
+        { "id": "fieldpay", "name": "FieldPay", "category": "Invoicing · webhook" },
+        { "id": "tollgate", "name": "Tollgate", "category": "Access control · SCIM" },
+        { "id": "driftwood", "name": "Driftwood", "category": "Scheduling · calendar feed" },
+        { "id": "harbourmaster", "name": "Harbourmaster", "category": "Asset registry · REST" }
+      ]
+    },
+    "releaseNotes": {
+      "type": "static",
+      "value": [
+        {
+          "id": "n-420",
+          "title": "Offline capture on by default",
+          "date": "14 Jul 2026",
+          "body": "New workspaces start with offline capture enabled. Existing workspaces keep whatever they had — flip it in Settings → Field."
+        },
+        {
+          "id": "n-419",
+          "title": "Faster parcel search",
+          "date": "2 Jul 2026",
+          "body": "Search across a million-parcel dataset now returns in under 200ms."
+        },
+        {
+          "id": "n-418",
+          "title": "Attribution on merged edits",
+          "date": "24 Jun 2026",
+          "body": "A reconciled record now shows who contributed each field and when, so a disputed measurement traces back to the crew that took it rather than to whoever synced last."
+        },
+        {
+          "id": "n-417",
+          "title": "Export presets",
+          "date": "11 Jun 2026",
+          "body": "Save a column selection and a coordinate system as a preset, then reuse it across projects."
+        },
+        {
+          "id": "n-416",
+          "title": "Photo metadata survives the round trip",
+          "date": "3 Jun 2026",
+          "body": "Capture timestamps and lens data now make it through the warehouse export intact. Several regulators ask for them, and we were quietly dropping them."
+        }
+      ]
+    }
+  },
+  "root": {
+    "component": "Stack",
+    "props": { "as": "main", "gap": "r2", "aria-label": "Meridian product overview" },
+    "children": [
+      {
+        "component": "Hero",
+        "props": { "size": "lg", "align": "center", "overlay": true, "aria-labelledby": "hero-headline" },
+        "children": [
+          {
+            "component": "Hero.Background",
+            "props": { "src": { "$ref": "hero.image" }, "alt": { "$ref": "hero.imageAlt" } }
+          },
+          {
+            "component": "Hero.Content",
+            "props": { "animate": false },
+            "children": [
+              {
+                "component": "Container",
+                "props": { "size": "xl" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
+                    "children": [
+                      {
+                        "component": "Text",
+                        "props": { "variant": "h1", "color": "on-primary", "id": "hero-headline" },
+                        "children": [{ "$ref": "hero.headline" }]
+                      },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-1", "color": "on-primary" },
+                        "children": [{ "$ref": "hero.subhead" }]
+                      },
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r4", "wrap": true },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "color": "on-primary" },
+                            "children": [{ "$ref": "hero.release" }]
+                          },
+                          { "component": "Divider", "props": { "orientation": "vertical" } },
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-2", "color": "on-primary" },
+                            "children": ["Free for crews of five or fewer"]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "Container",
+        "props": { "size": "xl" },
+        "children": [
+          {
+            "component": "Grid",
+            "props": { "columns": { "base": 2, "md": 4 }, "gap": "r4" },
+            "children": [
+              {
+                "$each": "metrics",
+                "as": "metric",
+                "node": {
+                  "component": "Card",
+                  "props": { "padding": "r4", "shadow": "sm" },
+                  "children": [
+                    {
+                      "component": "Center",
+                      "props": { "className": "min-h-24" },
+                      "children": [
+                        {
+                          "component": "Stack",
+                          "props": { "gap": "r6", "className": "items-center text-center" },
+                          "children": [
+                            {
+                              "component": "Text",
+                              "props": { "variant": "h3" },
+                              "children": [{ "$ref": "metric.value" }]
+                            },
+                            {
+                              "component": "Text",
+                              "props": { "variant": "body-3", "color": "muted" },
+                              "children": [{ "$ref": "metric.label" }]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "Container",
+        "props": { "size": "lg" },
+        "children": [
+          {
+            "component": "Stack",
+            "props": { "as": "section", "gap": "r3", "aria-labelledby": "pillars-heading" },
+            "children": [
+              {
+                "component": "Row",
+                "props": { "gap": "r4", "align": "baseline" },
+                "children": [
+                  {
+                    "component": "Text",
+                    "props": { "variant": "h2", "id": "pillars-heading" },
+                    "children": ["What you get on day one"]
+                  },
+                  { "component": "Spacer" },
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-3", "color": "muted" },
+                    "children": ["Included in every plan"]
+                  }
+                ]
+              },
+              {
+                "component": "Text",
+                "props": { "variant": "body-2", "color": "secondary" },
+                "children": [
+                  "No modules to buy and no per-seat surcharge for the field app. The three below are why teams move off spreadsheets and clipboards."
+                ]
+              },
+              {
+                "component": "Grid",
+                "props": { "columns": { "base": 1, "md": 3 }, "gap": "r4" },
+                "children": [
+                  {
+                    "$each": "pillars",
+                    "as": "pillar",
+                    "node": {
+                      "component": "Card",
+                      "props": { "padding": "r3" },
+                      "children": [
+                        {
+                          "component": "Stack",
+                          "props": { "gap": "r5" },
+                          "children": [
+                            {
+                              "component": "Text",
+                              "props": { "variant": "h4" },
+                              "children": [{ "$ref": "pillar.title" }]
+                            },
+                            {
+                              "component": "Text",
+                              "props": { "variant": "body-2", "color": "secondary" },
+                              "children": [{ "$ref": "pillar.body" }]
+                            },
+                            {
+                              "$cond": "pillar.beta",
+                              "then": {
+                                "component": "Text",
+                                "props": { "variant": "body-3", "color": "muted" },
+                                "children": ["In beta — ask us to turn it on for your workspace."]
+                              },
+                              "else": {
+                                "component": "Text",
+                                "props": { "variant": "body-3", "color": "muted" },
+                                "children": ["Generally available."]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "Container",
+        "props": { "size": "lg" },
+        "children": [{ "component": "Divider" }]
+      },
+      {
+        "component": "Swimlane",
+        "props": {
+          "title": "Connects to what you already run",
+          "subtitle": "Two-way sync with the tools your crews and your finance team live in",
+          "viewAllHref": "/integrations",
+          "viewAllLabel": "Browse all 60 integrations",
+          "animate": false,
+          "aria-label": "Connects to what you already run"
+        },
+        "children": [
+          {
+            "component": "Row",
+            "props": {
+              "gap": "r4",
+              "align": "stretch",
+              "className": "overflow-x-auto px-r5 pb-r5",
+              "tabIndex": 0,
+              "role": "group",
+              "aria-label": "Integrations, scrollable"
+            },
+            "children": [
+              {
+                "$each": "integrations",
+                "as": "integration",
+                "node": {
+                  "component": "Card",
+                  "props": { "padding": "r4", "shadow": "sm", "className": "w-56 shrink-0" },
+                  "children": [
+                    {
+                      "component": "Stack",
+                      "props": { "gap": "r6" },
+                      "children": [
+                        {
+                          "component": "Text",
+                          "props": { "variant": "h5" },
+                          "children": [{ "$ref": "integration.name" }]
+                        },
+                        {
+                          "component": "Text",
+                          "props": { "variant": "body-3", "color": "muted" },
+                          "children": [{ "$ref": "integration.category" }]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "Container",
+        "props": { "size": "xl" },
+        "children": [
+          {
+            "component": "Stack",
+            "props": { "as": "section", "gap": "r3", "aria-labelledby": "changelog-heading" },
+            "children": [
+              {
+                "component": "Text",
+                "props": { "variant": "h2", "id": "changelog-heading" },
+                "children": ["From the changelog"]
+              },
+              {
+                "component": "MasonryGrid",
+                "props": {
+                  "columns": { "base": 1, "sm": 2, "lg": 3 },
+                  "gap": "1.25rem",
+                  "animate": false,
+                  "role": "list",
+                  "aria-label": "Recent changelog entries"
+                },
+                "children": [
+                  {
+                    "$each": "releaseNotes",
+                    "as": "note",
+                    "node": {
+                      "component": "MasonryGrid.Item",
+                      "props": { "role": "listitem" },
+                      "children": [
+                        {
+                          "component": "Card",
+                          "props": { "padding": "r3", "shadow": "sm" },
+                          "children": [
+                            {
+                              "component": "Stack",
+                              "props": { "gap": "r5" },
+                              "children": [
+                                {
+                                  "component": "Row",
+                                  "props": { "gap": "r5", "align": "baseline" },
+                                  "children": [
+                                    {
+                                      "component": "Text",
+                                      "props": { "variant": "h5" },
+                                      "children": [{ "$ref": "note.title" }]
+                                    },
+                                    { "component": "Spacer" },
+                                    {
+                                      "component": "Text",
+                                      "props": { "variant": "body-3", "color": "muted" },
+                                      "children": [{ "$ref": "note.date" }]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-2", "color": "secondary" },
+                                  "children": [{ "$ref": "note.body" }]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "component": "Container",
+        "props": { "size": "xl" },
+        "children": [
+          {
+            "component": "Stack",
+            "props": { "gap": "r4" },
+            "children": [
+              { "component": "Divider" },
+              {
+                "component": "Row",
+                "props": { "gap": "r4", "wrap": true },
+                "children": [
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-3", "color": "muted" },
+                    "children": ["Meridian Survey Co."]
+                  },
+                  { "component": "Divider", "props": { "orientation": "vertical" } },
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-3", "color": "muted" },
+                    "children": ["Bristol and Trondheim"]
+                  },
+                  { "component": "Spacer" },
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-3", "color": "muted" },
+                    "children": ["Status: all systems operational"]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "$cond": "state.announcementVisible",
+        "then": {
+          "component": "Portal",
+          "children": [
+            {
+              "component": "Row",
+              "props": {
+                "justify": "center",
+                "className": "fixed inset-x-0 bottom-0 z-50 px-r4 pb-r4",
+                "role": "status",
+                "aria-label": "Release announcement"
+              },
+              "children": [
+                {
+                  "component": "Card",
+                  "props": { "padding": "r4", "shadow": "lg", "className": "max-w-xl" },
+                  "children": [
+                    {
+                      "component": "Row",
+                      "props": { "gap": "r4", "wrap": true },
+                      "children": [
+                        {
+                          "component": "Text",
+                          "props": { "variant": "body-2" },
+                          "children": ["Meridian 4.2 is live — offline capture is on for new workspaces."]
+                        },
+                        { "component": "Divider", "props": { "orientation": "vertical" } },
+                        {
+                          "component": "Text",
+                          "props": { "variant": "body-3", "color": "muted" },
+                          "children": ["Read the release notes above."]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

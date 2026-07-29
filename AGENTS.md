@@ -119,8 +119,10 @@ and a test asserts every entry still exists upstream.
 
 ## Testing
 
-`bun test` (vitest, jsdom). jsdom lacks `matchMedia` and `ResizeObserver`, which response-ui
-uses; `test-setup.ts` stubs both — without them any component honouring reduced motion
+`bun run test` (vitest, jsdom) — **not** `bun test`, which runs Bun's own runner against a
+vitest suite and fails ~60 of them. jsdom lacks `matchMedia`, `ResizeObserver`,
+`Element.scrollIntoView` and every `<dialog>` method, all of which response-ui uses;
+`test-setup.ts` stubs them — without them any component honouring reduced motion
 throws on mount and the error boundaries mask it as a render failure.
 
 The corpus in `src/examples/` is real generator output, kept verbatim. Prefer adding to it

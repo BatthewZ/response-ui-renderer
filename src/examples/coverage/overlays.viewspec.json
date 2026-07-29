@@ -1,0 +1,801 @@
+{
+  "version": 1,
+  "title": "Coverage: overlays",
+  "description": "A document workspace toolbar — every layer that opens over the page: menus opened by click and by right-click, a hover preview, a popover panel, modal dialogs, an edge drawer and a command palette.",
+  "data": {
+    "document": {
+      "type": "static",
+      "value": {
+        "title": "Q3 Revenue Review",
+        "status": "Draft",
+        "updated": "2 hours ago",
+        "owner": "Ada Lovelace",
+        "ownerRole": "Finance lead",
+        "ownerEmail": "ada@northwind.example",
+        "revisionCount": 14,
+        "commentCount": 6,
+        "collaboratorCount": 4
+      }
+    },
+    "revisions": {
+      "type": "static",
+      "value": [
+        {
+          "id": "r-14",
+          "label": "Restated Q3 margins after the audit note",
+          "author": "Ada Lovelace",
+          "at": "2 hours ago"
+        },
+        {
+          "id": "r-13",
+          "label": "Added the EMEA regional breakdown",
+          "author": "Grace Hopper",
+          "at": "Yesterday, 16:40"
+        },
+        {
+          "id": "r-12",
+          "label": "First full draft",
+          "author": "Ada Lovelace",
+          "at": "Monday, 09:12"
+        }
+      ]
+    }
+  },
+  "state": {
+    "lastAction": "Nothing yet — open a menu and pick something."
+  },
+  "root": {
+    "component": "ErrorBoundary",
+    "children": [
+      {
+        "component": "Container",
+        "props": { "size": "lg" },
+        "children": [
+          {
+            "component": "Stack",
+            "props": { "gap": "r2" },
+            "children": [
+              {
+                "component": "Row",
+                "props": { "align": "start", "wrap": true },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r6" },
+                    "children": [
+                      {
+                        "component": "Text",
+                        "props": { "variant": "h2" },
+                        "children": [{ "$ref": "data.document.title" }]
+                      },
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r6" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-3", "color": "muted" },
+                            "children": [
+                              { "$ref": "data.document.status" },
+                              " · updated ",
+                              { "$ref": "data.document.updated" },
+                              " by"
+                            ]
+                          },
+                          {
+                            "component": "HoverCard",
+                            "props": {
+                              "openDelay": 150,
+                              "closeDelay": 200,
+                              "placement": "bottom-start"
+                            },
+                            "children": [
+                              {
+                                "component": "HoverCard.Trigger",
+                                "children": [{ "$ref": "data.document.owner" }]
+                              },
+                              {
+                                "component": "HoverCard.Content",
+                                "props": { "aria-label": "Document owner" },
+                                "children": [
+                                  {
+                                    "component": "Stack",
+                                    "props": { "gap": "r6" },
+                                    "children": [
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "body-2", "weight": "semibold" },
+                                        "children": [{ "$ref": "data.document.owner" }]
+                                      },
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "body-3", "color": "secondary" },
+                                        "children": [{ "$ref": "data.document.ownerRole" }]
+                                      },
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "body-3", "color": "muted" },
+                                        "children": [{ "$ref": "data.document.ownerEmail" }]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  { "component": "Spacer" },
+                  {
+                    "component": "Row",
+                    "props": { "gap": "r5" },
+                    "children": [
+                      {
+                        "component": "Tooltip",
+                        "props": {
+                          "content": "Search every action in this document",
+                          "placement": "bottom"
+                        },
+                        "children": [
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "ghost",
+                              "onClick": {
+                                "action": "openDialog",
+                                "payload": { "dialogId": "action-launcher" }
+                              }
+                            },
+                            "children": ["Search actions"]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Popover",
+                        "props": { "defaultOpen": true, "placement": "bottom-end", "offset": 10 },
+                        "children": [
+                          { "component": "Popover.Trigger", "children": ["Visibility"] },
+                          {
+                            "component": "Popover.Content",
+                            "props": { "aria-label": "Visibility settings" },
+                            "children": [
+                              {
+                                "component": "Stack",
+                                "props": { "gap": "r5" },
+                                "children": [
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-2", "weight": "semibold" },
+                                    "children": ["Who can see this draft"]
+                                  },
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-3", "color": "secondary" },
+                                    "children": [
+                                      "Finance team · ",
+                                      { "$ref": "data.document.collaboratorCount" },
+                                      " people with access"
+                                    ]
+                                  },
+                                  { "component": "Divider" },
+                                  {
+                                    "component": "Row",
+                                    "props": { "gap": "r5" },
+                                    "children": [
+                                      {
+                                        "component": "Button",
+                                        "props": {
+                                          "size": "sm",
+                                          "variant": "secondary",
+                                          "onClick": {
+                                            "action": "setState",
+                                            "payload": {
+                                              "key": "lastAction",
+                                              "value": "Kept the draft restricted to the finance team"
+                                            }
+                                          }
+                                        },
+                                        "children": ["Keep restricted"]
+                                      },
+                                      {
+                                        "component": "Button",
+                                        "props": {
+                                          "size": "sm",
+                                          "variant": "ghost",
+                                          "onClick": {
+                                            "action": "openDialog",
+                                            "payload": { "dialogId": "share-document" }
+                                          }
+                                        },
+                                        "children": ["Invite people…"]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "DropdownMenu",
+                        "props": { "placement": "bottom-end" },
+                        "children": [
+                          {
+                            "component": "DropdownMenu.Trigger",
+                            "children": ["Document actions"]
+                          },
+                          {
+                            "component": "DropdownMenu.Content",
+                            "props": { "aria-label": "Document actions" },
+                            "children": [
+                              { "component": "DropdownMenu.Label", "children": ["This draft"] },
+                              {
+                                "component": "DropdownMenu.Item",
+                                "props": {
+                                  "index": 0,
+                                  "icon": "copy",
+                                  "onSelect": {
+                                    "action": "setState",
+                                    "payload": {
+                                      "key": "lastAction",
+                                      "value": "Duplicated the draft"
+                                    }
+                                  }
+                                },
+                                "children": ["Duplicate"]
+                              },
+                              {
+                                "component": "DropdownMenu.Item",
+                                "props": {
+                                  "index": 1,
+                                  "icon": "history",
+                                  "onSelect": {
+                                    "action": "openDialog",
+                                    "payload": { "dialogId": "revision-history" }
+                                  }
+                                },
+                                "children": ["Revision history"]
+                              },
+                              {
+                                "component": "DropdownMenu.Item",
+                                "props": {
+                                  "index": 2,
+                                  "icon": "settings",
+                                  "onSelect": {
+                                    "action": "navigate",
+                                    "payload": { "path": "/documents/q3-revenue-review/settings" }
+                                  }
+                                },
+                                "children": ["Document settings"]
+                              },
+                              { "component": "DropdownMenu.Divider" },
+                              { "component": "DropdownMenu.Label", "children": ["Irreversible"] },
+                              {
+                                "component": "DropdownMenu.Item",
+                                "props": {
+                                  "index": 3,
+                                  "icon": "trash-2",
+                                  "onSelect": {
+                                    "action": "openDialog",
+                                    "payload": { "dialogId": "delete-draft" }
+                                  }
+                                },
+                                "children": ["Delete draft…"]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "primary",
+                          "onClick": {
+                            "action": "openDialog",
+                            "payload": { "dialogId": "share-document" }
+                          }
+                        },
+                        "children": ["Share"]
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              { "component": "Divider" },
+
+              {
+                "component": "RequireAuth",
+                "props": { "status": "authenticated" },
+                "children": [
+                  {
+                    "component": "Card",
+                    "props": { "padding": "r2" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r4" },
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "h4" },
+                            "children": ["Owner tools"]
+                          },
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-3", "color": "secondary" },
+                            "children": [
+                              "Only a signed-in owner sees this panel — the gate renders its children unchanged and adds no wrapper of its own."
+                            ]
+                          },
+                          {
+                            "component": "Grid",
+                            "props": { "columns": { "base": 1, "md": 3 }, "gap": "r4" },
+                            "children": [
+                              {
+                                "component": "Card",
+                                "props": { "padding": "r3", "shadow": "sm" },
+                                "children": [
+                                  {
+                                    "component": "Stack",
+                                    "props": { "gap": "r6" },
+                                    "children": [
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "h4" },
+                                        "children": [{ "$ref": "data.document.revisionCount" }]
+                                      },
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "body-3", "color": "muted" },
+                                        "children": ["revisions"]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "component": "Card",
+                                "props": { "padding": "r3", "shadow": "sm" },
+                                "children": [
+                                  {
+                                    "component": "Stack",
+                                    "props": { "gap": "r6" },
+                                    "children": [
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "h4" },
+                                        "children": [{ "$ref": "data.document.commentCount" }]
+                                      },
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "body-3", "color": "muted" },
+                                        "children": ["open comments"]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "component": "Card",
+                                "props": { "padding": "r3", "shadow": "sm" },
+                                "children": [
+                                  {
+                                    "component": "Stack",
+                                    "props": { "gap": "r6" },
+                                    "children": [
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "h4" },
+                                        "children": [{ "$ref": "data.document.collaboratorCount" }]
+                                      },
+                                      {
+                                        "component": "Text",
+                                        "props": { "variant": "body-3", "color": "muted" },
+                                        "children": ["collaborators"]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "component": "Row",
+                            "props": { "gap": "r5" },
+                            "children": [
+                              {
+                                "component": "Button",
+                                "props": {
+                                  "variant": "secondary",
+                                  "onClick": {
+                                    "action": "openDialog",
+                                    "payload": { "dialogId": "revision-history" }
+                                  }
+                                },
+                                "children": ["Open revision history"]
+                              },
+                              {
+                                "component": "Button",
+                                "props": {
+                                  "variant": "ghost",
+                                  "onClick": {
+                                    "action": "openDialog",
+                                    "payload": { "dialogId": "action-launcher" }
+                                  }
+                                },
+                                "children": ["Browse all actions"]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "component": "ContextMenu",
+                "children": [
+                  {
+                    "component": "ContextMenu.Trigger",
+                    "props": { "aria-label": "Report canvas — right-click for block actions" },
+                    "children": [
+                      {
+                        "component": "Card",
+                        "props": { "padding": "r1", "shadow": "sm" },
+                        "children": [
+                          {
+                            "component": "Center",
+                            "children": [
+                              {
+                                "component": "Stack",
+                                "props": { "gap": "r6" },
+                                "children": [
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-2", "color": "secondary" },
+                                    "children": ["Report canvas"]
+                                  },
+                                  {
+                                    "component": "Text",
+                                    "props": { "variant": "body-3", "color": "muted" },
+                                    "children": [
+                                      "Right-click, or press the Menu key, for block actions."
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "ContextMenu.Content",
+                    "props": { "aria-label": "Block actions" },
+                    "children": [
+                      { "component": "ContextMenu.Label", "children": ["This block"] },
+                      {
+                        "component": "ContextMenu.Item",
+                        "props": {
+                          "index": 0,
+                          "icon": "copy",
+                          "onSelect": {
+                            "action": "setState",
+                            "payload": {
+                              "key": "lastAction",
+                              "value": "Copied the selected block"
+                            }
+                          }
+                        },
+                        "children": ["Copy block"]
+                      },
+                      {
+                        "component": "ContextMenu.Item",
+                        "props": {
+                          "index": 1,
+                          "icon": "link",
+                          "onSelect": {
+                            "action": "setState",
+                            "payload": {
+                              "key": "lastAction",
+                              "value": "Copied a deep link to the selected block"
+                            }
+                          }
+                        },
+                        "children": ["Copy link to block"]
+                      },
+                      { "component": "ContextMenu.Divider" },
+                      { "component": "ContextMenu.Label", "children": ["Reorder"] },
+                      {
+                        "component": "ContextMenu.Item",
+                        "props": {
+                          "index": 2,
+                          "icon": "arrow-up",
+                          "onSelect": {
+                            "action": "setState",
+                            "payload": { "key": "lastAction", "value": "Moved the block up" }
+                          }
+                        },
+                        "children": ["Move up"]
+                      },
+                      {
+                        "component": "ContextMenu.Item",
+                        "props": { "index": 3, "icon": "arrow-down", "disabled": true },
+                        "children": ["Move down"]
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "component": "Row",
+                "props": { "gap": "r6" },
+                "children": [
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-3", "color": "muted" },
+                    "children": ["Last action:"]
+                  },
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-3" },
+                    "children": [{ "$ref": "state.lastAction" }]
+                  }
+                ]
+              },
+
+              {
+                "component": "CommandPalette",
+                "props": {
+                  "id": "action-launcher",
+                  "aria-label": "Document action launcher",
+                  "placeholder": "Search document actions…",
+                  "searchLabel": "Search document actions",
+                  "listLabel": "Document actions",
+                  "emptyMessage": "No action matches that.",
+                  "items": [
+                    {
+                      "id": "share",
+                      "label": "Share this draft",
+                      "group": "Collaborate",
+                      "shortcut": "⌘⇧S",
+                      "keywords": ["invite", "permissions", "access"],
+                      "onSelect": {
+                        "action": "openDialog",
+                        "payload": { "dialogId": "share-document" }
+                      }
+                    },
+                    {
+                      "id": "history",
+                      "label": "Open revision history",
+                      "group": "Collaborate",
+                      "keywords": ["versions", "changes"],
+                      "onSelect": {
+                        "action": "openDialog",
+                        "payload": { "dialogId": "revision-history" }
+                      }
+                    },
+                    {
+                      "id": "export",
+                      "label": "Export as PDF",
+                      "group": "Publish",
+                      "onSelect": {
+                        "action": "setState",
+                        "payload": { "key": "lastAction", "value": "Queued a PDF export" }
+                      }
+                    },
+                    {
+                      "id": "workspace-settings",
+                      "label": "Go to workspace settings",
+                      "group": "Publish",
+                      "onSelect": {
+                        "action": "navigate",
+                        "payload": { "path": "/settings/workspace" }
+                      }
+                    },
+                    {
+                      "id": "archive",
+                      "label": "Archive — needs owner rights",
+                      "group": "Publish",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+
+              {
+                "component": "Dialog",
+                "props": { "id": "share-document", "aria-labelledby": "share-document-title" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r3" },
+                    "children": [
+                      {
+                        "component": "Text",
+                        "props": { "variant": "h3", "id": "share-document-title" },
+                        "children": ["Share this draft"]
+                      },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-2", "color": "secondary" },
+                        "children": [
+                          "Anyone on the finance team can comment. Editing stays with ",
+                          { "$ref": "data.document.owner" },
+                          "."
+                        ]
+                      },
+                      { "component": "Divider" },
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r5", "justify": "end" },
+                        "children": [
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "ghost",
+                              "onClick": {
+                                "action": "closeDialog",
+                                "payload": { "dialogId": "share-document" }
+                              }
+                            },
+                            "children": ["Cancel"]
+                          },
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "primary",
+                              "onClick": {
+                                "action": "closeDialog",
+                                "payload": { "dialogId": "share-document" }
+                              }
+                            },
+                            "children": ["Copy share link"]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "component": "Dialog",
+                "props": { "id": "delete-draft", "aria-labelledby": "delete-draft-title" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r3" },
+                    "children": [
+                      {
+                        "component": "Text",
+                        "props": { "variant": "h3", "id": "delete-draft-title" },
+                        "children": ["Delete this draft?"]
+                      },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-2", "color": "secondary" },
+                        "children": [
+                          "All ",
+                          { "$ref": "data.document.revisionCount" },
+                          " revisions go with it. This cannot be undone."
+                        ]
+                      },
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r5", "justify": "end" },
+                        "children": [
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "ghost",
+                              "onClick": {
+                                "action": "closeDialog",
+                                "payload": { "dialogId": "delete-draft" }
+                              }
+                            },
+                            "children": ["Keep it"]
+                          },
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "danger",
+                              "onClick": {
+                                "action": "closeDialog",
+                                "payload": { "dialogId": "delete-draft" }
+                              }
+                            },
+                            "children": ["Delete draft"]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "component": "Drawer",
+                "props": {
+                  "id": "revision-history",
+                  "side": "right",
+                  "aria-label": "Revision history"
+                },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r3" },
+                    "children": [
+                      {
+                        "component": "Row",
+                        "children": [
+                          {
+                            "component": "Text",
+                            "props": { "variant": "h4" },
+                            "children": ["Revision history"]
+                          },
+                          { "component": "Spacer" },
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "ghost",
+                              "size": "sm",
+                              "onClick": {
+                                "action": "closeDialog",
+                                "payload": { "dialogId": "revision-history" }
+                              }
+                            },
+                            "children": ["Close"]
+                          }
+                        ]
+                      },
+                      { "component": "Divider" },
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r4" },
+                        "children": [
+                          {
+                            "$each": "data.revisions",
+                            "as": "revision",
+                            "node": {
+                              "component": "Stack",
+                              "props": { "gap": "r6" },
+                              "children": [
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-2" },
+                                  "children": [{ "$ref": "revision.label" }]
+                                },
+                                {
+                                  "component": "Text",
+                                  "props": { "variant": "body-3", "color": "muted" },
+                                  "children": [
+                                    { "$ref": "revision.author" },
+                                    " · ",
+                                    { "$ref": "revision.at" }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
