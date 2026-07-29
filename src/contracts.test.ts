@@ -175,6 +175,23 @@ describe('RSC "use client" contract', () => {
   });
 });
 
+describe("sources stay text", () => {
+  it("embeds no control character that makes git treat a source file as binary", () => {
+    // A raw NUL written into a string literal costs the whole file its diff:
+    // git renders it as "Binary files differ" and `git grep`/ripgrep skip it,
+    // so the file silently drops out of review and out of every search.
+    // Spell them as escapes instead — "\u0000" is the same string, still text.
+    // Tab, newline and carriage return are exempt; git tolerates those.
+    const offenders = sourceFiles
+      .filter((file) => [...read(file)].some((ch) => {
+        const code = ch.codePointAt(0) ?? 0;
+        return code < 0x09 || (code > 0x0d && code < 0x20);
+      }))
+      .map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
 describe("no suppressed diagnostics", () => {
   it("carries no eslint or typescript ignores anywhere, tests included", () => {
     // CLAUDE.md: "Never suppress or add ts/eslint error ignores."
