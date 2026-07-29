@@ -106,6 +106,28 @@ function isIconProp(key: string): boolean {
   return key === "icon" || (key.length > 4 && key.endsWith("Icon"));
 }
 
+/** `Select` takes `<option>` children, not an `options` array. */
+function toOptionElements(options: readonly unknown[]): ReactNode[] {
+  return options.map((option, index) => {
+    if (typeof option === "string" || typeof option === "number") {
+      return (
+        <option key={String(option)} value={option}>
+          {option}
+        </option>
+      );
+    }
+    const record = (option ?? {}) as Record<string, unknown>;
+    const value = record.value;
+    const label = record.label ?? value;
+    const key = typeof value === "string" || typeof value === "number" ? String(value) : index;
+    return (
+      <option key={key} value={value as string}>
+        {label as ReactNode}
+      </option>
+    );
+  });
+}
+
 export function NodeRenderer({
   node,
   registry,
@@ -124,6 +146,16 @@ export function NodeRenderer({
     );
   }
 
+  if (typeof node === "string") return <>{node}</>;
+
+  if (node == null || typeof node !== "object") {
+    return (
+      <div className="rui-render-error" role="alert">
+        Invalid node: {String(node)}
+      </div>
+    );
+  }
+
   const refContext: RefContext = {
     data: view.data,
     forms: Object.fromEntries(
@@ -135,15 +167,16 @@ export function NodeRenderer({
     vars: view.vars,
   };
 
-  if (typeof node === "string") return <>{node}</>;
-
-  if (node == null || typeof node !== "object") {
-    return (
-      <div className="rui-render-error" role="alert">
-        Invalid node: {String(node)}
-      </div>
-    );
-  }
+  /** Every nested node descends one level and inherits the same registry and context. */
+  const renderChild = (child: ViewNode, key?: string) => (
+    <NodeRenderer
+      key={key}
+      node={child}
+      registry={registry}
+      eventContext={eventContext}
+      depth={depth + 1}
+    />
+  );
 
   if (isRefNode(node)) {
     return <>{refToText(resolveRef(node.$ref, refContext))}</>;
@@ -179,14 +212,7 @@ export function NodeRenderer({
             key={itemKey(item, index)}
             vars={{ [node.as]: item, [`${node.as}Index`]: index }}
           >
-            <NodeErrorBoundary label={`$each[${index}]`}>
-              <NodeRenderer
-                node={node.node}
-                registry={registry}
-                eventContext={eventContext}
-                depth={depth + 1}
-              />
-            </NodeErrorBoundary>
+            <NodeErrorBoundary label={`$each[${index}]`}>{renderChild(node.node)}</NodeErrorBoundary>
           </ViewContextExtender>
         ))}
       </>
@@ -235,7 +261,7 @@ export function NodeRenderer({
     } else if (node.component === "Radio") {
       props.checked = current === props.value;
     } else {
-      props.value = current == null ? "" : (current);
+      props.value = current ?? "";
     }
 
     props.onChange = (reported: unknown) => {
@@ -259,12 +285,7 @@ export function NodeRenderer({
     if (isNodeValue(value)) {
       return (
         <NodeErrorBoundary key={path} label={`${node.component}.${path}`}>
-          <NodeRenderer
-            node={value.$node}
-            registry={registry}
-            eventContext={eventContext}
-            depth={depth + 1}
-          />
+          {renderChild(value.$node)}
         </NodeErrorBoundary>
       );
     }
@@ -302,12 +323,7 @@ export function NodeRenderer({
       ...def,
       render: (row: unknown, index: number) => (
         <ViewContextExtender vars={{ row, rowIndex: index }}>
-          <NodeRenderer
-            node={template}
-            registry={registry}
-            eventContext={eventContext}
-            depth={depth + 1}
-          />
+          {renderChild(template)}
         </ViewContextExtender>
       ),
     };
@@ -388,26 +404,9 @@ export function NodeRenderer({
     props.onClose = () => eventContext.dialogs.close(dialogId);
   }
 
-  // Select takes <option> children, not an options array.
   let optionChildren: ReactNode[] | undefined;
   if (node.component === "Select" && Array.isArray(props.options)) {
-    optionChildren = (props.options as unknown[]).map((option, index) => {
-      if (typeof option === "string" || typeof option === "number") {
-        return (
-          <option key={String(option)} value={option}>
-            {option}
-          </option>
-        );
-      }
-      const record = (option ?? {}) as Record<string, unknown>;
-      const value = record.value;
-      const label = record.label ?? value;
-      return (
-        <option key={typeof value === "string" || typeof value === "number" ? String(value) : index} value={value as string}>
-          {label as ReactNode}
-        </option>
-      );
-    });
+    optionChildren = toOptionElements(props.options);
     delete props.options;
   }
 
@@ -435,21 +434,16 @@ export function NodeRenderer({
   // per-sibling isolation is traded away, and only at these positions.
   const parentInspectsChildren = inspectsChildren(node.component, node.props);
 
-  const childNodes = node.children?.map((child, index) =>
-    parentInspectsChildren ? (
-      <NodeRenderer
-        key={nodeKey(child, index)}
-        node={child}
-        registry={registry}
-        eventContext={eventContext}
-        depth={depth + 1}
-      />
+  const childNodes = node.children?.map((child, index) => {
+    const key = nodeKey(child, index);
+    return parentInspectsChildren ? (
+      renderChild(child, key)
     ) : (
-      <NodeErrorBoundary key={nodeKey(child, index)} label={`${node.component}[${index}]`}>
-        <NodeRenderer node={child} registry={registry} eventContext={eventContext} depth={depth + 1} />
+      <NodeErrorBoundary key={key} label={`${node.component}[${index}]`}>
+        {renderChild(child)}
       </NodeErrorBoundary>
-    ),
-  );
+    );
+  });
 
   const children = optionChildren ? [...optionChildren, ...(childNodes ?? [])] : childNodes;
 

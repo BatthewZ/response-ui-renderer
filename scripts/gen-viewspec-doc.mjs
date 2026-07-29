@@ -194,7 +194,7 @@ function replaceRegion(doc, id, body) {
   return doc.replace(pattern, `$1\n${body}\n$2`);
 }
 
-async function main() {
+function main() {
   // The same JSON the runtime modules import, so the doc and the parity gate can
   // never disagree about which components are excused or how they are grouped.
   const notes = JSON.parse(readFileSync(path.join(root, "src/registry/component-notes.json"), "utf8"));
@@ -203,12 +203,12 @@ async function main() {
   );
 
   const components = liveComponents();
-  let doc = readFileSync(docPath, "utf8");
-  doc = replaceRegion(doc, "components", render(components, notes, notAddressable));
+  const original = readFileSync(docPath, "utf8");
+  let doc = replaceRegion(original, "components", render(components, notes, notAddressable));
   doc = replaceRegion(doc, "not-addressable", renderNotAddressable(notAddressable));
 
   if (process.argv.includes("--check")) {
-    if (doc !== readFileSync(docPath, "utf8")) {
+    if (doc !== original) {
       console.error("VIEWSPEC.md is stale — run `bun run docs:viewspec`.");
       process.exit(1);
     }
@@ -220,4 +220,4 @@ async function main() {
   console.log(`VIEWSPEC.md regenerated (${components.length} components).`);
 }
 
-await main();
+main();

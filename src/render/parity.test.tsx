@@ -23,25 +23,35 @@ const oneField = (initialValue: unknown) => ({
   probe: { fields: { v: { initialValue } } },
 });
 
+/** One control bound to `probe.v`, beside a readout of what the store holds. */
+const boundSpec = (
+  initialValue: unknown,
+  component: string,
+  props: Record<string, unknown>,
+): ViewSpec =>
+  spec({
+    forms: oneField(initialValue),
+    root: {
+      component: "Stack",
+      children: [
+        { component, props: { ...props, $field: "probe.v" } },
+        readout("forms.probe.v"),
+      ],
+    },
+  });
+
+/** Every warning a document raises, joined so one `toContain` reads across all of them. */
+const warningText = (doc: unknown): string =>
+  warningsOf(validateViewSpec(doc).issues)
+    .map((issue) => issue.message)
+    .join("\n");
+
 describe("$field on value-callback controls", () => {
   // The library re-types `onChange` to `(value) => void` on these controls and
   // calls it with a bare value. A binding that assumes a DOM ChangeEvent
   // dereferences `event.target` and throws inside the handler.
   it("binds a Slider without throwing", async () => {
-    render(
-      <ViewRenderer
-        spec={spec({
-          forms: oneField(10),
-          root: {
-            component: "Stack",
-            children: [
-              { component: "Slider", props: { "aria-label": "Volume", $field: "probe.v" } },
-              readout("forms.probe.v"),
-            ],
-          },
-        })}
-      />,
-    );
+    render(<ViewRenderer spec={boundSpec(10, "Slider", { "aria-label": "Volume" })} />);
 
     fireEvent.change(screen.getByLabelText("Volume"), { target: { value: "60" } });
     expect(await screen.findByText("60")).toBeInTheDocument();
@@ -49,20 +59,7 @@ describe("$field on value-callback controls", () => {
 
   it("binds a TagInput without throwing", async () => {
     const user = userEvent.setup();
-    render(
-      <ViewRenderer
-        spec={spec({
-          forms: oneField([]),
-          root: {
-            component: "Stack",
-            children: [
-              { component: "TagInput", props: { "aria-label": "Tags", $field: "probe.v" } },
-              readout("forms.probe.v"),
-            ],
-          },
-        })}
-      />,
-    );
+    render(<ViewRenderer spec={boundSpec([], "TagInput", { "aria-label": "Tags" })} />);
 
     await user.click(screen.getByLabelText("Tags"));
     await user.keyboard("alpha{Enter}");
@@ -71,20 +68,7 @@ describe("$field on value-callback controls", () => {
 
   it("binds a NumberInput without throwing", async () => {
     const user = userEvent.setup();
-    render(
-      <ViewRenderer
-        spec={spec({
-          forms: oneField(1),
-          root: {
-            component: "Stack",
-            children: [
-              { component: "NumberInput", props: { "aria-label": "Qty", $field: "probe.v" } },
-              readout("forms.probe.v"),
-            ],
-          },
-        })}
-      />,
-    );
+    render(<ViewRenderer spec={boundSpec(1, "NumberInput", { "aria-label": "Qty" })} />);
 
     await user.clear(screen.getByLabelText("Qty"));
     await user.type(screen.getByLabelText("Qty"), "7");
@@ -99,20 +83,7 @@ describe("$field on Switch", () => {
   // value and can never write back — silently one-way.
   it("writes back when toggled", async () => {
     const user = userEvent.setup();
-    render(
-      <ViewRenderer
-        spec={spec({
-          forms: oneField(false),
-          root: {
-            component: "Stack",
-            children: [
-              { component: "Switch", props: { "aria-label": "Notify", $field: "probe.v" } },
-              readout("forms.probe.v"),
-            ],
-          },
-        })}
-      />,
-    );
+    render(<ViewRenderer spec={boundSpec(false, "Switch", { "aria-label": "Notify" })} />);
 
     await user.click(screen.getByLabelText("Notify"));
     expect(await screen.findByText("true")).toBeInTheDocument();
@@ -138,21 +109,17 @@ describe("$field on Radio", () => {
   // that same key — cannot express one. Not fixable in the renderer; the
   // validator says so instead of leaving a silently dead control.
   it("warns rather than silently failing under the longhand spelling", () => {
-    const result = validateViewSpec(radioSpec({ value: { $field: "probe.v" } }));
-    expect(result.ok).toBe(true);
-    expect(warningsOf(result.issues).map((i) => i.message).join("\n")).toContain(
-      "bind it with the bare form",
-    );
+    const longhand = radioSpec({ value: { $field: "probe.v" } });
+    expect(validateViewSpec(longhand).ok).toBe(true);
+    expect(warningText(longhand)).toContain("bind it with the bare form");
   });
 });
 
 describe("controlled-only dialogs", () => {
   it("warns when a Dialog has no id for an action to target", () => {
-    const result = validateViewSpec(
-      spec({ root: { component: "Dialog", children: ["Body"] } }),
-    );
-    expect(result.ok).toBe(true);
-    expect(warningsOf(result.issues).map((i) => i.message).join("\n")).toContain("nothing can open it");
+    const idless = spec({ root: { component: "Dialog", children: ["Body"] } });
+    expect(validateViewSpec(idless).ok).toBe(true);
+    expect(warningText(idless)).toContain("nothing can open it");
   });
 
   it("opens a CommandPalette through openDialog, like any other dialog", async () => {
@@ -502,8 +469,7 @@ describe("parents that inspect their children", () => {
       },
     });
 
-    const messages = warningsOf(validateViewSpec(withBackground).issues).map((i) => i.message);
-    expect(messages.join("\n")).toContain('set "overlay": true');
+    expect(warningText(withBackground)).toContain('set "overlay": true');
 
     // Stating it explicitly is all it takes, and silences the advice.
     const explicit = structuredClone(withBackground);
@@ -525,9 +491,7 @@ describe("parents that inspect their children", () => {
         ],
       },
     });
-    expect(warningsOf(validateViewSpec(group).issues).map((i) => i.message).join("\n")).toContain(
-      'set "size" on each Avatar',
-    );
+    expect(warningText(group)).toContain('set "size" on each Avatar');
 
     // Set per avatar, the size lands: `lg` is the `size-12` utility.
     const perAvatar = structuredClone(group);

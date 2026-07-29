@@ -10,7 +10,7 @@ export {
   CHILD_INSPECTING_PARENTS,
   IDENTITY_CHECKED_PARENTS,
 } from "./registry/child-introspection";
-export { COMPONENT_NOTES,type ComponentNote } from "./registry/component-notes";
+export { COMPONENT_NOTES, type ComponentNote } from "./registry/component-notes";
 export {
   Icon,
   type IconComponentProps,
