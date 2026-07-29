@@ -77,6 +77,26 @@ from `dist/**/*.d.ts` and the live barrel, which are always present and are the 
 contract for the peer range. Authoring against the sibling repo's working tree produces props
 that do not exist in the version consumers install.
 
+The converse trap is that a fix committed in the sibling repo is invisible here until it is
+*published*. A version number that did not move cannot deliver it: the range already resolves
+to a tarball on the registry, so an install is a no-op and the old behaviour persists while
+the source next door plainly shows it fixed. Reading the sibling's working tree to explain
+what the renderer just drew will mislead you every time — read `node_modules`, which is what
+actually rendered.
+
+## Editing the manifest is not upgrading
+
+Bumping a range changes an intent; the lockfile and `node_modules` are what the build,
+the tests and the generators read. Skip the install and every gate keeps passing against the
+old library — the most convincing kind of green, because nothing failed. Whenever a range
+moves, install, then confirm the installed version is the one you asked for before trusting
+any result.
+
+An upgrade also invalidates derived artifacts. Anything generated from the library — the
+reference doc most of all — has to be regenerated in the same change, because upstream adding
+a prop makes the committed copy stale by definition. That gate firing after a bump is it
+working, not a flake, and regenerating is the fix.
+
 ## Theming
 
 Never write an example theme name into a selector, type, default, config list, doc table or

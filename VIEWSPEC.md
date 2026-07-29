@@ -224,7 +224,7 @@ Tables, metrics and lists driven by `data` + `$each`.
 | `Sparkline` | — | `values`: number[] · `variant?`: "line"\|"area"\|"bar" · `width?`: number · `height?`: number · `strokeWidth?`: number · `min?`: number · `max?`: number | Requires `values`. Set `min: 0` or the lowest bar has no height. |
 | `StatCard` | `.Value` `.Label` `.Trend` `.Icon` `.Sparkline` | — | `.Trend` needs `value` and `direction` and takes no children. `.Sparkline` needs `values`. |
 | `Table` | `.Head` `.Body` `.Row` `.HeaderCell` `.Cell` | `density?`: "dense"\|"comfortable"\|"spacious" · `striped?`: boolean · `stickyHeader?`: boolean · `maxHeight?`: number\|string · `tableProps?`: ComponentPropsWithRef<"table"> | Presentational only — it sorts nothing. Rest props land on a wrapper; name it via `tableProps`. |
-| `Timeline` | `.Item` | `animate?`: boolean | `.Item` requires `title`. Pass `animate: false` — every item otherwise builds its own observer. |
+| `Timeline` | `.Item` | `animate?`: boolean · `align?`: "left"\|"center"\|"right" · `density?`: "dense"\|"comfortable"\|"spacious" · `card?`: boolean | `.Item` requires `title`. Pass `animate: false` — every item otherwise builds its own observer. |
 | `VirtualizedDataTable` | — | `data`: T[] · `columns`: ColumnDef<T>[] · `rowHeight`: number · `sort?`: SortState\|null · `defaultSort?`: SortState\|null · `onSortChange?`: (sort: SortState\|null) => void · `sortComparator?`: (a: T, b: T, columnKey: string, direction: "asc"\|"desc") => number · +14 more | As `DataTable`, plus a numeric `rowHeight` and `height`. No `className` on the root at all. |
 
 ### Form
