@@ -156,7 +156,7 @@ export function createEventCallback(
 
     switch (handler.action) {
       case "submitForm": {
-        const formId = (raw.form ?? raw.formId) as string | undefined;
+        const formId = (payload.form ?? payload.formId) as string | undefined;
         if (typeof formId !== "string") {
           warn("submitForm: payload.form is required");
           return;
@@ -173,7 +173,7 @@ export function createEventCallback(
       }
 
       case "resetForm": {
-        const formId = (raw.form ?? raw.formId) as string | undefined;
+        const formId = (payload.form ?? payload.formId) as string | undefined;
         if (typeof formId === "string") context.formStates[formId]?.reset();
         return;
       }
@@ -248,15 +248,25 @@ function runApiCall(
   depth: number,
 ): void {
   const { adapters } = context;
+
+  // `endpoint` is read raw, and `onSuccess`/`onError` below with it: the URL a
+  // document may call, and the handlers it may chain, are decisions the document
+  // states outright. Resolving them would let fetched data choose where the next
+  // request goes. Everything else here is resolved.
   const endpoint = raw.endpoint;
   if (typeof endpoint !== "string" || endpoint.length === 0) {
     warn("apiCall: payload.endpoint is required");
     return;
   }
 
-  const method = normalizeMethod(raw.method);
-  if (typeof raw.method === "string" && !ALLOWED_HTTP_METHODS.includes(raw.method.toUpperCase())) {
-    warn(`apiCall: method "${raw.method}" is not allowed; using GET`);
+  const declaredMethod = payload.method;
+  const method = normalizeMethod(declaredMethod);
+  if (typeof declaredMethod === "string") {
+    if (!ALLOWED_HTTP_METHODS.includes(declaredMethod.toUpperCase())) {
+      warn(`apiCall: method "${declaredMethod}" is not allowed; using GET`);
+    }
+  } else if (declaredMethod !== undefined) {
+    warn("apiCall: method must be a string; using GET");
   }
 
   const allow = adapters.allowUrl ?? defaultAllowUrl;

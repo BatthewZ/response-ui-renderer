@@ -75,9 +75,11 @@ Inside `props`, a value is a literal or one of:
 
 ## Event Actions
 
-`{ "action": "name", "payload": { … } }`. Payloads are `$ref`-resolved before dispatch
-(except `apiCall.endpoint` and `setState.key`, read literally so state shape cannot depend
-on data). Handler chains stop at depth 5.
+`{ "action": "name", "payload": { … } }`. Payloads are `$ref`-resolved before dispatch,
+except for four keys read literally so that fetched data cannot decide what the app does:
+`setState.key` (state shape would depend on data), `apiCall.endpoint` (where a request
+goes), and `apiCall.onSuccess` / `apiCall.onError` (what runs next). Handler chains stop
+at depth 5.
 
 | Action | Payload | Effect |
 | --- | --- | --- |
