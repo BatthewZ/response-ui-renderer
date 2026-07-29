@@ -29,6 +29,18 @@ Two got written here and both had to be caught by re-reading, not by a failure:
 Watch every new check go red before trusting it. The gates in this package have all been
 falsified deliberately at least once; keep that up.
 
+## Assert the whole issue, not just its message
+
+A validation issue is a `path` and a `message`, and for a long time every test asserted only
+the message. That left the `path` unverified across the entire validator, and one family of
+warnings was reporting a fact about a node's *children* at the node's `props` path — a path
+that on a node declaring no props named nothing at all. Nothing failed, because nothing
+looked. When a check reports a location, assert the location.
+
+The related design rule: a warning's path should name the thing the message is about. A hint
+that says "set this prop" belongs at that prop even when it is absent, because the path is
+telling the author where to go; a hint about the node's children belongs at the node.
+
 ## The corpus is the reference
 
 `src/examples/coverage/` is authored and must model the advice the package gives — it is

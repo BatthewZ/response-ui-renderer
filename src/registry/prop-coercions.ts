@@ -1,3 +1,5 @@
+import { slotOwners } from "./slot-keys";
+
 /**
  * Props the library types with something JSON cannot express, and the smallest
  * translation that makes them reachable from a document.
@@ -48,14 +50,7 @@ function buildCoercions(): Map<string, PropCoercion> {
 export const PROP_COERCIONS: ReadonlyMap<string, PropCoercion> = buildCoercions();
 
 /** Components named by PROP_COERCIONS, for the drift test. */
-export const PROP_COERCION_OWNERS: readonly string[] = [
-  "Calendar",
-  "DatePicker",
-  "RangeCalendar",
-  "DateRangePicker",
-  "DataTable",
-  "VirtualizedDataTable",
-];
+export const PROP_COERCION_OWNERS = slotOwners(PROP_COERCIONS.keys());
 
 export function propCoercion(component: string, prop: string): PropCoercion | undefined {
   return PROP_COERCIONS.get(`${component}.${prop}`);
