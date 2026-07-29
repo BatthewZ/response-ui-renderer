@@ -34,15 +34,27 @@ export const FIELD_BINDING_KEY = "$field";
 
 export type FieldBinding = { $field: string };
 
-export type EventAction =
-  | "submitForm"
-  | "resetForm"
-  | "navigate"
-  | "showToast"
-  | "apiCall"
-  | "openDialog"
-  | "closeDialog"
-  | "setState";
+/**
+ * Every action the renderer dispatches.
+ *
+ * The type, the runtime set `validateViewSpec` checks against, and the optional
+ * Zod enum are all derived from this one tuple. They were three hand-kept lists,
+ * and the Zod one could fall behind without a type error — its schema stays
+ * assignable to `ZodType<ViewSpec>` when its union is a strict *subset*, which is
+ * the direction that happens when an action is added.
+ */
+export const EVENT_ACTION_NAMES = [
+  "submitForm",
+  "resetForm",
+  "navigate",
+  "showToast",
+  "apiCall",
+  "openDialog",
+  "closeDialog",
+  "setState",
+] as const;
+
+export type EventAction = (typeof EVENT_ACTION_NAMES)[number];
 
 export type EventHandlerSpec = {
   action: EventAction;

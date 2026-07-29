@@ -1,6 +1,7 @@
 import { IDENTITY_CHECKED_PARENTS } from "../registry/child-introspection";
 import {
   type DataBinding,
+  EVENT_ACTION_NAMES,
   type EventAction,
   type EventHandlerSpec,
   type FormDef,
@@ -55,16 +56,7 @@ export const warningsOf = (issues: readonly ValidationIssue[]): ValidationIssue[
 export const MAX_NODE_DEPTH = 50;
 
 /** Every action the renderer dispatches. Shared so nothing re-lists them. */
-export const EVENT_ACTIONS: ReadonlySet<string> = new Set<EventAction>([
-  "submitForm",
-  "resetForm",
-  "navigate",
-  "showToast",
-  "apiCall",
-  "openDialog",
-  "closeDialog",
-  "setState",
-]);
+export const EVENT_ACTIONS: ReadonlySet<string> = new Set<EventAction>(EVENT_ACTION_NAMES);
 
 const BINDING_TYPES: ReadonlySet<string> = new Set(["static", "api", "source"]);
 

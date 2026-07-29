@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { exampleSpecs } from "./examples";
-import { MAX_NODE_DEPTH, validateViewSpec } from "./spec/validate";
+import { EVENT_ACTION_NAMES } from "./spec/types";
+import { errorsOf, EVENT_ACTIONS, MAX_NODE_DEPTH, validateViewSpec } from "./spec/validate";
 import { viewSpecJsonSchema, viewSpecSchema } from "./zod";
 
 /**
@@ -206,6 +207,23 @@ describe("the api-binding surfaces match", () => {
     const doc = { version: 1, title: "T", root: "x", data: { k: binding } };
     expect(validateViewSpec(doc).issues.length).toBeGreaterThan(0);
     expect(zodAccepts(doc)).toBe(false);
+  });
+});
+
+describe("every event action is known to both validators", () => {
+  // The two lists were kept by hand, and Zod's could fall behind silently: a
+  // schema whose action union is a strict SUBSET of EventAction is still
+  // assignable to ZodType<ViewSpec>, and a subset is exactly what you get by
+  // adding an action and forgetting this file. Both now derive from one tuple;
+  // this asserts the derivation actually reaches both.
+  it.each([...EVENT_ACTION_NAMES])("%s conforms to both", (action) => {
+    const doc = { version: 1, title: "T", root: "x", forms: { f: { fields: {}, onSubmit: { action } } } };
+    expect(errorsOf(validateViewSpec(doc).issues)).toEqual([]);
+    expect(zodAccepts(doc)).toBe(true);
+  });
+
+  it("covers every action the renderer dispatches", () => {
+    expect([...EVENT_ACTION_NAMES].sort()).toEqual([...EVENT_ACTIONS].sort());
   });
 });
 

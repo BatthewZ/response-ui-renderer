@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { ViewSpec } from "./spec/types";
+import { EVENT_ACTION_NAMES, type ViewSpec } from "./spec/types";
 
 /**
  * A Zod mirror of the ViewSpec wire format.
@@ -33,19 +33,14 @@ import type { ViewSpec } from "./spec/types";
  *   `validateViewSpec` and are enforced by the renderer at render time, which
  *   drops the offending prop. Use `validateViewSpec` if you want to see them.
  *
+ * The action list is the one part shared outright rather than mirrored: a Zod
+ * enum narrower than `EventAction` is still assignable to `ZodType<ViewSpec>`,
+ * so drift in that direction was invisible to the compiler.
+ *
  * Change either side, run the tests.
  */
 
-const eventActionSchema = z.enum([
-  "submitForm",
-  "resetForm",
-  "navigate",
-  "showToast",
-  "apiCall",
-  "openDialog",
-  "closeDialog",
-  "setState",
-]);
+const eventActionSchema = z.enum(EVENT_ACTION_NAMES);
 
 export const eventHandlerSchema = z.object({
   action: eventActionSchema,
