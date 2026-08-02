@@ -32,6 +32,16 @@ leaves some component reading a default token and produces one unreadable region
   the grid when the cards' contents differ in kind.
 - The spacing scale is inverted — `r1` is the largest step. A "small icon chip" sized
   with `r1` is enormous.
+- A scrim cannot promise contrast over an arbitrary photo. `MediaCard.Overlay` ramps
+  linearly across the *whole* card, so text sitting at the bottom is well covered and
+  text that climbs — a caption wrapping to three lines in a narrow column — reaches the
+  weak end and lands on whatever the photograph is doing there. The lever is
+  `--OVERLAY-GRADIENT-START` / `-END` in `themeOverrides`, which measurably rescues the
+  upper lines; the catch is that both are view-global, so they retune `Hero`, `Carousel`
+  and `Spotlight` in the same document too. Overlaying a `className` gradient instead
+  does not work — an invented utility is not in the compiled CSS at runtime. Reserve
+  on-image text for a short line, and put body copy that carries information below the
+  image where the page's own ink applies.
 
 ## Verifying visually
 
