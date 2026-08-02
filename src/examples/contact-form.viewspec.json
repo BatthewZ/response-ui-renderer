@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "Contact Form",
-  "description": "A warm editorial contact page — split layout with contact channels beside a validated form that posts through apiCall; serif headings and a terracotta palette via themeOverrides",
+  "description": "A warm editorial contact page — a studio photograph and contact channels beside a validated form that posts through apiCall, headed by the person who answers it; serif headings and a terracotta palette via themeOverrides",
   "themeOverrides": {
     "--C-CANVAS": "oklch(0.965 0.012 85)",
     "--C-SURFACE-0": "oklch(0.995 0.005 90)",
@@ -86,7 +86,7 @@
         "children": [
           {
             "component": "Grid",
-            "props": { "columns": { "base": 1, "md": 5 }, "gap": "r2" },
+            "props": { "columns": { "base": 1, "md": 5 }, "gap": "r2", "className": "items-start" },
             "children": [
               {
                 "component": "Stack",
@@ -96,11 +96,11 @@
                     "component": "Stack",
                     "props": { "gap": "r4" },
                     "children": [
-                      { "component": "Text", "props": { "variant": "h2" }, "children": ["Contact Us"] },
+                      { "component": "Text", "props": { "variant": "h1" }, "children": ["Contact Us"] },
                       {
                         "component": "Text",
                         "props": { "variant": "body-1", "color": "secondary" },
-                        "children": ["Commissions, collaborations, or a question about an order — write to us and a real person will reply within one working day."]
+                        "children": ["Commissions, collaborations, or a question about an order — write to us and a real person will read it."]
                       }
                     ]
                   },
@@ -136,20 +136,32 @@
                       }
                     ]
                   },
-                  { "component": "Spacer" },
                   {
-                    "component": "Card",
-                    "props": { "padding": "r4", "className": "bg-surface-2 border-0" },
+                    "component": "Stack",
+                    "props": { "gap": "r5" },
                     "children": [
+                      {
+                        "component": "MediaCard",
+                        "props": { "orientation": "landscape" },
+                        "children": [
+                          {
+                            "component": "MediaCard.Image",
+                            "props": {
+                              "src": "https://picsum.photos/seed/tools/1200/675",
+                              "alt": "A glazed pot resting on the studio bench"
+                            }
+                          }
+                        ]
+                      },
                       {
                         "component": "Row",
                         "props": { "gap": "r5", "align": "start" },
                         "children": [
-                          { "component": "Icon", "props": { "name": "leaf", "size": 20, "className": "text-accent shrink-0" } },
+                          { "component": "Icon", "props": { "name": "leaf", "size": 18, "className": "text-accent shrink-0" } },
                           {
                             "component": "Text",
                             "props": { "variant": "body-3", "color": "secondary" },
-                            "children": ["Every piece is made to order in our east London workshop. If you're asking about a timeline, most commissions ship in three to five weeks."]
+                            "children": ["Every piece is made to order in our east London workshop — most commissions ship in three to five weeks."]
                           }
                         ]
                       }
@@ -159,12 +171,45 @@
               },
               {
                 "component": "Card",
-                "props": { "padding": "r3", "shadow": "md", "className": "md:col-span-3 flex flex-col" },
+                "props": { "padding": "r3", "shadow": "md", "className": "md:col-span-3" },
                 "children": [
                   {
                     "component": "Stack",
-                    "props": { "gap": "r4", "className": "flex-1" },
+                    "props": { "gap": "r4" },
                     "children": [
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r4", "align": "center", "justify": "between", "wrap": true },
+                        "children": [
+                          {
+                            "component": "Row",
+                            "props": { "gap": "r4", "align": "center" },
+                            "children": [
+                              {
+                                "component": "Avatar",
+                                "props": {
+                                  "src": "https://i.pravatar.cc/150?u=fernworks-2",
+                                  "alt": "Priya Raman",
+                                  "name": "Priya Raman",
+                                  "size": "md",
+                                  "status": "online",
+                                  "statusLabel": "at the studio now"
+                                }
+                              },
+                              {
+                                "component": "Stack",
+                                "props": { "gap": "r6" },
+                                "children": [
+                                  { "component": "Text", "props": { "variant": "body-2", "weight": "semibold" }, "children": ["Priya reads every message"] },
+                                  { "component": "Text", "props": { "variant": "body-3", "color": "muted" }, "children": ["Studio manager, Fernworks"] }
+                                ]
+                              }
+                            ]
+                          },
+                          { "component": "Badge", "props": { "variant": "success" }, "children": ["Replies within a day"] }
+                        ]
+                      },
+                      { "component": "Divider" },
                       {
                         "component": "Grid",
                         "props": { "columns": { "base": 1, "sm": 2 }, "gap": "r4" },
@@ -232,7 +277,6 @@
                         "props": { "variant": "body-3", "color": "muted" },
                         "children": ["We only use your details to reply."]
                       },
-                      { "component": "Spacer" },
                       {
                         "component": "FormActions",
                         "children": [
