@@ -612,7 +612,12 @@ body {
 /*  Stage                                                              */
 /* ------------------------------------------------------------------ */
 
+/* `position` so the stage is a containing block, not just a clip. A document's
+   visually-hidden labels are `position: absolute` with no offsets; without a
+   positioned ancestor they resolve against the viewport, escape `overflow` and
+   stretch the page itself to the height of the scrolled-away content. */
 .pg-stage {
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow: auto;

@@ -1,0 +1,67 @@
+# Publishes the dev playground to GitHub Pages.
+#
+# The site is the harness in `dev/`, built by `dev:build`. It routes on query
+# parameters only (`?view=`, `?theme=`, `?mode=`), never on path segments, so
+# Pages needs no SPA fallback — every URL it serves is `index.html`.
+#
+# `dev/vite.config.ts` sets `base: "./"`. That is what makes the artifact work
+# under a project page's `/response-ui-renderer/` prefix; absolute asset paths
+# would 404 there. Do not remove it in the name of tidiness.
+#
+# Requires Settings → Pages → Source: GitHub Actions.
+
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and never cancel one in flight: a half-applied deploy
+# leaves the published site inconsistent with any commit.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      # The harness is inside the TypeScript project and is linted alongside
+      # `src/`, so this gate covers the thing being deployed, not just the
+      # library. A demo that does not compile must not reach the shop window.
+      - name: Gates
+        run: |
+          bun run typecheck
+          bun run test
+
+      - run: bun run dev:build
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dev/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

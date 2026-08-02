@@ -28,6 +28,18 @@ cloned into it and `root` theme mode taught about the frame's own document — p
 price deliberately or leave the feature out. Resizing the window on the full-page route
 is the truthful cheap version.
 
+## A scroll container holding a rendered document must also be a containing block
+
+`overflow` clips, but it does not anchor. The library's visually-hidden text — a badge's
+status word, a copy button's live region — is `position: absolute` with no offsets, so
+without a positioned ancestor it resolves against the viewport, slips straight through
+the clip, and stretches the *page* to the height of content that is scrolled out of
+sight. The symptom is a second scrollbar on the window and a run of blank canvas below
+the app, proportional to how tall the document is; it looks like a layout bug in the
+document and is not one. Any pane that scrolls a render needs `position: relative`
+alongside its `overflow`. This is not specific to the harness — a host embedding
+`ViewRenderer` in a scrolling panel owes its container the same.
+
 ## Both full-page routes matter
 
 The `view` query parameter renders one document with no chrome — that is how the corpus
