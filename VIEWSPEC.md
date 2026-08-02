@@ -2,8 +2,7 @@
 
 Version: 1. Output format: JSON. Rendered by `@batthewz/response-ui-renderer`.
 
-Component names, compound parts and prop types below are **generated from the live
-library** — run `bun run docs:viewspec` after upgrading it. Prose is hand-written.
+Component names, compound parts and prop types below are **generated from the live library** — run `bun run docs:viewspec` after upgrading it. Prose is hand-written.
 
 ## Root Schema
 
@@ -33,8 +32,7 @@ A ViewNode is one of 5 things.
 | 4 | `{ "$each": "data.rows", "as": "row", "node": ViewNode }` | `node` once per element |
 | 5 | `{ "$cond": "data.flag", "then": ViewNode, "else"?: ViewNode }` | one branch, by JS truthiness |
 
-`component` accepts compound parts by dot path: `"Table.Row"`, `"Tabs.Panel"`.
-An unknown name renders an inline warning; the rest of the view is unaffected.
+`component` accepts compound parts by dot path: `"Table.Row"`, `"Tabs.Panel"`. An unknown name renders an inline warning; the rest of the view is unaffected.
 
 `$each` exposes `<as>` and `<as>Index` inside `node`, and nests.
 
@@ -46,9 +44,7 @@ Resolved highest-precedence first:
 2. `$each` aliases, `state.…`, and `event.…` (inside a handler only)
 3. bare data keys — `users.0.name` means `data.users[0].name`
 
-Form values are `forms.<name>.values.<field>`; `forms.<name>.<field>` is accepted
-shorthand, and `forms.<name>.errors.<field>` reads the live error. A missing path
-resolves to nothing rather than throwing, and prototype members never resolve.
+Form values are `forms.<name>.values.<field>`; `forms.<name>.<field>` is accepted shorthand, and `forms.<name>.errors.<field>` reads the live error. A missing path resolves to nothing rather than throwing, and prototype members never resolve.
 
 ## Prop Value Types
 
@@ -61,41 +57,22 @@ Inside `props`, a value is a literal or one of:
 { "$node": { "component": "Badge", "children": ["New"] } }  // a ViewNode in a prop
 ```
 
-- **`$field`** is a **bare prop key** — `props: { "$field": "contact.email" }` — which wires
-  `value`/`checked` **and** the change handler from one declaration. The longhand
-  `{ "value": { "$field": … } }` also works, except on `Radio`, whose `value` is the option's
-  own identity.
-- **`$node`** fills a prop the library types `ReactNode` (`Wizard.steps[].content`,
-  `DataTable` column `render`, `RequireAuth` fallbacks).
-- **`$ref`**, **`$node`** and complete `{ "action", "payload" }` objects are also resolved
-  **inside array and object props** — that is how `CommandPalette.items[].onSelect` works.
-  Ordinary data is left alone: a row carrying an `action` string stays a row.
-- A **string on an icon-shaped prop** (`icon`, `statusIcon`, `leftIcon`, …) becomes an icon.
-  This applies at the top level only; nested icon slots use `$node`.
-- A prop whose type is a **fixed set of strings** takes one of them exactly. The set is in
-  the Props column below; `validateViewSpec` warns on anything else, because the component
-  looks up the value in a table and a miss draws nothing at all rather than failing.
+- **`$field`** is a **bare prop key** — `props: { "$field": "contact.email" }` — which wires `value`/`checked` **and** the change handler from one declaration. The longhand `{ "value": { "$field": … } }` also works, except on `Radio`, whose `value` is the option's own identity.
+- **`$node`** fills a prop the library types `ReactNode` (`Wizard.steps[].content`, `DataTable` column `render`, `RequireAuth` fallbacks).
+- **`$ref`**, **`$node`** and complete `{ "action", "payload" }` objects are also resolved **inside array and object props** — that is how `CommandPalette.items[].onSelect` works. Ordinary data is left alone: a row carrying an `action` string stays a row.
+- A **string on an icon-shaped prop** (`icon`, `statusIcon`, `leftIcon`, …) becomes an icon. This applies at the top level only; nested icon slots use `$node`.
+- A prop whose type is a **fixed set of strings** takes one of them exactly. The set is in the Props column below; `validateViewSpec` warns on anything else, because the component looks up the value in a table and a miss draws nothing at all rather than failing.
 
 ## Styling
 
 Two props, and the difference matters:
 
 - **`className`** styles the element the component renders **itself** — its outermost one.
-- **`classNames`** styles the elements it renders **inside** itself, keyed by slot:
-  `{ "classNames": { "control": "border-dashed" } }`. Keys are per component and listed
-  under Slot keys; an unknown key does nothing.
+- **`classNames`** styles the elements it renders **inside** itself, keyed by slot: `{ "classNames": { "control": "border-dashed" } }`. Keys are per component and listed under Slot keys; an unknown key does nothing.
 
-Both beat the component's own classes, so `"className": "flex-row bg-surface-2"` works on
-anything. Prefer a real prop where one exists (`variant`, `size`, `gap`) — it is the part
-of the contract this reference can describe.
+Both beat the component's own classes, so `"className": "flex-row bg-surface-2"` works on anything. Prefer a real prop where one exists (`variant`, `size`, `gap`) — it is the part of the contract this reference can describe.
 
-⚠️ **A utility class only works if it is already in the app's compiled CSS.** Tailwind
-generates utilities by scanning source files at build time, and a document arrives at
-runtime — long after. Common utilities the library itself uses are present; an arbitrary
-one (`w-[37%]`, `text-[13px]`) usually is not, and it fails **silently**. Stay near the
-scale (`gap-r4`, `p-r3`, `w-full`, `text-body-2`) — the Utility columns of the token
-tables under Theming are the vocabulary to draw from — or ask the host to add its
-document store to Tailwind's `@source` list.
+⚠️ **A utility class only works if it is already in the app's compiled CSS.** Tailwind generates utilities by scanning source files at build time, and a document arrives at runtime — long after. Common utilities the library itself uses are present; an arbitrary one (`w-[37%]`, `text-[13px]`) usually is not, and it fails **silently**. Stay near the scale (`gap-r4`, `p-r3`, `w-full`, `text-body-2`) — the Utility columns of the token tables under Theming are the vocabulary to draw from — or ask the host to add its document store to Tailwind's `@source` list.
 
 <!-- GENERATED:slots -->
 | Component | `classNames` keys |
@@ -151,11 +128,7 @@ document store to Tailwind's `@source` list.
 
 ## Children a component calls
 
-Most components place the `children` a document gives them. These two **call** theirs, once
-per thing they are composing, and hand it their own already-filtered data — so a document
-maps what it is given rather than authoring rows itself. Write `children` exactly as
-anywhere else; the names below are in scope inside them, alongside everything already
-visible.
+Most components place the `children` a document gives them. These two **call** theirs, once per thing they are composing, and hand it their own already-filtered data — so a document maps what it is given rather than authoring rows itself. Write `children` exactly as anywhere else; the names below are in scope inside them, alongside everything already visible.
 
 <!-- GENERATED:function-children -->
 | Component | Called | In scope inside `children` |
@@ -185,15 +158,11 @@ visible.
   ] }
 ```
 
-Omit `children` and the component renders its own default tree, which is the same
-composition — so there is nothing to keep in step. A part addressed with data the root did
-not hand it (an invented `option`, an `index` outside the selection) renders a diagnostic
-naming the mistake.
+Omit `children` and the component renders its own default tree, which is the same composition — so there is nothing to keep in step. A part addressed with data the root did not hand it (an invented `option`, an `index` outside the selection) renders a diagnostic naming the mistake.
 
 ## Children a component parses
 
-These roots take `children` as **source text**, not as nodes. Give them strings — or
-anything that resolves to one — and the component does the composing.
+These roots take `children` as **source text**, not as nodes. Give them strings — or anything that resolves to one — and the component does the composing.
 
 <!-- GENERATED:text-children -->
 | Component | `children` is |
@@ -206,18 +175,11 @@ anything that resolves to one — and the component does the composing.
   "children": ["## ", { "$ref": "data.report.title" }, "\n\nShipped **", { "$ref": "data.report.count" }, "** changes.\n\n- one\n- two\n"] }
 ```
 
-One string is the normal case; the array exists so a value can be interpolated into it.
-`props.children` is the other spelling and takes a `$ref` of its own —
-`{ "props": { "children": { "$ref": "data.article" } } }` — which is what a document
-should use when the whole source is a single fetched value.
+One string is the normal case; the array exists so a value can be interpolated into it. `props.children` is the other spelling and takes a `$ref` of its own — `{ "props": { "children": { "$ref": "data.article" } } }` — which is what a document should use when the whole source is a single fetched value.
 
 ## Event Actions
 
-`{ "action": "name", "payload": { … } }`. Payloads are `$ref`-resolved before dispatch,
-except for four keys read literally so that fetched data cannot decide what the app does:
-`setState.key` (state shape would depend on data), `apiCall.endpoint` (where a request
-goes), and `apiCall.onSuccess` / `apiCall.onError` (what runs next). Handler chains stop
-at depth 5.
+`{ "action": "name", "payload": { … } }`. Payloads are `$ref`-resolved before dispatch, except for four keys read literally so that fetched data cannot decide what the app does: `setState.key` (state shape would depend on data), `apiCall.endpoint` (where a request goes), and `apiCall.onSuccess` / `apiCall.onError` (what runs next). Handler chains stop at depth 5.
 
 | Action | Payload | Effect |
 | --- | --- | --- |
@@ -248,11 +210,9 @@ This is the only way to get a controlled component's new value back:
                       "payload": { "key": "page", "value": { "$ref": "event.value" } } } } }
 ```
 
-with `"state": { "page": 1 }` at the root. `event` resolves to nothing outside a handler,
-and is not carried into `onSuccess`/`onError`.
+with `"state": { "page": 1 }` at the root. `event` resolves to nothing outside a handler, and is not carried into `onSuccess`/`onError`.
 
-Prefer an uncontrolled seed (`defaultValue`, `defaultOpen`, `defaultChecked`) when the
-component has one — it needs no state at all.
+Prefer an uncontrolled seed (`defaultValue`, `defaultOpen`, `defaultChecked`) when the component has one — it needs no state at all.
 
 ## Data Bindings
 
@@ -262,9 +222,7 @@ component has one — it needs no state at all.
 { "type": "source", "source": "crm", "params"? }       // delegated to the host
 ```
 
-URLs are **not** rewritten, and only relative or same-origin ones are requested unless the
-host says otherwise. `source` is the escape hatch for host-specific access, so no server
-contract lives in the wire format.
+URLs are **not** rewritten, and only relative or same-origin ones are requested unless the host says otherwise. `source` is the escape hatch for host-specific access, so no server contract lives in the wire format.
 
 ## Forms
 
@@ -279,9 +237,7 @@ contract lives in the wire format.
 }
 ```
 
-Rules: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `message`. `min`/`max`
-apply to numeric **strings** too. `submitForm` validates before running `onSubmit`.
-`Field` and `FieldError` accept `"name": "contact.email"` to surface the live error.
+Rules: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `message`. `min`/`max` apply to numeric **strings** too. `submitForm` validates before running `onSubmit`. `Field` and `FieldError` accept `"name": "contact.email"` to surface the live error.
 
 ## Components
 
@@ -467,27 +423,17 @@ These need host code. Register a wrapper with `extendRegistry` if a document mus
 | `ToastProvider` | The queue is imperative — `useToast().toast(…)` — which no document can call. Mount it in the host and use the `showToast` action, which routes through `adapters.toast`. |
 <!-- /GENERATED:not-addressable -->
 
-Props typed as a **predicate or formatter** (`isDateDisabled`, `formatValue`, `rejectMessage`,
-`sortComparator`, `filter`) are unreachable everywhere: a declarative handler returns nothing,
-so binding one is silently wrong rather than merely unsupported. Omit them.
+Props typed as a **predicate or formatter** (`isDateDisabled`, `formatValue`, `rejectMessage`, `sortComparator`, `filter`) are unreachable everywhere: a declarative handler returns nothing, so binding one is silently wrong rather than merely unsupported. Omit them.
 
 ## Spacing Scale
 
-Gap, padding and size props take responsive tokens. The scale is **inverted**: `r1` is the
-largest step, `r6` the smallest. Never write raw pixels.
+Gap, padding and size props take responsive tokens. The scale is **inverted**: `r1` is the largest step, `r6` the smallest. Never write raw pixels.
 
 ## Theming
 
-Two optional levers. `theme` names a theme **your application defines**; `response-ui-css`
-defines only `default`, which *is* `:root`. A theme authored `:root[data-theme="…"]` matches
-`<html>` and nothing else, so it cannot be scoped to a subtree; the renderer's default
-`themeMode: "root"` writes there. For per-view theming prefer `themeOverrides`.
+Two optional levers. `theme` names a theme **your application defines**; `response-ui-css` defines only `default`, which *is* `:root`. A theme authored `:root[data-theme="…"]` matches `<html>` and nothing else, so it cannot be scoped to a subtree; the renderer's default `themeMode: "root"` writes there. For per-view theming prefer `themeOverrides`.
 
-`themeOverrides` sets CSS custom properties inline on the view's wrapper — always scoped to
-the view, always works, and independent of `themeMode`. Only keys starting with `--` are
-applied; anything else is dropped, so a document can re-point design tokens but never
-restyle arbitrary CSS. Every token has a default, so override only what the design calls
-for. (`Portal` renders outside the wrapper and does not receive them.)
+`themeOverrides` sets CSS custom properties inline on the view's wrapper — always scoped to the view, always works, and independent of `themeMode`. Only keys starting with `--` are applied; anything else is dropped, so a document can re-point design tokens but never restyle arbitrary CSS. Every token has a default, so override only what the design calls for. (`Portal` renders outside the wrapper and does not receive them.)
 
 ```jsonc
 "themeOverrides": {
@@ -501,8 +447,7 @@ for. (`Portal` renders outside the wrapper and does not receive them.)
 
 ### Color tokens
 
-All colors are OKLCH — write overrides in OKLCH. The Utility column is the class the token
-drives (each color also works behind the other prefixes: `bg-`, `text-`, `border-`, `ring-`).
+All colors are OKLCH — write overrides in OKLCH. The Utility column is the class the token drives (each color also works behind the other prefixes: `bg-`, `text-`, `border-`, `ring-`).
 
 | Token | Utility | Use |
 | --- | --- | --- |
@@ -526,21 +471,9 @@ drives (each color also works behind the other prefixes: `bg-`, `text-`, `border
 | `--C-STATUS-ERROR` / `-SUCCESS` / `-WARNING` / `-INFO` | `text-status-error` … | Status foregrounds |
 | `--C-STATUS-ERROR-BG` / `-SUCCESS-BG` / `-WARNING-BG` / `-INFO-BG` | `bg-status-error-bg` … | Their tinted backgrounds |
 
-**Surfaces.** The scale runs **raised → recessed**, and the lightness direction never
-flips: `--C-SURFACE-0` is the lightest of the four in a light theme *and* in a dark one.
-`--C-CANVAS` is not the end of the scale — it sits **between rungs 1 and 2**, with 0–1
-raised above the page and 2–3 recessed into it. When overriding: keep that order, do not
-let the canvas collide with a rung, and do not pin the canvas at pure white or pure black
-(the recessed rungs then have nowhere to go). A rung is not an elevation — a dialog and a
-card both sit on rung 0 and are supposed to look alike; separate same-rung things with
-`--SHADOW-*` or `--C-BORDER-DEFAULT`, never by borrowing a neighbouring rung. Adjacent
-rungs are a deliberately **weak** cue — never hang meaning on a single step being visible.
+**Surfaces.** The scale runs **raised → recessed**, and the lightness direction never flips: `--C-SURFACE-0` is the lightest of the four in a light theme *and* in a dark one. `--C-CANVAS` is not the end of the scale — it sits **between rungs 1 and 2**, with 0–1 raised above the page and 2–3 recessed into it. When overriding: keep that order, do not let the canvas collide with a rung, and do not pin the canvas at pure white or pure black (the recessed rungs then have nowhere to go). A rung is not an elevation — a dialog and a card both sit on rung 0 and are supposed to look alike; separate same-rung things with `--SHADOW-*` or `--C-BORDER-DEFAULT`, never by borrowing a neighbouring rung. Adjacent rungs are a deliberately **weak** cue — never hang meaning on a single step being visible.
 
-**Pairs move together.** `--C-TEXT-ON-PRIMARY` is chosen to read on `--C-PRIMARY`,
-`--C-TEXT-ON-ACCENT` on `--C-ACCENT`, and each status foreground on its `-BG`. Re-tint one
-half of a pair and you must re-tint the other. The pairing guarantees legibility only
-against its own fill — a fill placed on a surface or over an image is your own contrast
-problem to check.
+**Pairs move together.** `--C-TEXT-ON-PRIMARY` is chosen to read on `--C-PRIMARY`, `--C-TEXT-ON-ACCENT` on `--C-ACCENT`, and each status foreground on its `-BG`. Re-tint one half of a pair and you must re-tint the other. The pairing guarantees legibility only against its own fill — a fill placed on a surface or over an image is your own contrast problem to check.
 
 ### Other tokens
 
@@ -558,22 +491,13 @@ problem to check.
 | `--MOTION-DURATION-{ENTER,EXIT,SHIFT,PAGE}`, `--MOTION-EASE-{ENTER,EXIT,SHIFT,PAGE,BOUNCE}` | `duration-enter`, `ease-enter`, … | Motion primitives |
 | `--MOTION-DISTANCE-{SM,MD,LG}`, `--MOTION-STAGGER-DELAY`, `--MOTION-SCALE-{HOVER,PRESS}` | — | Motion primitives |
 
-A font-family override only takes effect if the host app already loads that font — a
-document cannot import font-faces, and an unloaded family falls back silently.
+A font-family override only takes effect if the host app already loads that font — a document cannot import font-faces, and an unloaded family falls back silently.
 
 ### What `themeOverrides` cannot do
 
-- **Flip light ↔ dark.** `color-scheme` is a CSS property, not a custom property, so no
-  `--` key reaches it — and form controls, scrollbars and the shipped shadow/status
-  palette all follow it. Re-tint *within* the host's scheme; a real dark variant is an
-  app-defined theme (`theme`), not an override set.
-- **Responsive tokens.** `--H1`–`--H6`, `--BodyText-1..3` (each with a paired
-  `*-line-height`), `--R-SIZE-1..6`, `--Semibold-Weight` and `--Bold-Weight` step up at a
-  `40rem` media query. An inline override is one flat value at every width, which freezes
-  that step — so leave the type, spacing and weight scales alone. If you must touch a
-  size, override its `*-line-height` in the same breath or the leading will be wrong.
-- **`@keyframes`.** `--MOTION-PAGE-TRANSITION-IN` / `-OUT` name keyframes a theme must
-  also define; a document cannot define keyframes, so skip them.
+- **Flip light ↔ dark.** `color-scheme` is a CSS property, not a custom property, so no `--` key reaches it — and form controls, scrollbars and the shipped shadow/status palette all follow it. Re-tint *within* the host's scheme; a real dark variant is an app-defined theme (`theme`), not an override set.
+- **Responsive tokens.** `--H1`–`--H6`, `--BodyText-1..3` (each with a paired `*-line-height`), `--R-SIZE-1..6`, `--Semibold-Weight` and `--Bold-Weight` step up at a `40rem` media query. An inline override is one flat value at every width, which freezes that step — so leave the type, spacing and weight scales alone. If you must touch a size, override its `*-line-height` in the same breath or the leading will be wrong.
+- **`@keyframes`.** `--MOTION-PAGE-TRANSITION-IN` / `-OUT` name keyframes a theme must also define; a document cannot define keyframes, so skip them.
 
 ## Rules
 
@@ -584,8 +508,5 @@ document cannot import font-faces, and an unloaded family falls back silently.
 5. `$field` needs the field declared in `spec.forms` first.
 6. `Dialog`, `Drawer` and `CommandPalette` need a literal string `id`, or no action can open them.
 7. Give every control an accessible name — most have none of their own.
-8. Anything that reveals on scroll (`Timeline`, `MasonryGrid`, `Swimlane`, `Spotlight`,
-   `ScrollReveal`, `Hero.Content`) starts invisible. Pass `animate: false` when the content
-   matters more than the effect.
-9. `dangerouslySetInnerHTML`, `ref`, `key` and `__proto__` are dropped; `javascript:` URLs are
-   stripped. Do not rely on them.
+8. Anything that reveals on scroll (`Timeline`, `MasonryGrid`, `Swimlane`, `Spotlight`, `ScrollReveal`, `Hero.Content`) starts invisible. Pass `animate: false` when the content matters more than the effect.
+9. `dangerouslySetInnerHTML`, `ref`, `key` and `__proto__` are dropped; `javascript:` URLs are stripped. Do not rely on them.
