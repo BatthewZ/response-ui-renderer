@@ -254,7 +254,7 @@
                         "props": {
                           "src": "https://picsum.photos/seed/festival-gala/1600/900",
                           "alt": "",
-                          "loading": "eager"
+                          "imgProps": { "loading": "eager" }
                         }
                       },
                       { "component": "MediaCard.Overlay" },

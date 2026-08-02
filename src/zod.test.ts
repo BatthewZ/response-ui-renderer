@@ -176,6 +176,10 @@ const ADVISORY: [string, unknown][] = [
   ],
   ["non-token theme override", { version: 1, title: "T", root: "x", themeOverrides: { color: "red" } }],
   [
+    "a value outside the set a prop accepts",
+    { version: 1, title: "T", root: { component: "Badge", props: { variant: "danger" } } },
+  ],
+  [
     "nesting past the depth cap",
     {
       version: 1,

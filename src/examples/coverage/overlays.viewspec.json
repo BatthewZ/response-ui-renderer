@@ -231,7 +231,7 @@
                             "component": "DropdownMenu.Content",
                             "props": { "aria-label": "Document actions" },
                             "children": [
-                              { "component": "DropdownMenu.Label", "children": ["This draft"] },
+                              { "component": "DropdownMenu.GroupHeader", "children": ["This draft"] },
                               {
                                 "component": "DropdownMenu.Item",
                                 "props": {
@@ -272,7 +272,7 @@
                                 "children": ["Document settings"]
                               },
                               { "component": "DropdownMenu.Divider" },
-                              { "component": "DropdownMenu.Label", "children": ["Irreversible"] },
+                              { "component": "DropdownMenu.GroupHeader", "children": ["Irreversible"] },
                               {
                                 "component": "DropdownMenu.Item",
                                 "props": {
@@ -480,7 +480,7 @@
                     "component": "ContextMenu.Content",
                     "props": { "aria-label": "Block actions" },
                     "children": [
-                      { "component": "ContextMenu.Label", "children": ["This block"] },
+                      { "component": "ContextMenu.GroupHeader", "children": ["This block"] },
                       {
                         "component": "ContextMenu.Item",
                         "props": {
@@ -512,7 +512,7 @@
                         "children": ["Copy link to block"]
                       },
                       { "component": "ContextMenu.Divider" },
-                      { "component": "ContextMenu.Label", "children": ["Reorder"] },
+                      { "component": "ContextMenu.GroupHeader", "children": ["Reorder"] },
                       {
                         "component": "ContextMenu.Item",
                         "props": {
@@ -608,7 +608,23 @@
                       "disabled": true
                     }
                   ]
-                }
+                },
+                "children": [
+                  {
+                    "component": "CommandPalette.Item",
+                    "children": [
+                      { "$ref": "item.label" },
+                      {
+                        "$cond": "item.shortcut",
+                        "then": {
+                          "component": "Kbd",
+                          "props": { "className": "ml-auto" },
+                          "children": [{ "$ref": "item.shortcut" }]
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
 
               {

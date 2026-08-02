@@ -95,7 +95,7 @@
               },
               {
                 "component": "MasonryGrid",
-                "props": { "columns": { "base": 1, "md": 3 }, "gap": "var(--spacing-r4)", "animate": true },
+                "props": { "columns": { "base": 1, "md": 3 }, "gap": "r4", "animate": true },
                 "children": [
                   {
                     "$each": "data.features",

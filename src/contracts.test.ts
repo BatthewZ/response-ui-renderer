@@ -12,6 +12,7 @@ import {
   IDENTITY_CHECKED_PARENTS,
 } from "./registry/child-introspection";
 import { COMPONENT_NOTES } from "./registry/component-notes";
+import { FUNCTION_CHILDREN } from "./registry/function-children";
 import { COMPONENT_TYPED_ICON_OWNERS } from "./registry/icon-slots";
 import { PROP_COERCION_OWNERS, PROP_COERCIONS } from "./registry/prop-coercions";
 import { defaultRegistry, listComponentNames } from "./registry/registry";
@@ -27,6 +28,10 @@ import { DIALOG_COMPONENTS } from "./spec/validate";
  */
 
 const root = path.resolve(import.meta.dirname, "..");
+// The library publishes its own `src` (its `files` includes it), so the gates
+// below read the real upstream source rather than a copy that could drift.
+// Resolved by path because its `exports` map deliberately hides package.json.
+const libraryRoot = path.join(root, "node_modules/@batthewz/response-ui-react-components");
 const sourceFiles = globSync("src/**/*.{ts,tsx}", { cwd: root, absolute: true });
 const shippedFiles = sourceFiles.filter((file) => !/\.test\.tsx?$/.test(file));
 
@@ -239,11 +244,6 @@ describe("icon-slot map stays in step with the library", () => {
  * with something JSON cannot express. Each is gated instead.
  */
 describe("hand-maintained coercion tables", () => {
-  // The library publishes its own `src` (its `files` includes it), so these
-  // gates read the real upstream source rather than a copy that could drift.
-  // Resolved by path because its `exports` map deliberately hides package.json.
-  const libraryRoot = path.join(root, "node_modules/@batthewz/response-ui-react-components");
-
   it.each([...DIALOG_COMPONENTS])("%s is a real component whose open state we own", (name) => {
     expect(lookupComponent(defaultRegistry, name)).toBeTruthy();
   });
@@ -299,6 +299,75 @@ describe("hand-maintained coercion tables", () => {
       .sort();
 
     expect(inspecting).toEqual([...CHILD_INSPECTING_MODULES].sort());
+  });
+});
+
+describe("function children stay in step with the library", () => {
+  /** Field names declared directly on an interface, ignoring nested objects. */
+  function fieldsOf(source: string, typeName: string): string[] {
+    const declaration = new RegExp(`\\b(?:interface|type) ${typeName}\\b`).exec(source);
+    if (!declaration) return [];
+    const open = source.indexOf("{", declaration.index);
+    if (open === -1) return [];
+    const fields: string[] = [];
+    let depth = 0;
+    for (let i = open; i < source.length; i += 1) {
+      if (source[i] === "{") {
+        depth += 1;
+        continue;
+      }
+      if (source[i] === "}") {
+        depth -= 1;
+        if (depth === 0) break;
+        continue;
+      }
+      // Depth 1 is the interface body itself; anything deeper is a nested shape
+      // whose keys are not arguments — `selected: { value, label }[]` must not
+      // contribute `value` and `label`.
+      if (depth !== 1) continue;
+      const rest = source.slice(i);
+      const field = /^\n\s*(\w+)\??:/.exec(rest);
+      if (field) fields.push(field[1]);
+    }
+    return fields;
+  }
+
+  it("names every component whose children is a function, and its arguments", () => {
+    // A document supplies nodes; these roots CALL what they are given. One
+    // gained without an entry here is a component a document kills by using it
+    // normally, and a renamed argument is a `$ref` that silently resolves to
+    // nothing — so assert the whole table, not merely that its names exist.
+    const declared: Record<string, string[]> = {};
+    for (const file of globSync("src/components/**/*.tsx", { cwd: libraryRoot })) {
+      if (/\.(test|examples)\.tsx$/.test(file)) continue;
+      const source = read(path.join(libraryRoot, file));
+      const signature = /\bchildren\?:\s*\(\s*\w+:\s*(\w+)\s*\)\s*=>/.exec(source);
+      if (!signature) continue;
+      // The generator already relies on file basename === component name.
+      declared[path.basename(file, ".tsx")] = fieldsOf(source, signature[1]);
+    }
+
+    expect(declared).toEqual(
+      Object.fromEntries(
+        Object.entries(FUNCTION_CHILDREN).map(([name, entry]) => [name, [...entry.args]]),
+      ),
+    );
+  });
+
+  it("tells the reference how often each root calls its children", () => {
+    // Curated, because no type records it — and it decides what a document
+    // writes: one call over the whole list, or one call per row. Asserted
+    // against the shipped doc rather than the table, because reaching the page
+    // an agent reads is the claim; having a field is not.
+    const doc = read(path.join(root, "VIEWSPEC.md"));
+    expect(Object.keys(FUNCTION_CHILDREN).length).toBeGreaterThan(0);
+    for (const [name, entry] of Object.entries(FUNCTION_CHILDREN)) {
+      expect(entry.note, `${name} has no note`).not.toEqual("");
+      expect(doc, `VIEWSPEC.md does not carry ${name}'s note`).toContain(entry.note);
+      for (const arg of entry.args) {
+        expect(doc, `VIEWSPEC.md does not name ${name}'s "${arg}" argument`).toContain(`\`${arg}\``);
+      }
+    }
   });
 });
 

@@ -52,11 +52,58 @@ function liveComponents() {
   return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/** Props every component inherits from the DOM; noise in a terse reference. */
-const PASSTHROUGH = new Set(["className", "style", "ref", "key", "children", "asChild"]);
+/**
+ * Props every component inherits from the DOM; noise in a terse reference.
+ *
+ * `classNames` is here for a different reason: 51 components take it, its type
+ * is a union of every slot key, and inside a table cell that both truncates
+ * mid-union and pushes the props a document actually needs into "+N more". The
+ * keys are worth more in one table of their own — see the slots region.
+ */
+const PASSTHROUGH = new Set([
+  "className",
+  "classNames",
+  "style",
+  "ref",
+  "key",
+  "children",
+  "asChild",
+]);
 
 const declarationFiles = globSync("dist/components/**/*.d.ts", { cwd: libRoot, absolute: true });
 const declarationSource = new Map(declarationFiles.map((f) => [path.basename(f, ".d.ts"), readFileSync(f, "utf8")]));
+
+/**
+ * Every declared type name to the file that declares it.
+ *
+ * A component does not always sit in a file named after it — `AvatarGroup` and
+ * the four `EmptyState*` parts are exported from a sibling's module — and
+ * looking up by basename alone left every one of them with an empty Props
+ * column in the reference. Built lazily so the parsing helpers below are
+ * defined by the time it runs.
+ */
+let typeIndex = null;
+function sourceDeclaring(typeName) {
+  if (typeIndex === null) {
+    typeIndex = new Map();
+    for (const source of declarationSource.values()) {
+      for (const declaration of declarationsIn(source)) {
+        if (!typeIndex.has(declaration.name)) typeIndex.set(declaration.name, source);
+      }
+    }
+  }
+  return typeIndex.get(typeName) ?? null;
+}
+
+/** The declarations that define a component's props, wherever they live. */
+function sourceFor(name) {
+  return (
+    declarationSource.get(name) ??
+    sourceDeclaring(`${name}Props`) ??
+    sourceDeclaring(`${name}RootProps`) ??
+    ""
+  );
+}
 
 /** Extracts the balanced `{ … }` that follows `index`. */
 function balancedBlock(source, index) {
@@ -90,43 +137,190 @@ function resolveAlias(source, name) {
   return name;
 }
 
-function tidyType(source, raw) {
+/** Collapsed and alias-resolved, but neither clipped nor escaped. */
+function resolveType(source, raw) {
   let type = raw.replace(/\s+/g, " ").trim();
   if (/^[A-Z]\w*$/.test(type)) type = resolveAlias(source, type);
-  type = type.replace(/\s*\|\s*/g, "|");
-  if (type.length > 72) type = `${type.slice(0, 69)}…`;
-  // A bare pipe would end the markdown table cell mid-union.
-  return type.replace(/\|/g, "\\|");
+  return type.replace(/\s*\|\s*/g, "|");
 }
 
-/** Props declared in a `…Props` object literal, minus DOM passthrough. */
-function propsOf(source, typeNames) {
+/** A resolved type as a markdown table cell — a bare pipe would end it early. */
+function tidyType(type) {
+  const clipped = type.length > 72 ? `${type.slice(0, 69)}…` : type;
+  return clipped.replace(/\|/g, "\\|");
+}
+
+/** The balanced body of the first `type`/`interface` in `typeNames` that exists. */
+function declarationBody(source, typeNames) {
   for (const typeName of typeNames) {
     // Located by name alone: a generic default (`<T extends ElementType = "div">`)
     // puts an `=` before the assignment, so anchoring on `=` misses half of them.
-    const declaration = new RegExp(`\\btype ${typeName}\\b`).exec(source);
+    const declaration = new RegExp(`\\b(?:type|interface) ${typeName}\\b`).exec(source);
     if (!declaration) continue;
     const brace = source.indexOf("{", declaration.index);
     const semicolon = source.indexOf(";", declaration.index);
     if (brace === -1 || (semicolon !== -1 && semicolon < brace)) continue;
     const body = balancedBlock(source, declaration.index);
-    if (body === null) continue;
-
-    const props = [];
-    let depth = 0;
-    for (const line of body.split("\n")) {
-      const trimmed = line.trim();
-      const entry = depth === 0 ? /^(\w+|"[^"]+"|\[[^\]]+\])(\??):\s*(.+?);?$/.exec(trimmed) : null;
-      depth += (line.match(/[{(]/g) ?? []).length - (line.match(/[})]/g) ?? []).length;
-      if (!entry) continue;
-      const key = entry[1].replace(/"/g, "");
-      if (PASSTHROUGH.has(key) || key.startsWith("aria-") || key.startsWith("data-")) continue;
-      if (/=>/.test(entry[3]) && entry[2] === "") continue;
-      props.push({ key, optional: entry[2] === "?", type: tidyType(source, entry[3]) });
-    }
-    if (props.length > 0) return props;
+    if (body !== null) return body;
   }
-  return [];
+  return null;
+}
+
+/** Every `key: type` declared directly in a block, ignoring nested shapes. */
+function entriesOf(source, body) {
+  const entries = [];
+  let depth = 0;
+  for (const line of body.split("\n")) {
+    const trimmed = line.trim();
+    const entry = depth === 0 ? /^(\w+|"[^"]+"|\[[^\]]+\])(\??):\s*(.+?);?$/.exec(trimmed) : null;
+    depth += (line.match(/[{(]/g) ?? []).length - (line.match(/[})]/g) ?? []).length;
+    if (!entry) continue;
+    entries.push({
+      key: entry[1].replace(/"/g, ""),
+      optional: entry[2] === "?",
+      isFunction: /=>/.test(entry[3]),
+      type: resolveType(source, entry[3]),
+    });
+  }
+  return entries;
+}
+
+/** Props declared in a `…Props` object literal, minus DOM passthrough. */
+function propsOf(source, typeNames) {
+  const body = declarationBody(source, typeNames);
+  if (body === null) return [];
+  return entriesOf(source, body).filter(
+    (entry) =>
+      !PASSTHROUGH.has(entry.key) &&
+      !entry.key.startsWith("aria-") &&
+      !entry.key.startsWith("data-") &&
+      // A required callback is host code, not something a document declares.
+      !(entry.isFunction && !entry.optional),
+  );
+}
+
+/** Every `type X = {…}` / `interface X {…}` in a file, with its balanced body. */
+function declarationsIn(source) {
+  const found = [];
+  for (const match of source.matchAll(/\b(?:type|interface)\s+(\w+)\b/g)) {
+    const brace = source.indexOf("{", match.index);
+    const semicolon = source.indexOf(";", match.index);
+    if (brace === -1 || (semicolon !== -1 && semicolon < brace)) continue;
+    const body = balancedBlock(source, match.index);
+    if (body !== null) found.push({ name: match[1], body });
+  }
+  return found;
+}
+
+/** `classNames?: SlotClassNames<"a" | "b">` → the keys, resolving an alias. */
+function slotKeysIn(source, body) {
+  const match = /classNames\?:\s*SlotClassNames<\s*([^>]+?)\s*>/.exec(body);
+  if (!match) return null;
+  const inner = match[1].includes('"') ? match[1] : resolveAlias(source, match[1]);
+  const keys = [...inner.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  return keys.length > 0 ? keys : null;
+}
+
+/** A union of nothing but string literals — the only kind a document can get wrong. */
+function literalUnion(type) {
+  if (!/^"[^"]*"(\|"[^"]*")*$/.test(type)) return null;
+  return type.split("|").map((member) => member.slice(1, -1));
+}
+
+/**
+ * The props-type name each addressable component declares its props under.
+ *
+ * `Root` → `RootProps` / `RootRootProps`, `Root.Part` → `RootPartProps` or the
+ * unprefixed `PartProps` — `AppShell.SidebarLink` uses the latter. Only the
+ * component's own declaration file is searched, so the short form cannot pick up
+ * a same-named type belonging to something else. The convention is the
+ * library's own and already load-bearing here, so a miss is reported rather than
+ * skipped: see `describeInternals`.
+ */
+function propsTypeNames(name, parts) {
+  const forms = (base) => [`${base}Props`, `${base}RootProps`, `${base}OwnProps`];
+  return [
+    [name, forms(name)],
+    ...parts.map((part) => [`${name}.${part}`, [...forms(`${name}${part}`), `${part}Props`]]),
+  ];
+}
+
+/**
+ * Slot keys and enumerated prop values, per addressable component.
+ *
+ * Both are derived from the shipped declarations, and both exist because a
+ * document is JSON: nothing checks a slot key or a union member at author time,
+ * so the reference has to carry them and the validator has to know them.
+ *
+ * A `classNames` this cannot attribute to a component throws rather than being
+ * dropped. A silently skipped one is a whole component's override surface
+ * missing from the reference, with a `--check` that still passes because the
+ * generator dropped it on both sides.
+ */
+function describeInternals(components, notAddressable) {
+  const slots = [];
+  const enums = {};
+
+  // Every props type any addressable component claims. A file holds more than
+  // one component's props — `Avatar.d.ts` also declares `AvatarGroupProps` — so
+  // "unplaced" means claimed by nobody, not merely claimed by someone else.
+  const claimed = new Set(
+    components.flatMap(({ name, parts }) => propsTypeNames(name, parts).flatMap(([, names]) => names)),
+  );
+
+  for (const { name, parts } of components) {
+    // Slot keys and value sets for something a document cannot address at all
+    // are advice about a component it must not reach for.
+    if (Object.hasOwn(notAddressable, name)) continue;
+    const source = sourceFor(name);
+    if (!source) continue;
+
+    const labelOf = new Map();
+    for (const [label, typeNames] of propsTypeNames(name, parts)) {
+      for (const typeName of typeNames) labelOf.set(typeName, label);
+    }
+
+    const unplaced = [];
+    for (const declaration of declarationsIn(source)) {
+      const label = labelOf.get(declaration.name);
+      const keys = slotKeysIn(source, declaration.body);
+      if (keys && label === undefined) {
+        if (!claimed.has(declaration.name)) unplaced.push(declaration.name);
+        continue;
+      }
+      if (label === undefined || Object.hasOwn(notAddressable, label)) continue;
+      if (keys) slots.push({ name: label, keys });
+      for (const entry of entriesOf(source, declaration.body)) {
+        const members = literalUnion(entry.type);
+        if (members) enums[`${label}.${entry.key}`] = members;
+      }
+    }
+
+    if (unplaced.length > 0) {
+      throw new Error(
+        `${name}: classNames declared on ${unplaced.join(", ")}, which names no addressable component — ` +
+          "the slot keys would vanish from the reference. Fix the mapping in propsTypeNames().",
+      );
+    }
+  }
+
+  return { slots: slots.sort((a, b) => a.name.localeCompare(b.name)), enums };
+}
+
+function renderSlots(slots) {
+  const lines = ["| Component | `classNames` keys |", "| --- | --- |"];
+  for (const { name, keys } of slots) {
+    lines.push(`| \`${name}\` | ${keys.map((key) => `\`${key}\``).join(" ")} |`);
+  }
+  return lines.join("\n");
+}
+
+function renderFunctionChildren(functionChildren) {
+  const lines = ["| Component | Called | In scope inside `children` |", "| --- | --- | --- |"];
+  for (const [name, { note, args }] of Object.entries(functionChildren)) {
+    lines.push(`| \`${name}\` | ${note} | ${args.map((a) => `\`${a}\``).join(" · ")} |`);
+  }
+  return lines.join("\n");
 }
 
 function formatProps(props, limit = 7) {
@@ -134,7 +328,9 @@ function formatProps(props, limit = 7) {
   const required = props.filter((p) => !p.optional);
   const optional = props.filter((p) => p.optional);
   const shown = [...required, ...optional].slice(0, limit);
-  const rendered = shown.map((p) => `\`${p.key}${p.optional ? "?" : ""}\`: ${p.type}`).join(" · ");
+  const rendered = shown
+    .map((p) => `\`${p.key}${p.optional ? "?" : ""}\`: ${tidyType(p.type)}`)
+    .join(" · ");
   const hidden = props.length - shown.length;
   return hidden > 0 ? `${rendered} · +${hidden} more` : rendered;
 }
@@ -168,7 +364,7 @@ function render(components, notes, notAddressable) {
     lines.push("| Component | Parts | Props | Notes |");
     lines.push("| --- | --- | --- | --- |");
     for (const row of rows.sort((a, b) => a.name.localeCompare(b.name))) {
-      const source = declarationSource.get(row.name) ?? "";
+      const source = sourceFor(row.name);
       const props = formatProps(propsOf(source, [`${row.name}Props`, `${row.name}RootProps`]));
       const parts = row.parts.length ? row.parts.map((p) => `\`.${p}\``).join(" ") : "—";
       lines.push(`| \`${row.name}\` | ${parts} | ${props} | ${row.note ?? ""} |`);
@@ -213,15 +409,33 @@ function main() {
   const notAddressable = JSON.parse(
     readFileSync(path.join(root, "src/examples/not-addressable.json"), "utf8"),
   );
+  const functionChildren = JSON.parse(
+    readFileSync(path.join(root, "src/registry/function-children.json"), "utf8"),
+  );
 
   const components = liveComponents();
+  const { slots, enums } = describeInternals(components, notAddressable);
+
   const original = readFileSync(docPath, "utf8");
   let doc = replaceRegion(original, "components", render(components, notes, notAddressable));
+  doc = replaceRegion(doc, "slots", renderSlots(slots));
+  doc = replaceRegion(doc, "function-children", renderFunctionChildren(functionChildren));
   doc = replaceRegion(doc, "not-addressable", renderNotAddressable(notAddressable));
 
+  // Read by the validator at runtime, so a document can be told that a value is
+  // outside a union before it renders into nothing. Generated rather than
+  // hand-kept for the same reason the doc is.
+  const enumsPath = path.join(root, "src/spec/prop-enums.json");
+  const enumsBody = `${JSON.stringify(enums, null, 2)}\n`;
+  const enumsOriginal = readFileSync(enumsPath, "utf8");
+
   if (process.argv.includes("--check")) {
-    if (doc !== original) {
-      console.error("VIEWSPEC.md is stale — run `bun run docs:viewspec`.");
+    const stale = [
+      doc === original ? null : "VIEWSPEC.md",
+      enumsBody === enumsOriginal ? null : "src/spec/prop-enums.json",
+    ].filter(Boolean);
+    if (stale.length > 0) {
+      console.error(`${stale.join(" and ")} stale — run \`bun run docs:viewspec\`.`);
       process.exit(1);
     }
     console.log("VIEWSPEC.md is up to date.");
@@ -229,7 +443,11 @@ function main() {
   }
 
   writeFileSync(docPath, doc);
-  console.log(`VIEWSPEC.md regenerated (${components.length} components).`);
+  writeFileSync(enumsPath, enumsBody);
+  console.log(
+    `VIEWSPEC.md regenerated (${components.length} components, ${slots.length} with slots, ` +
+      `${Object.keys(enums).length} enumerated props).`,
+  );
 }
 
 main();

@@ -41,7 +41,7 @@
   },
   "Calendar": {
     "category": "Form",
-    "note": "Date props accept ISO `YYYY-MM-DD` strings. `isDateDisabled` is a predicate and unreachable."
+    "note": "Date props accept ISO `YYYY-MM-DD` strings. `isDateDisabled` and `renderDay` are functions and unreachable."
   },
   "Card": {
     "category": "Layout",
@@ -77,7 +77,7 @@
   },
   "CommandPalette": {
     "category": "Overlay",
-    "note": "Give it a literal `id`. `items[].onSelect` accepts a declarative handler object."
+    "note": "Give it a literal `id`. `items[].onSelect` accepts a declarative handler object. Children compose one row; see Children a component calls."
   },
   "Container": {
     "category": "Layout",
@@ -197,7 +197,7 @@
   },
   "MediaCard": {
     "category": "Media",
-    "note": "`.Image` requires `alt`. The card is only as tall as its image and clips overflow."
+    "note": "`.Image` requires `alt`, and its `className` addresses the ratio box — `loading`, `srcSet`, `sizes` and friends belong in `imgProps`. The card is only as tall as its image and clips overflow."
   },
   "Meter": {
     "category": "Feedback",
@@ -205,7 +205,7 @@
   },
   "MultiSelect": {
     "category": "Form",
-    "note": "Requires `options`. Give it `aria-label` \u2014 it derives no name and posts nothing natively."
+    "note": "Requires `options`. Give it `aria-label` \u2014 it derives no name and posts nothing natively. Children compose the chips and listbox; see Children a component calls."
   },
   "NumberInput": {
     "category": "Form",
@@ -225,7 +225,7 @@
   },
   "Popover": {
     "category": "Overlay",
-    "note": "`openDialog` does **not** reach it \u2014 use `defaultOpen` or its own trigger. Name `.Content`."
+    "note": "`openDialog` does **not** reach it \u2014 use `defaultOpen` or its own trigger. Name `.Content`, which also takes `arrow: true`."
   },
   "Portal": {
     "category": "Layout",
@@ -265,7 +265,7 @@
   },
   "ScrollReveal": {
     "category": "Animation",
-    "note": "Starts at `opacity: 0`. Set `animate: false` wherever the text is the point."
+    "note": "Starts at `opacity: 0`. Set `animate: false` wherever the text is the point; `animation: \"none\"` reveals with no entrance class."
   },
   "SearchInput": {
     "category": "Form",
@@ -277,7 +277,7 @@
   },
   "Skeleton": {
     "category": "Feedback",
-    "note": "Size with the `width`/`height` props \u2014 utility classes are inert."
+    "note": "Sized by `className` on both axes (`w-[40%] h-3`); it has no `width`/`height` props. A `circular` one needs one axis only."
   },
   "Slider": {
     "category": "Form",
@@ -289,7 +289,7 @@
   },
   "Sparkline": {
     "category": "Data",
-    "note": "Requires `values`. Set `min: 0` or the lowest bar has no height."
+    "note": "Requires `values`. `bar` measures from zero already; `line`/`area` frame to the data, so pass `min`/`max` to fix the scale."
   },
   "Spinner": {
     "category": "Feedback",
@@ -333,7 +333,7 @@
   },
   "TagInput": {
     "category": "Form",
-    "note": "Values are plain strings; `$field` stores an array."
+    "note": "Values are plain strings; `$field` stores an array. `className` is the whole control — the bordered box is `classNames.control`."
   },
   "Text": {
     "category": "Typography",
@@ -357,7 +357,7 @@
   },
   "Tooltip": {
     "category": "Overlay",
-    "note": "Takes `content` and exactly one child."
+    "note": "Takes `content` and exactly one child. `arrow: true` draws a pointer at the resolved side."
   },
   "ViewTransition": {
     "category": "Animation",
@@ -365,7 +365,7 @@
   },
   "VirtualizedDataTable": {
     "category": "Data",
-    "note": "As `DataTable`, plus a numeric `rowHeight` and `height`. No `className` on the root at all."
+    "note": "As `DataTable`, plus a numeric `rowHeight` and `height`."
   },
   "Wizard": {
     "category": "Navigation",

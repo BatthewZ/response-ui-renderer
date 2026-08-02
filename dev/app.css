@@ -21,6 +21,13 @@
 /* Generate the utilities the playground chrome itself uses. */
 @source "./**/*.{ts,tsx}";
 
+/* And the ones the committed documents ask for. A document's `className` is a
+   runtime string, so Tailwind can only generate it where the document is a file
+   it can scan — which is the same thing a host does for a stored document store,
+   and the reason the reference tells a model to stay near the scale. Documents
+   typed into the playground by hand are still limited to what is already here. */
+@source "../src/examples/**/*.json";
+
 body {
   margin: 0;
   background: var(--C-CANVAS);

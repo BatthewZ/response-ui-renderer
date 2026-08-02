@@ -39,7 +39,7 @@ export const IDENTITY_CHECKED_PARENTS: Readonly<Record<string, string>> = {
   Hero: 'set "overlay": true — Hero cannot detect a Hero.Background through the renderer',
   AvatarGroup: 'set "size" on each Avatar — the group\'s size cannot reach them through the renderer',
   "Table.Body": 'set "index" on each Table.Row — automatic zebra numbering cannot see through the renderer',
-  Breadcrumbs: "a Breadcrumbs.Separator child is counted as a crumb; prefer the root's own separator prop",
+  Breadcrumbs: "a Breadcrumbs.Divider child is counted as a crumb; prefer the root's own separator prop",
   "Combobox.Content": 'give every Combobox.Item an explicit "index"',
 };
 

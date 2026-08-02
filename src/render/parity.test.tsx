@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { parseIsoDate } from "../registry/prop-coercions";
 import type { ViewSpec } from "../spec/types";
 import { validateViewSpec, warningsOf } from "../spec/validate";
+import { findRenderDiagnostics } from "./diagnostics";
 import { ViewRenderer } from "./ViewRenderer";
 
 const spec = (partial: Partial<ViewSpec> & Pick<ViewSpec, "root">): ViewSpec => ({
@@ -554,5 +555,214 @@ describe("parents that inspect their children", () => {
       root: { component: "Hero", children: [{ component: "Hero.Content", children: ["Hi"] }] },
     });
     expect(warningsOf(validateViewSpec(bare).issues)).toEqual([]);
+  });
+});
+
+describe("children a component calls", () => {
+  // `MultiSelect` and `CommandPalette` type `children` as a function of their
+  // own filtered list. A document supplies nodes, so before the renderer wrapped
+  // them the root invoked an array and the whole component died with
+  // "children is not a function".
+
+  const OPTIONS = [
+    { value: "ci", label: "Continuous integration" },
+    { value: "logs", label: "Log search" },
+  ];
+
+  /** Chips + listbox, composed by the document from the root's own arguments. */
+  const composedMultiSelect = (extraProps: Record<string, unknown> = {}) =>
+    spec({
+      data: { opts: { type: "static" as const, value: OPTIONS } },
+      root: {
+        component: "MultiSelect",
+        props: {
+          "aria-label": "Integrations",
+          options: { $ref: "data.opts" },
+          defaultValue: ["ci"],
+          defaultOpen: true,
+          ...extraProps,
+        },
+        children: [
+          {
+            $each: "selected",
+            as: "chip",
+            node: {
+              component: "MultiSelect.Tag",
+              props: { index: { $ref: "chipIndex" }, className: "rounded-full" },
+              children: [{ $ref: "chip.label" }, { component: "MultiSelect.TagRemove" }],
+            },
+          },
+          {
+            component: "MultiSelect.Content",
+            children: [
+              {
+                $cond: "options.0",
+                then: {
+                  $each: "options",
+                  as: "opt",
+                  node: {
+                    component: "MultiSelect.Item",
+                    props: { option: { $ref: "opt" } },
+                    children: [
+                      { component: "MultiSelect.ItemIndicator" },
+                      { $ref: "opt.label" },
+                    ],
+                  },
+                },
+                else: { component: "MultiSelect.Empty", children: ["Nothing matched"] },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+  it("renders a MultiSelect composed by the document", () => {
+    const { container } = render(<ViewRenderer spec={composedMultiSelect()} />);
+
+    expect(findRenderDiagnostics(container)).toEqual([]);
+    // The chip came from `selected`, the rows from `options` — both the root's.
+    expect(container.querySelector(".multiselect-tag")?.textContent).toContain(
+      "Continuous integration",
+    );
+    expect(container.querySelector(".multiselect-tag")).toHaveClass("rounded-full");
+    expect(screen.getAllByRole("option").map((row) => row.textContent)).toEqual([
+      "Continuous integration",
+      "Log search",
+    ]);
+  });
+
+  it("renders the Empty row when the root's own list filters to nothing", async () => {
+    render(<ViewRenderer spec={composedMultiSelect()} />);
+
+    await userEvent.type(screen.getByRole("combobox"), "zzz");
+
+    expect(screen.queryAllByRole("option")).toHaveLength(0);
+    expect(screen.getByText("Nothing matched")).toBeInTheDocument();
+  });
+
+  it("leaves the component's default tree alone when a document passes no children", () => {
+    const bare = spec({
+      root: {
+        component: "MultiSelect",
+        props: {
+          "aria-label": "Integrations",
+          options: OPTIONS,
+          defaultValue: ["ci"],
+          defaultOpen: true,
+        },
+      },
+    });
+    const { container } = render(<ViewRenderer spec={bare} />);
+
+    expect(findRenderDiagnostics(container)).toEqual([]);
+    expect(screen.getAllByRole("option")).toHaveLength(2);
+  });
+
+  it("renders a CommandPalette row per item, composed by the document", () => {
+    const palette = spec({
+      root: {
+        component: "CommandPalette",
+        props: {
+          id: "launcher",
+          open: true,
+          searchLabel: "Search actions",
+          listLabel: "Actions",
+          items: [
+            { id: "share", label: "Share", group: "Collaborate", onSelect: null },
+            { id: "export", label: "Export", group: "Publish", onSelect: null },
+          ],
+        },
+        children: [
+          {
+            component: "CommandPalette.Item",
+            children: [
+              { $ref: "item.label" },
+              { component: "Badge", children: [{ $ref: "item.group" }] },
+            ],
+          },
+        ],
+      },
+    });
+
+    const { container } = render(<ViewRenderer spec={palette} />);
+
+    expect(findRenderDiagnostics(container)).toEqual([]);
+    // The function is called once per row, so `item` differs between them.
+    expect(screen.getAllByRole("option").map((row) => row.textContent)).toEqual([
+      "ShareCollaborate",
+      "ExportPublish",
+    ]);
+  });
+
+  it("degrades to a diagnostic when a row addresses an option the root never handed it", () => {
+    const wrong = spec({
+      root: {
+        component: "Stack",
+        children: [
+          {
+            component: "MultiSelect",
+            props: { "aria-label": "Integrations", options: OPTIONS, defaultOpen: true },
+            children: [
+              {
+                component: "MultiSelect.Content",
+                children: [
+                  {
+                    component: "MultiSelect.Item",
+                    props: { option: { value: "invented", label: "Invented" } },
+                    children: ["Invented"],
+                  },
+                ],
+              },
+            ],
+          },
+          { component: "Text", children: ["the rest of the view survives"] },
+        ],
+      },
+    });
+
+    render(<ViewRenderer spec={wrong} />);
+
+    // Scanned from the body: the listbox is a floating portal, so a diagnostic
+    // inside it is nowhere near the render container.
+    expect(findRenderDiagnostics(document.body).join("\n")).toContain(
+      "is not in the list MultiSelect handed to children",
+    );
+    expect(screen.getByText("the rest of the view survives")).toBeInTheDocument();
+  });
+
+  it("degrades to a diagnostic when a chip addresses a position outside the selection", () => {
+    const wrong = spec({
+      root: {
+        component: "MultiSelect",
+        props: { "aria-label": "Integrations", options: OPTIONS },
+        children: [{ component: "MultiSelect.Tag", props: { index: 7 }, children: ["ghost"] }],
+      },
+    });
+
+    const { container } = render(<ViewRenderer spec={wrong} />);
+
+    expect(findRenderDiagnostics(container).join("\n")).toContain(
+      "not a position in the selection",
+    );
+  });
+
+  it("degrades to a diagnostic when a palette row is authored outside the palette", () => {
+    const orphan = spec({
+      root: {
+        component: "Stack",
+        children: [
+          { component: "CommandPalette.Item", children: ["orphan row"] },
+          { component: "Text", children: ["still here"] },
+        ],
+      },
+    });
+
+    const { container } = render(<ViewRenderer spec={orphan} />);
+
+    expect(findRenderDiagnostics(container).join("\n")).toContain(
+      "must be returned from CommandPalette's children function",
+    );
+    expect(screen.getByText("still here")).toBeInTheDocument();
   });
 });

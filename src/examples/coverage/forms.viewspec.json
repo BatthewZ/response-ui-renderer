@@ -12,6 +12,15 @@
         { "value": "admin", "label": "Workspace admin" }
       ]
     },
+    "channels": {
+      "type": "static",
+      "value": [
+        { "value": "email", "label": "Email" },
+        { "value": "sms", "label": "SMS" },
+        { "value": "pager", "label": "Pager duty" },
+        { "value": "webhook", "label": "Webhook" }
+      ]
+    },
     "integrations": {
       "type": "static",
       "value": [
@@ -58,6 +67,7 @@
           "initialValue": ["figma", "linear"],
           "validation": { "required": true, "message": "Pick at least one integration." }
         },
+        "channels": { "initialValue": ["email"] },
         "plan": { "initialValue": "annual" },
         "digest": { "initialValue": true },
         "twoFactor": { "initialValue": true },
@@ -329,6 +339,63 @@
                           "options": { "$ref": "data.integrations" },
                           "$field": "profile.integrations"
                         }
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Field",
+                    "children": [
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-2", "weight": "semibold" },
+                        "children": ["Alert channels"]
+                      },
+                      {
+                        "component": "MultiSelect",
+                        "props": {
+                          "aria-label": "Alert channels",
+                          "placeholder": "Where incident alerts go",
+                          "options": { "$ref": "data.channels" },
+                          "$field": "profile.channels"
+                        },
+                        "children": [
+                          {
+                            "$each": "selected",
+                            "as": "channel",
+                            "node": {
+                              "component": "MultiSelect.Tag",
+                              "props": { "index": { "$ref": "channelIndex" }, "className": "rounded-full" },
+                              "children": [
+                                { "$ref": "channel.label" },
+                                { "component": "MultiSelect.TagRemove" }
+                              ]
+                            }
+                          },
+                          {
+                            "component": "MultiSelect.Content",
+                            "children": [
+                              {
+                                "$cond": "options.0",
+                                "then": {
+                                  "$each": "options",
+                                  "as": "channel",
+                                  "node": {
+                                    "component": "MultiSelect.Item",
+                                    "props": { "option": { "$ref": "channel" } },
+                                    "children": [
+                                      { "component": "MultiSelect.ItemIndicator" },
+                                      { "$ref": "channel.label" }
+                                    ]
+                                  }
+                                },
+                                "else": {
+                                  "component": "MultiSelect.Empty",
+                                  "children": ["No channel matches that."]
+                                }
+                              }
+                            ]
+                          }
+                        ]
                       }
                     ]
                   },

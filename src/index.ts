@@ -11,6 +11,7 @@ export {
   IDENTITY_CHECKED_PARENTS,
 } from "./registry/child-introspection";
 export { COMPONENT_NOTES, type ComponentNote } from "./registry/component-notes";
+export { FUNCTION_CHILDREN, type FunctionChildren } from "./registry/function-children";
 export {
   Icon,
   type IconComponentProps,

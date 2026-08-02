@@ -1,0 +1,333 @@
+{
+  "Accordion.mode": [
+    "single",
+    "multiple"
+  ],
+  "Alert.variant": [
+    "success",
+    "warning",
+    "error",
+    "info"
+  ],
+  "AppShell.SidebarSection.titleAs": [
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6"
+  ],
+  "Avatar.size": [
+    "xs",
+    "sm",
+    "md",
+    "lg",
+    "xl"
+  ],
+  "Avatar.status": [
+    "online",
+    "offline",
+    "away"
+  ],
+  "AvatarGroup.size": [
+    "xs",
+    "sm",
+    "md",
+    "lg",
+    "xl"
+  ],
+  "Badge.variant": [
+    "default",
+    "success",
+    "warning",
+    "error",
+    "info"
+  ],
+  "Button.variant": [
+    "primary",
+    "secondary",
+    "ghost",
+    "ghost-inverse",
+    "danger",
+    "link"
+  ],
+  "Button.size": [
+    "sm",
+    "md",
+    "lg"
+  ],
+  "Card.padding": [
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6"
+  ],
+  "Card.shadow": [
+    "sm",
+    "md",
+    "lg"
+  ],
+  "Container.size": [
+    "sm",
+    "md",
+    "lg",
+    "xl",
+    "full"
+  ],
+  "DataTable.density": [
+    "dense",
+    "comfortable",
+    "spacious"
+  ],
+  "DescriptionList.layout": [
+    "horizontal",
+    "vertical"
+  ],
+  "Divider.orientation": [
+    "horizontal",
+    "vertical"
+  ],
+  "Drawer.side": [
+    "left",
+    "right",
+    "top",
+    "bottom"
+  ],
+  "EmptyState.size": [
+    "sm",
+    "md",
+    "lg"
+  ],
+  "Grid.gap": [
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6"
+  ],
+  "Hero.size": [
+    "sm",
+    "md",
+    "lg",
+    "full"
+  ],
+  "Hero.align": [
+    "start",
+    "center",
+    "end"
+  ],
+  "Hero.Content.animation": [
+    "fade-up",
+    "fade-in",
+    "scale"
+  ],
+  "MasonryGrid.gap": [
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6"
+  ],
+  "MasonryGrid.animation": [
+    "fade-up",
+    "fade-in",
+    "fade-left",
+    "fade-right",
+    "scale"
+  ],
+  "MediaCard.orientation": [
+    "portrait",
+    "landscape",
+    "square"
+  ],
+  "OTPInput.mode": [
+    "numeric",
+    "alphanumeric"
+  ],
+  "Pagination.variant": [
+    "full",
+    "compact"
+  ],
+  "ProgressBar.variant": [
+    "default",
+    "gradient",
+    "striped"
+  ],
+  "ProgressBar.color": [
+    "accent",
+    "success",
+    "warning",
+    "error"
+  ],
+  "ProgressBar.size": [
+    "sm",
+    "md",
+    "lg"
+  ],
+  "ProgressRing.color": [
+    "accent",
+    "success",
+    "warning",
+    "error"
+  ],
+  "RequireAuth.status": [
+    "loading",
+    "authenticated",
+    "unauthenticated"
+  ],
+  "Row.gap": [
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6"
+  ],
+  "ScrollReveal.animation": [
+    "fade-up",
+    "fade-in",
+    "fade-left",
+    "fade-right",
+    "scale",
+    "none"
+  ],
+  "SearchInput.size": [
+    "sm",
+    "md"
+  ],
+  "Skeleton.variant": [
+    "text",
+    "circular",
+    "rectangular",
+    "rounded"
+  ],
+  "Sparkline.variant": [
+    "line",
+    "area",
+    "bar"
+  ],
+  "Spinner.size": [
+    "sm",
+    "md",
+    "lg"
+  ],
+  "Stack.gap": [
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6"
+  ],
+  "StatCard.Trend.direction": [
+    "up",
+    "down",
+    "neutral"
+  ],
+  "StatCard.Trend.sentiment": [
+    "positive",
+    "negative",
+    "neutral"
+  ],
+  "StatCard.Sparkline.direction": [
+    "up",
+    "down",
+    "neutral"
+  ],
+  "StatCard.Sparkline.sentiment": [
+    "positive",
+    "negative",
+    "neutral"
+  ],
+  "Stepper.orientation": [
+    "horizontal",
+    "vertical"
+  ],
+  "Swimlane.titleAs": [
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6"
+  ],
+  "Swimlane.animation": [
+    "fade-up",
+    "fade-in",
+    "fade-left",
+    "fade-right",
+    "scale"
+  ],
+  "Switch.size": [
+    "sm",
+    "md"
+  ],
+  "Table.density": [
+    "dense",
+    "comfortable",
+    "spacious"
+  ],
+  "Tabs.variant": [
+    "underline",
+    "pill",
+    "enclosed"
+  ],
+  "Text.variant": [
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "body-1",
+    "body-2",
+    "body-3"
+  ],
+  "Text.weight": [
+    "semibold",
+    "bold"
+  ],
+  "Text.color": [
+    "primary",
+    "secondary",
+    "muted",
+    "inverse",
+    "on-primary"
+  ],
+  "Timeline.align": [
+    "left",
+    "center",
+    "right"
+  ],
+  "Timeline.density": [
+    "dense",
+    "comfortable",
+    "spacious"
+  ],
+  "Timeline.Item.titleAs": [
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6"
+  ],
+  "Toast.variant": [
+    "success",
+    "warning",
+    "error",
+    "info"
+  ],
+  "VirtualizedDataTable.density": [
+    "dense",
+    "comfortable",
+    "spacious"
+  ],
+  "Wizard.orientation": [
+    "horizontal",
+    "vertical"
+  ]
+}

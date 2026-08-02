@@ -59,9 +59,10 @@ Subpaths: `/spec` (types + validator, React-free) · `/icons` (`lucideIcons`) ·
   `viewSpecSchema` (Zod) must agree on `result.ok`; `src/zod.test.ts` proves it over a
   shared corpus. They deliberately do NOT agree below that: `validateViewSpec` is two-tier
   (`severity: "error" | "warning"`), and the warning tier — forbidden props, dangerous URLs,
-  unknown actions inside props, non-token theme overrides, depth overrun — has no Zod
-  counterpart because Zod types `props` as an open record. Do not "fix" that by making them
-  errors; it would mean rejecting documents the renderer renders fine.
+  unknown actions inside props, non-token theme overrides, depth overrun, a value outside a
+  bounded prop's set — has no Zod counterpart because Zod types `props` as an open record. Do
+  not "fix" that by making them errors; it would mean rejecting documents the renderer
+  renders fine.
 - **Do NOT wrap a document's `className` in `cn()`.** It looks like the design system's
   "always wrap classNames with cn()" rule applies here, but every response-ui component
   already merges its own `className` prop through `cn()` — verified: `Card.tsx`, `Text.tsx`
@@ -78,6 +79,11 @@ Actions: `submitForm` · `resetForm` · `navigate` · `showToast` · `apiCall` �
 `closeDialog` · `setState`. Field binding: `props: { $field: "form.field" }`.
 
 Ref precedence: explicit `data.`/`forms.` → `$each` aliases and `state.` → bare data key.
+
+A few roots CALL their `children` rather than placing them (`src/registry/function-children.json`,
+gated against the library). Their children are written normally; the renderer renders them
+inside the call with the root's own arguments bound as reference names, so a document maps
+data the component already owns instead of authoring rows.
 
 ## Theming — the one real gotcha
 
@@ -112,6 +118,9 @@ and a test asserts every entry still exists upstream.
 - Don't add a runtime dependency, including a validator.
 - Don't import `zod` or `lucide-react` outside `src/zod.ts` / `src/icons.ts`.
 - Don't hand-list components, or reintroduce per-component prop metadata that nothing reads.
+  Metadata *generated* from the library and consumed by a check is fine — `prop-enums.json`
+  is regenerated beside the reference and drives a validator warning. A hand-kept table
+  restating the library is what this forbids.
 - Don't import a router, or hardcode a server route.
 - Don't write CSS-in-JS, raw hex, or Tailwind defaults (`p-4`, `text-sm`, `bg-blue-500`).
 - Don't suppress a lint or type error.

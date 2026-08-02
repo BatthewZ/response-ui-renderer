@@ -1,0 +1,10 @@
+{
+  "MultiSelect": {
+    "args": ["options", "selected"],
+    "note": "Called **once**, with the root's filtered list and its resolved selection: `$each` over `selected` for the chips, over `options` for the rows."
+  },
+  "CommandPalette": {
+    "args": ["item", "index", "active"],
+    "note": "Called **once per row** of the root's filtered, grouped list. Return one `CommandPalette.Item` — it carries the row's id, role and select handler."
+  }
+}

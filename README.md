@@ -13,7 +13,7 @@ import { ViewRenderer } from "@batthewz/response-ui-renderer";
 ```
 
 - **Every component the library exports is addressable, and proven to render.** 98 components
-  and 66 compound parts, derived from the library's own barrel at runtime — not a hand-copied
+  and 73 compound parts, derived from the library's own barrel at runtime — not a hand-copied
   list — and a coverage corpus renders every one of them. 7 need host code; they are named,
   with the reason, in [VIEWSPEC.md](VIEWSPEC.md).
 - **Zero runtime dependencies.** React and response-ui are peers; nothing else ships.
@@ -300,9 +300,16 @@ for (const issue of result.issues) console.warn(issue.path, issue.message);
 Every issue carries a `severity`:
 
 - `"error"` — the document does not conform; `ok` is `false`. Use `errorsOf(issues)`.
-- `"warning"` — it conforms, but names something the renderer will drop at render time: a
+- `"warning"` — it conforms, but names something that will not do what it looks like: a
   forbidden prop, a `javascript:` URL, an unknown action inside a prop, a theme override
-  that is not a custom property, nesting past the depth cap. Use `warningsOf(issues)`.
+  that is not a custom property, nesting past the depth cap, or a value outside the set a
+  prop accepts. Use `warningsOf(issues)`.
+
+That last one is the difference between a document that fails and one that quietly
+underdelivers. Props like `gap`, `variant` and `size` are looked up in a table of classes; a
+miss returns nothing, so the component renders with that dimension absent and nothing in the
+DOM to notice. The accepted values are read out of the library's own declarations, so the
+reference a model authors from and the check it is validated against are one artifact.
 
 `ViewRenderer` never consults this — it degrades per node regardless — so validation is a
 gate you choose to put in front of it.
@@ -351,9 +358,24 @@ renders that content as text.
 
 ---
 
-A `className` on a component node is passed through untouched. It still collapses correctly
-— every response-ui component merges its own `className` through `cn()` internally, so
-`"p-r3 p-r5"` resolves to `p-r5` without the renderer doing anything.
+## Styling from a document
+
+`className` reaches the element a component renders itself; `classNames` reaches the ones it
+renders inside itself, keyed by slot. Both are passed through untouched and both still
+collapse correctly — every response-ui component merges them through `cn()` internally, so
+`"p-r3 p-r5"` resolves to `p-r5` without the renderer doing anything. The slot keys for every
+component are listed in [VIEWSPEC.md](VIEWSPEC.md).
+
+⚠️ **Tailwind generates utilities by scanning source at build time, and a document arrives at
+runtime.** A class a document invents is therefore not in your CSS unless something else
+already used it. If your documents are stored rather than streamed, point Tailwind at them:
+
+```css
+@source "./content/views/**/*.json";
+```
+
+Otherwise keep documents to the scale (`gap-r4`, `p-r3`, `w-full`) and prefer real props —
+which is what the reference tells a model to do, and what `validateViewSpec` checks.
 
 ---
 
@@ -377,8 +399,11 @@ useful for generating the catalogue you give a model.
 · `ViewContextExtender` · `useViewData` · `defaultRegistry` · `extendRegistry` ·
 `createRegistryFromModule` · `lookupComponent` · `listComponentNames` · `Icon` ·
 `IconSetProvider` · `useIconSet` · `useFormsState` · `createEventCallback` · `validateField`
-· `validateForm` · `resolveRef` · `resolveDeep` · `validateViewSpec` · `isViewSpec` — plus
-every type.
+· `validateForm` · `resolveRef` · `resolveDeep` · `validateViewSpec` · `isViewSpec` ·
+`PROP_ENUMS` / `enumeratedValues` · `FUNCTION_CHILDREN` — plus every type.
+
+The last three are there for prompt and schema building: the accepted values of every
+bounded prop, and the components whose `children` is a function of their own data.
 
 Subpaths: `/spec` (types + validator, no React) · `/icons` (lucide set) · `/zod` (schemas) ·
 `/styles` (CSS).

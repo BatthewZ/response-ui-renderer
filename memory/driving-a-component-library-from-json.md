@@ -26,6 +26,15 @@ shapes to recur whenever the library grows.
 5. **`Date`, `Set` and friends.** Parse ISO strings from local calendar fields, not UTC, or
    every user west of Greenwich gets the wrong day. Reject impossible dates instead of
    letting the constructor roll them forward.
+6. **`children` that the component *calls* rather than places.** A render-prop root invokes
+   what it is handed, so document nodes arrive as an array and it dies with "children is not
+   a function". Recoverable, and worth recovering: render the nodes inside the call and bind
+   the arguments as reference names, exactly as `$each` binds a row. The component stays the
+   only writer of the data; the document becomes the only writer of the presentation.
+7. **A prop bounded to a set of values.** The compiler enforces these upstream; JSON has
+   nothing. The component looks the value up in a table of classes, misses, and renders as
+   if the prop were unset — no error, no fallback, nothing in the DOM. Generate the sets
+   from the library's declarations and warn, or the failure is invisible on both sides.
 
 ## The one that cannot be fixed, and why it matters
 

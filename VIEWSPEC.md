@@ -72,6 +72,119 @@ Inside `props`, a value is a literal or one of:
   Ordinary data is left alone: a row carrying an `action` string stays a row.
 - A **string on an icon-shaped prop** (`icon`, `statusIcon`, `leftIcon`, …) becomes an icon.
   This applies at the top level only; nested icon slots use `$node`.
+- A prop whose type is a **fixed set of strings** takes one of them exactly. The set is in
+  the Props column below; `validateViewSpec` warns on anything else, because the component
+  looks up the value in a table and a miss draws nothing at all rather than failing.
+
+## Styling
+
+Two props, and the difference matters:
+
+- **`className`** styles the element the component renders **itself** — its outermost one.
+- **`classNames`** styles the elements it renders **inside** itself, keyed by slot:
+  `{ "classNames": { "control": "border-dashed" } }`. Keys are per component and listed
+  under Slot keys; an unknown key does nothing.
+
+Both beat the component's own classes, so `"className": "flex-row bg-surface-2"` works on
+anything. Prefer a real prop where one exists (`variant`, `size`, `gap`) — it is the part
+of the contract this reference can describe.
+
+⚠️ **A utility class only works if it is already in the app's compiled CSS.** Tailwind
+generates utilities by scanning source files at build time, and a document arrives at
+runtime — long after. Common utilities the library itself uses are present; an arbitrary
+one (`w-[37%]`, `text-[13px]`) usually is not, and it fails **silently**. Stay near the
+scale (`gap-r4`, `p-r3`, `w-full`, `text-body-2`), or ask the host to add its document
+store to Tailwind's `@source` list.
+
+<!-- GENERATED:slots -->
+| Component | `classNames` keys |
+| --- | --- |
+| `Accordion.Content` | `body` |
+| `Accordion.Trigger` | `heading` `triggerText` `chevron` |
+| `ActivityFeed.Item` | `sentence` `actor` `action` `target` `timestamp` `body` |
+| `Alert` | `icon` |
+| `AppShell.Sidebar` | `scrim` |
+| `AppShell.SidebarLink` | `itemIcon` `itemLabel` |
+| `AppShell.SidebarSection` | `groupHeader` |
+| `Avatar` | `frame` `image` `status` |
+| `AvatarGroup` | `itemRing` `overflow` |
+| `Breadcrumbs` | `list` `ellipsis` |
+| `Breadcrumbs.Item` | `current` `link` `text` |
+| `Carousel` | `title` `viewport` `prev` `next` |
+| `CodeBlock` | `header` `filename` `language` `pre` `code` `line` |
+| `ColorPicker` | `trigger` `swatch` `value` `panel` `plane` `thumb` `hue` `hex` `presets` `preset` |
+| `Combobox.Content` | `loading` |
+| `Combobox.Input` | `toggle` |
+| `CommandPalette` | `search` `input` `list` `group` `groupHeader` `empty` `itemIcon` `itemLabel` `itemShortcut` |
+| `DataTable` | `expandToggle` `expandedCell` `expandedBody` |
+| `DatePicker` | `control` `actions` `panel` |
+| `DateRangePicker` | `control` `panel` |
+| `Hero` | `overlay` |
+| `HoverCard.Content` | `arrow` |
+| `MultiSelect` | `control` `list` `input` `chevron` |
+| `NumberInput` | `control` `chevron` |
+| `OTPInput` | `box` |
+| `Pagination` | `list` `first` `prev` `next` `last` `page` `ellipsis` `info` |
+| `Popover.Content` | `arrow` |
+| `ProgressBar` | `fill` |
+| `ProgressRing` | `svg` `track` `indicator` `center` |
+| `RangeSlider` | `track` `fill` `input` |
+| `SearchInput` | `icon` `input` `clear` |
+| `Select` | `control` `chevron` |
+| `StatCard.Trend` | `trendIcon` |
+| `Stepper.Step` | `indicator` `itemBody` `title` `description` `connector` |
+| `Swimlane` | `header` `titleGroup` `title` `description` `body` |
+| `Switch` | `thumb` |
+| `Table.HeaderCell` | `sortButton` `sortIcon` |
+| `Tabs.List` | `indicator` |
+| `TagInput` | `control` `input` `tagRemove` |
+| `ThemeSwitcher` | `item` |
+| `Timeline.Item` | `icon` `card` `timestamp` `title` `body` |
+| `Toast` | `icon` `body` `title` `dismiss` |
+| `Tooltip` | `arrow` |
+| `Wizard` | `body` `footer` |
+<!-- /GENERATED:slots -->
+
+## Children a component calls
+
+Most components place the `children` a document gives them. These two **call** theirs, once
+per thing they are composing, and hand it their own already-filtered data — so a document
+maps what it is given rather than authoring rows itself. Write `children` exactly as
+anywhere else; the names below are in scope inside them, alongside everything already
+visible.
+
+<!-- GENERATED:function-children -->
+| Component | Called | In scope inside `children` |
+| --- | --- | --- |
+| `MultiSelect` | Called **once**, with the root's filtered list and its resolved selection: `$each` over `selected` for the chips, over `options` for the rows. | `options` · `selected` |
+| `CommandPalette` | Called **once per row** of the root's filtered, grouped list. Return one `CommandPalette.Item` — it carries the row's id, role and select handler. | `item` · `index` · `active` |
+<!-- /GENERATED:function-children -->
+
+```jsonc
+{ "component": "MultiSelect",
+  "props": { "options": { "$ref": "data.tools" }, "$field": "profile.tools" },
+  "children": [
+    { "$each": "selected", "as": "chip",
+      "node": { "component": "MultiSelect.Tag",
+                "props": { "index": { "$ref": "chipIndex" } },
+                "children": [{ "$ref": "chip.label" }, { "component": "MultiSelect.TagRemove" }] } },
+    { "component": "MultiSelect.Content",
+      "children": [
+        { "$cond": "options.0",
+          "then": { "$each": "options", "as": "tool",
+                    "node": { "component": "MultiSelect.Item",
+                              "props": { "option": { "$ref": "tool" } },
+                              "children": [{ "component": "MultiSelect.ItemIndicator" },
+                                           { "$ref": "tool.label" }] } },
+          "else": { "component": "MultiSelect.Empty", "children": ["No match."] } }
+      ] }
+  ] }
+```
+
+Omit `children` and the component renders its own default tree, which is the same
+composition — so there is nothing to keep in step. A part addressed with data the root did
+not hand it (an invented `option`, an `index` outside the selection) renders a diagnostic
+naming the mistake.
 
 ## Event Actions
 
@@ -158,10 +271,10 @@ Structure and spacing. The `r1`–`r6` scale is **inverted** — `r1` is the lar
 | `Center` | — | — |  |
 | `Container` | — | `size?`: "sm"\|"md"\|"lg"\|"xl"\|"full" | Always a `<div>` — use `Stack as="section"` when you need the landmark. |
 | `Divider` | — | `orientation?`: "horizontal"\|"vertical" | A vertical divider renders nothing outside a flex/grid parent with a cross-axis height. |
-| `Grid` | — | `columns?`: ColumnBreakpoints\|number · `gap?`: "r1"\|"r2"\|"r3"\|"r4"\|"r5"\|"r6" · `as?`: T | 1–6 columns only; anything else silently falls back to one. |
+| `Grid` | — | `columns?`: ColumnBreakpoints<GridColumnCount>\|GridColumnCount · `gap?`: "r1"\|"r2"\|"r3"\|"r4"\|"r5"\|"r6" · `as?`: T | 1–6 columns only; anything else silently falls back to one. |
 | `Hero` | `.Background` `.Content` | `size?`: "sm"\|"md"\|"lg"\|"full" · `overlay?`: boolean · `align?`: "start"\|"center"\|"end" | `Hero.Background` takes no children. Put anything that must stay legible in `Hero.Content`. |
-| `MasonryGrid` | `.Item` | `columns?`: ColumnBreakpoints\|ColumnCount · `gap?`: string · `animate?`: boolean · `animation?`: "fade-up"\|"fade-in"\|"fade-left"\|"fade-right"\|"scale" | Pass `animate: false` unless a viewport observer will run — items start at `opacity: 0`. |
-| `Portal` | — | — | Renders to `document.body`. `themeOverrides` scoped to the view do not reach it. |
+| `MasonryGrid` | `.Item` | `columns?`: ColumnBreakpoints<ColumnCount>\|ColumnCount · `gap?`: "r1"\|"r2"\|"r3"\|"r4"\|"r5"\|"r6" · `animate?`: boolean · `animation?`: "fade-up"\|"fade-in"\|"fade-left"\|"fade-right"\|"scale" | Pass `animate: false` unless a viewport observer will run — items start at `opacity: 0`. |
+| `Portal` | — | `container?`: Element\|null | Renders to `document.body`. `themeOverrides` scoped to the view do not reach it. |
 | `Row` | — | `gap?`: "r1"\|"r2"\|"r3"\|"r4"\|"r5"\|"r6" · `align?`: keyof typeof alignMap · `justify?`: keyof typeof justifyMap · `wrap?`: boolean · `as?`: T | `align` defaults to `center`, not `stretch`. |
 | `Spacer` | — | — |  |
 | `Stack` | — | `gap?`: "r1"\|"r2"\|"r3"\|"r4"\|"r5"\|"r6" · `as?`: T | `as` is a document's only route to a raw HTML tag (`"section"`, `"ul"`, `"form"`). |
@@ -200,11 +313,11 @@ Status, progress and loading.
 | `EmptyStateActions` | — | — |  |
 | `EmptyStateDescription` | — | — |  |
 | `EmptyStateIcon` | — | — |  |
-| `EmptyStateTitle` | — | — |  |
+| `EmptyStateTitle` | — | `as?`: T |  |
 | `Meter` | — | `value`: number · `min?`: number · `max?`: number · `segments?`: number · `warningAt?`: number · `criticalAt?`: number · `statusLabels?`: Partial<Record<MeterStatus, string>> · +1 more | Requires `value` and `aria-label`. Thresholds compare the raw value, not a fraction. |
 | `ProgressBar` | `.Label` `.Value` | — | Takes no children: `.Label` and `.Value` are **siblings** of the bar. Needs `value` and a name. |
 | `ProgressRing` | — | `value`: number · `max?`: number · `size?`: number · `thickness?`: number · `color?`: "accent"\|"success"\|"warning"\|"error" | No default accessible name — pass `aria-label`. The centre slot is decorative. |
-| `Skeleton` | — | `variant?`: "text"\|"circular"\|"rectangular"\|"rounded" · `width?`: string\|number · `height?`: string\|number | Size with the `width`/`height` props — utility classes are inert. |
+| `Skeleton` | — | `variant?`: "text"\|"circular"\|"rectangular"\|"rounded" | Sized by `className` on both axes (`w-[40%] h-3`); it has no `width`/`height` props. A `circular` one needs one axis only. |
 | `Spinner` | — | `size?`: "sm"\|"md"\|"lg" |  |
 | `Toast` | — | `variant?`: "success"\|"warning"\|"error"\|"info" · `title?`: string · `dismissing?`: boolean · `statusLabel?`: string · `statusIcon?`: ReactNode · `dismissLabel?`: string | Prefer the `showToast` action. Rendered by hand it needs `onDismiss` and its own `$cond` to unmount. |
 
@@ -216,16 +329,16 @@ Tables, metrics and lists driven by `data` + `$each`.
 | --- | --- | --- | --- |
 | `ActivityFeed` | `.Item` | — | `.Item` must be a direct child. `avatar` short-circuits `icon`. |
 | `Avatar` | — | `src?`: string\|null · `alt?`: string · `name?`: string · `size?`: "xs"\|"sm"\|"md"\|"lg"\|"xl" · `status?`: "online"\|"offline"\|"away" · `statusLabel?`: string | Falls back to initials from `name`. `AvatarGroup`'s `size` does not reach children through the renderer — set it per avatar. |
-| `AvatarGroup` | — | — |  |
-| `DataTable` | — | `data`: T[] · `columns`: ColumnDef<T>[] · `sort?`: SortState\|null · `defaultSort?`: SortState\|null · `onSortChange?`: (sort: SortState\|null) => void · `sortComparator?`: (a: T, b: T, columnKey: string, direction: "asc"\|"desc") => number · `selectable?`: boolean · +19 more | `rowKey` is required: pass the **column name as a string**. A column may carry a `render` cell template as `{"$node": …}`, bound to `row`/`rowIndex`. |
+| `AvatarGroup` | — | `max?`: number · `size?`: "xs"\|"sm"\|"md"\|"lg"\|"xl" |  |
+| `DataTable` | — | `data`: T[] · `columns`: ColumnDef<T>[] · `sort?`: SortState\|null · `defaultSort?`: SortState\|null · `onSortChange?`: (sort: SortState\|null) => void · `sortComparator?`: (a: T, b: T, columnKey: string, direction: "asc"\|"desc") => number · `selectable?`: boolean · +21 more | `rowKey` is required: pass the **column name as a string**. A column may carry a `render` cell template as `{"$node": …}`, bound to `row`/`rowIndex`. |
 | `DescriptionList` | `.Term` `.Detail` | `layout?`: "horizontal"\|"vertical" |  |
 | `Pagination` | — | `page`: number · `totalPages`: number · `siblingCount?`: number · `showEdges?`: boolean · `variant?`: "full"\|"compact" · `compactBelow?`: number\|string | Controlled-only — no `defaultPage`. Seed `spec.state` and feed `onPageChange` from `event.value`. |
 | `Rating` | — | `value?`: number · `defaultValue?`: number · `onValueChange?`: (v: number) => void · `max?`: number · `allowHalf?`: boolean · `readOnly?`: boolean · `disabled?`: boolean · +2 more | Requires `aria-label`. Not a form control; `readOnly` is the JSON-native shape. |
-| `Sparkline` | — | `values`: number[] · `variant?`: "line"\|"area"\|"bar" · `width?`: number · `height?`: number · `strokeWidth?`: number · `min?`: number · `max?`: number | Requires `values`. Set `min: 0` or the lowest bar has no height. |
+| `Sparkline` | — | `values`: number[] · `variant?`: "line"\|"area"\|"bar" · `width?`: number · `height?`: number · `strokeWidth?`: number · `min?`: number · `max?`: number | Requires `values`. `bar` measures from zero already; `line`/`area` frame to the data, so pass `min`/`max` to fix the scale. |
 | `StatCard` | `.Value` `.Label` `.Trend` `.Icon` `.Sparkline` | — | `.Trend` needs `value` and `direction` and takes no children. `.Sparkline` needs `values`. |
 | `Table` | `.Head` `.Body` `.Row` `.HeaderCell` `.Cell` | `density?`: "dense"\|"comfortable"\|"spacious" · `striped?`: boolean · `stickyHeader?`: boolean · `maxHeight?`: number\|string · `tableProps?`: ComponentPropsWithRef<"table"> | Presentational only — it sorts nothing. Rest props land on a wrapper; name it via `tableProps`. |
 | `Timeline` | `.Item` | `animate?`: boolean · `align?`: "left"\|"center"\|"right" · `density?`: "dense"\|"comfortable"\|"spacious" · `card?`: boolean | `.Item` requires `title`. Pass `animate: false` — every item otherwise builds its own observer. |
-| `VirtualizedDataTable` | — | `data`: T[] · `columns`: ColumnDef<T>[] · `rowHeight`: number · `sort?`: SortState\|null · `defaultSort?`: SortState\|null · `onSortChange?`: (sort: SortState\|null) => void · `sortComparator?`: (a: T, b: T, columnKey: string, direction: "asc"\|"desc") => number · +14 more | As `DataTable`, plus a numeric `rowHeight` and `height`. No `className` on the root at all. |
+| `VirtualizedDataTable` | — | `data`: T[] · `columns`: ColumnDef<T>[] · `rowHeight`: number · `sort?`: SortState\|null · `defaultSort?`: SortState\|null · `onSortChange?`: (sort: SortState\|null) => void · `sortComparator?`: (a: T, b: T, columnKey: string, direction: "asc"\|"desc") => number · +15 more | As `DataTable`, plus a numeric `rowHeight` and `height`. |
 
 ### Form
 
@@ -233,10 +346,10 @@ Bind every control with `$field`; declare the field in `spec.forms` first.
 
 | Component | Parts | Props | Notes |
 | --- | --- | --- | --- |
-| `Calendar` | — | `value?`: Date\|null · `defaultValue?`: Date · `onValueChange?`: (d: Date) => void · `month?`: Date · `defaultMonth?`: Date · `onMonthChange?`: (m: Date) => void · `numberOfMonths?`: number · +9 more | Date props accept ISO `YYYY-MM-DD` strings. `isDateDisabled` is a predicate and unreachable. |
+| `Calendar` | — | `value?`: Date\|null · `defaultValue?`: Date · `onValueChange?`: (d: Date) => void · `month?`: Date · `defaultMonth?`: Date · `onMonthChange?`: (m: Date) => void · `numberOfMonths?`: number · +10 more | Date props accept ISO `YYYY-MM-DD` strings. `isDateDisabled` and `renderDay` are functions and unreachable. |
 | `Checkbox` | — | `error?`: boolean | `$field` binds `checked`. |
 | `ColorPicker` | — | `value?`: string · `defaultValue?`: string · `onValueChange?`: (hex: string) => void · `onChange?`: (hex: string) => void · `presets?`: string[] · `placement?`: Placement · `error?`: boolean · +7 more | Hex only; anything else silently becomes `#000000`. Submits nothing. |
-| `Combobox` | `.Input` `.Content` `.Item` `.Empty` | — | Owns no data: every `.Item` needs a gapless `index` and a `value`. Filtering is the author's job. |
+| `Combobox` | `.Input` `.Content` `.Item` `.Empty` | `value?`: string\|null · `defaultValue?`: string · `onValueChange?`: (value: string\|null) => void · `inputValue?`: string · `defaultInputValue?`: string · `onInputValueChange?`: (value: string) => void · `open?`: boolean · +4 more | Owns no data: every `.Item` needs a gapless `index` and a `value`. Filtering is the author's job. |
 | `DatePicker` | — | `value?`: Date\|null · `defaultValue?`: Date · `onValueChange?`: (d: Date\|null) => void · `onChange?`: (d: Date\|null) => void · `min?`: Date · `max?`: Date · `isDateDisabled?`: (date: Date) => boolean · +12 more | ISO date strings on `value`/`defaultValue`/`min`/`max`. Pass `name` or nothing is submitted. |
 | `DateRangePicker` | — | `value?`: DateRange · `defaultValue?`: DateRange · `onValueChange?`: (range: DateRange) => void · `onChange?`: (range: DateRange) => void · `defaultMonth?`: Date · `min?`: Date · `max?`: Date · +15 more | `value`/`defaultValue` are `{ start, end }` of ISO strings. Rest props land on the wrapper. |
 | `Field` | — | `name?`: string · `error?`: ReactNode | `name: "form.field"` surfaces the live error. It does **not** wire `Label`/control ids — do that yourself. |
@@ -244,17 +357,17 @@ Bind every control with `$field`; declare the field in `spec.forms` first.
 | `FormActions` | — | — |  |
 | `Input` | — | `error?`: boolean | The first-class `$field` target. |
 | `Label` | — | — | No automatic association — pair `htmlFor` with the control's `id`. |
-| `MultiSelect` | — | `options`: MultiSelectOption[] · `value?`: string[] · `defaultValue?`: string[] · `onValueChange?`: (value: string[]) => void · `onChange?`: (value: string[]) => void · `placeholder?`: string · `open?`: boolean · +7 more | Requires `options`. Give it `aria-label` — it derives no name and posts nothing natively. |
+| `MultiSelect` | `.Content` `.Item` `.ItemIndicator` `.Empty` `.Tag` `.TagRemove` | `options`: MultiSelectItem[] · `value?`: string[] · `defaultValue?`: string[] · `onValueChange?`: (value: string[]) => void · `onChange?`: (value: string[]) => void · `placeholder?`: string · `open?`: boolean · +7 more | Requires `options`. Give it `aria-label` — it derives no name and posts nothing natively. Children compose the chips and listbox; see Children a component calls. |
 | `NumberInput` | — | `value?`: number\|null · `defaultValue?`: number · `onValueChange?`: (value: number\|null) => void · `onChange?`: (value: number\|null) => void · `min?`: number · `max?`: number · `step?`: number · +2 more | Submits raw text — `min`/`max`/`step` are advisory only. |
 | `OTPInput` | — | `length?`: number · `value?`: string · `defaultValue?`: string · `onValueChange?`: (v: string) => void · `onChange?`: (v: string) => void · `onComplete?`: (v: string) => void · `mode?`: "numeric"\|"alphanumeric" · +3 more | Name it with `aria-labelledby` — a `<div>` cannot be a `Label` target. |
 | `Radio` | — | — | `value` is the option's identity, so use the **bare** binding: `{ "value": "…", "$field": "…" }`. |
-| `RangeCalendar` | — | `value?`: DateRange · `defaultValue?`: DateRange · `onValueChange?`: (range: DateRange) => void · `month?`: Date · `defaultMonth?`: Date · `onMonthChange?`: (m: Date) => void · `numberOfMonths?`: number · +9 more | `value`/`defaultValue` are `{ start, end }` of ISO strings. |
+| `RangeCalendar` | — | `value?`: DateRange · `defaultValue?`: DateRange · `onValueChange?`: (range: DateRange) => void · `month?`: Date · `defaultMonth?`: Date · `onMonthChange?`: (m: Date) => void · `numberOfMonths?`: number · +10 more | `value`/`defaultValue` are `{ start, end }` of ISO strings. |
 | `RangeSlider` | — | `value?`: [number, number] · `defaultValue?`: [number, number] · `onValueChange?`: (value: RangeSliderValue) => void · `onChange?`: (value: RangeSliderValue) => void · `min?`: number · `max?`: number · `step?`: number · +6 more | `defaultValue` is a two-number array. No native form participation. |
 | `SearchInput` | — | `value`: string · `onClear?`: () => void · `size?`: "sm"\|"md" · `clearLabel?`: string · `defaultValue?`: never | Controlled-only: bind it with `$field` or it cannot be typed in. |
 | `Select` | — | `error?`: boolean | Takes an `options` array; the renderer turns it into `<option>` children. |
 | `Slider` | — | `value?`: number · `defaultValue?`: number · `onValueChange?`: (value: number) => void · `onChange?`: (value: number) => void · `min?`: number · `max?`: number · `step?`: number · +1 more | Pass `aria-label`, and `aria-valuetext` on any non-percentage scale. |
 | `Switch` | — | `checked?`: boolean · `defaultChecked?`: boolean · `onCheckedChange?`: (checked: boolean) => void · `size?`: "sm"\|"md" · `error?`: boolean · `name?`: string · `value?`: string · +1 more | `$field` binds `checked` and writes back through `onCheckedChange`. Needs `aria-label`. |
-| `TagInput` | — | `value?`: string[] · `defaultValue?`: string[] · `onValueChange?`: (tags: string[]) => void · `onChange?`: (tags: string[]) => void · `maxTags?`: number · `validateTag?`: (tag: string) => boolean\|string · `delimiter?`: RegExp · +6 more | Values are plain strings; `$field` stores an array. |
+| `TagInput` | — | `value?`: string[] · `defaultValue?`: string[] · `onValueChange?`: (tags: string[]) => void · `onChange?`: (tags: string[]) => void · `maxTags?`: number · `validateTag?`: (tag: string) => boolean\|string · `delimiter?`: RegExp · +7 more | Values are plain strings; `$field` stores an array. `className` is the whole control — the bordered box is `classNames.control`. |
 | `Textarea` | — | `error?`: boolean |  |
 
 ### Overlay
@@ -263,16 +376,16 @@ Floating surfaces. Dialogs need a literal `id` so an action can target them.
 
 | Component | Parts | Props | Notes |
 | --- | --- | --- | --- |
-| `CommandPalette` | — | `open`: boolean · `items`: CommandItem[] · `filter?`: (item: CommandItem, query: string) => boolean · `placeholder?`: string · `emptyMessage?`: ReactNode · `searchLabel?`: string · `listLabel?`: string · +1 more | Give it a literal `id`. `items[].onSelect` accepts a declarative handler object. |
-| `ContextMenu` | `.Trigger` `.Content` `.Item` `.Divider` `.Label` | — | Every `.Item` needs a gapless `index`. `.Trigger` has no accessible name — give it one. Scope it to an object, never a page. |
+| `CommandPalette` | `.Item` | `open`: boolean · `items`: CommandPaletteItem[] · `filter?`: (item: CommandPaletteItem, query: string) => boolean · `placeholder?`: string · `emptyMessage?`: ReactNode · `searchLabel?`: string · `listLabel?`: string · +1 more | Give it a literal `id`. `items[].onSelect` accepts a declarative handler object. Children compose one row; see Children a component calls. |
+| `ContextMenu` | `.Trigger` `.Content` `.Item` `.Divider` `.GroupHeader` | `open?`: boolean · `onOpenChange?`: (open: boolean) => void · `defaultOpen?`: boolean | Every `.Item` needs a gapless `index`. `.Trigger` has no accessible name — give it one. Scope it to an object, never a page. |
 | `Dialog` | — | `open`: boolean | Give it a literal `id` — the renderer owns `open`/`onClose` so `openDialog`/`closeDialog` can target it. No close button and no accessible name of its own. |
 | `Drawer` | — | `open`: boolean · `side?`: "left"\|"right"\|"top"\|"bottom" | As `Dialog`. Escape is the only built-in dismissal — render your own close control. |
-| `DropdownMenu` | `.Trigger` `.Content` `.Item` `.Divider` `.Label` | — | Every `.Item` needs a gapless `index`. `onSelect` takes a handler directly. Avoid `asChild`. |
+| `DropdownMenu` | `.Trigger` `.Content` `.Item` `.Divider` `.GroupHeader` | `open?`: boolean · `onOpenChange?`: (open: boolean) => void · `defaultOpen?`: boolean · `placement?`: Placement | Every `.Item` needs a gapless `index`. `onSelect` takes a handler directly. Avoid `asChild`. |
 | `ErrorBoundary` | — | — | Largely redundant: the renderer already wraps every node. Its `fallback` is unreachable from JSON. |
-| `HoverCard` | `.Trigger` `.Content` | — | Never opens on touch and its content is unreachable by keyboard — never put unique information there. |
-| `Popover` | `.Trigger` `.Content` | — | `openDialog` does **not** reach it — use `defaultOpen` or its own trigger. Name `.Content`. |
+| `HoverCard` | `.Trigger` `.Content` | `open?`: boolean · `defaultOpen?`: boolean · `onOpenChange?`: (open: boolean) => void · `openDelay?`: number · `closeDelay?`: number · `placement?`: Placement | Never opens on touch and its content is unreachable by keyboard — never put unique information there. |
+| `Popover` | `.Trigger` `.Content` | `open?`: boolean · `onOpenChange?`: (open: boolean) => void · `defaultOpen?`: boolean · `placement?`: Placement · `offset?`: number | `openDialog` does **not** reach it — use `defaultOpen` or its own trigger. Name `.Content`, which also takes `arrow: true`. |
 | `RequireAuth` | — | `status`: "loading"\|"authenticated"\|"unauthenticated" · `redirect?`: string · `loadingFallback?`: ReactNode · `loadingLabel?`: string · `unauthenticatedFallback?`: ReactNode | `status` is a string, so `{"$ref": …}` drives it. Always supply `redirect` — otherwise `unauthenticated` renders nothing. |
-| `Tooltip` | — | — | Takes `content` and exactly one child. |
+| `Tooltip` | — | `content`: ReactNode · `placement?`: Placement · `delay?`: number · `offset?`: number · `container?`: HTMLElement\|null · `arrow?`: boolean | Takes `content` and exactly one child. `arrow: true` draws a pointer at the resolved side. |
 
 ### Navigation
 
@@ -282,7 +395,7 @@ Disclosure, tabs, wayfinding and app chrome.
 | --- | --- | --- | --- |
 | `Accordion` | `.Item` `.Trigger` `.Content` | `mode?`: "single"\|"multiple" · `defaultValue?`: string\|string[] · `value?`: string\|string[] · `onValueChange?`: (value: string\|string[]) => void · `headingLevel?`: 1\|2\|3\|4\|5\|6 | `.Item` needs `value`; open one with `defaultValue`. Wrap panel content in a single element. |
 | `AppShell` | `.Navbar` `.Brand` `.NavbarActions` `.Toggle` `.Sidebar` `.SidebarSection` `.SidebarLink` `.Main` | `defaultOpen?`: boolean · `open?`: boolean · `onOpenChange?`: (open: boolean) => void · `defaultCollapsed?`: boolean · `collapsed?`: boolean · `onCollapsedChange?`: (collapsed: boolean) => void | `.SidebarLink` needs `to`; its `icon` takes an icon-name string. Router-aware links need a host adapter. |
-| `Breadcrumbs` | `.Item` `.Separator` | `separator?`: ReactNode · `maxItems?`: number · `itemsBeforeCollapse?`: number · `itemsAfterCollapse?`: number | `aria-current` is manual — set `current: true` on the last crumb. |
+| `Breadcrumbs` | `.Item` `.Divider` | `separator?`: ReactNode · `maxItems?`: number · `itemsBeforeCollapse?`: number · `itemsAfterCollapse?`: number | `aria-current` is manual — set `current: true` on the last crumb. |
 | `Collapsible` | `.Trigger` `.Content` | `open?`: boolean · `defaultOpen?`: boolean · `onOpenChange?`: (open: boolean) => void · `disabled?`: boolean | Use `defaultOpen`. Never pass `id` to `.Trigger` or `.Content` — it breaks the aria wiring silently. |
 | `Stepper` | `.Step` | `activeStep`: number · `orientation?`: "horizontal"\|"vertical" · `onStepClick?`: (index: number) => void · `isStepClickable?`: (index: number) => boolean · `statusLabels?`: Partial<Record<StepStatus, string>> | `activeStep` is required and fully controlled; it may equal the step count, meaning "all done". |
 | `Tabs` | `.List` `.Tab` `.Panel` | `defaultValue`: string · `value?`: string · `onValueChange?`: (value: string) => void · `variant?`: "underline"\|"pill"\|"enclosed" | `defaultValue` is required, and every `.Tab`/`.Panel` `value` must match or the tab is dead. `.Panel` is a sibling of `.List`. |
@@ -296,7 +409,7 @@ Images, rails and showcases.
 | Component | Parts | Props | Notes |
 | --- | --- | --- | --- |
 | `Carousel` | `.Track` `.Item` | `title?`: ReactNode · `prevLabel?`: string · `nextLabel?`: string | `.Track` is **not** optional — without it the arrows never appear. No autoplay. |
-| `MediaCard` | `.Image` `.Overlay` `.Content` `.Badge` `.Action` | `orientation?`: "portrait"\|"landscape"\|"square" | `.Image` requires `alt`. The card is only as tall as its image and clips overflow. |
+| `MediaCard` | `.Image` `.Overlay` `.Content` `.Badge` `.Action` | `orientation?`: "portrait"\|"landscape"\|"square" | `.Image` requires `alt`, and its `className` addresses the ratio box — `loading`, `srcSet`, `sizes` and friends belong in `imgProps`. The card is only as tall as its image and clips overflow. |
 | `Spotlight` | `.Item` `.Image` `.Content` | `animate?`: boolean | `.Item`s must be flat children of the root. `.Image` requires `src`. Pass `animate: false`. |
 
 ### Animation
@@ -307,7 +420,7 @@ Presentational only. Pass `animate: false` when the content must be readable wit
 | --- | --- | --- | --- |
 | `AnimatePresence` | — | `show`: boolean · `enterClass?`: string · `exitClass?`: string | `show` is required. `setState` writes a literal, so use two controls rather than a toggle. |
 | `Parallax` | — | `rate?`: number · `clamp?`: number | Moves outside its own layout box — clip on a parent. |
-| `ScrollReveal` | — | `animation?`: "fade-up"\|"fade-in"\|"fade-left"\|"fade-right"\|"scale" · `threshold?`: number · `delay?`: number · `once?`: boolean · `rootMargin?`: string · `animate?`: boolean · `as?`: ElementType | Starts at `opacity: 0`. Set `animate: false` wherever the text is the point. |
+| `ScrollReveal` | — | `animation?`: "fade-up"\|"fade-in"\|"fade-left"\|"fade-right"\|"scale"\|"none" · `threshold?`: number · `delay?`: number · `once?`: boolean · `rootMargin?`: string · `animate?`: boolean · `as?`: ElementType | Starts at `opacity: 0`. Set `animate: false` wherever the text is the point; `animation: "none"` reveals with no entrance class. |
 | `Stagger` | — | `staggerDelay?`: string · `as?`: ElementType | Ships no animation of its own; inert unless the host styles `.stagger-item`. |
 | `ViewTransition` | — | `name`: string | `name` must be unique. Inert unless the host's navigate adapter wraps `startViewTransition`. |
 <!-- /GENERATED:components -->
@@ -320,12 +433,12 @@ These need host code. Register a wrapper with `extendRegistry` if a document mus
 | Component | Why not, and what to do instead |
 | --- | --- |
 | `AvatarUpload` | `onUpload` must RETURN `{ url }` for the component to swap the preview in. A declarative handler returns nothing, so the component parks on a permanent error. Uploading is host work. |
-| `Breadcrumbs.Separator` | Breadcrumbs pairs a caller's separator with the crumb it precedes by testing `child.type === BreadcrumbsSeparator`. That comparison can never match through the renderer — the child's type is always the renderer's own node component — so the separator is counted as an extra crumb and the trail grows empty items. Set the root's own `separator` prop instead; it needs no identity check. |
+| `Breadcrumbs.Divider` | Breadcrumbs pairs a caller's divider with the crumb it precedes by testing `child.type === BreadcrumbsDivider`. That comparison can never match through the renderer — the child's type is always the renderer's own node component — so the divider is counted as an extra crumb and the trail grows empty items. Set the root's own `separator` prop instead; it needs no identity check. |
 | `FileUpload` | Needs live `File` objects. It stores none itself and has no `defaultFiles`, so `onFilesSelected` is the only channel and JSON cannot construct its argument. Register a host wrapper with `extendRegistry` instead. |
-| `FormProvider` | `form` is a live `FormApi` handle from `useForm()`. Not needed: the renderer implements its own form layer â `spec.forms`, `$field`, and the `Field`/`FieldError` name binding â covering the same ground with no host code. |
+| `FormProvider` | `form` is a live `FormApi` handle from `useForm()`. Not needed: the renderer implements its own form layer — `spec.forms`, `$field`, and the `Field`/`FieldError` name binding — covering the same ground with no host code. |
 | `Repeater` | Three of its four required props are host code: a `useForm` handle, a per-row render prop, and a row factory. The renderer's form model has no array-field concept for a binding to address either. `$each` over a `$ref` is the read-only approximation. |
 | `RouterAdapterProvider` | `value.Link` is a component type and `value.usePathname` a hook. Mount it in the host app above `<ViewRenderer>`; documents navigate through the `navigate` action. |
-| `ToastProvider` | The queue is imperative â `useToast().toast(â¦)` â which no document can call. Mount it in the host and use the `showToast` action, which routes through `adapters.toast`. |
+| `ToastProvider` | The queue is imperative — `useToast().toast(…)` — which no document can call. Mount it in the host and use the `showToast` action, which routes through `adapters.toast`. |
 <!-- /GENERATED:not-addressable -->
 
 Props typed as a **predicate or formatter** (`isDateDisabled`, `formatValue`, `rejectMessage`,

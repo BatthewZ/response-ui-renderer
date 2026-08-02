@@ -56,8 +56,27 @@ all. Every one of those passed the gate. When a check stands in for "nothing wen
 write down what the full set of wrong looks like and assert against the set — not against
 the two examples that were on your mind.
 
+## A diagnostic can render where the query is not looking
+
+The corpus gate asked `findRenderDiagnostics(container)` — the tree `render()` returns.
+Every overlay in the library portals to `document.body`, so a dialog, menu, tooltip or
+listbox that fails renders its diagnostic *outside* that tree and the gate sees nothing.
+Scan from `document.body` whenever the check stands for "nothing went wrong anywhere".
+
+The same portal has a second half: a component named only inside a *closed* overlay is
+never mounted by a corpus render, so the parity gate proves the name exists, not that it
+works. Anything reached through an overlay needs a render test that opens it.
+
 ## The corpus is the reference
 
 `src/examples/coverage/` is authored and must model the advice the package gives — it is
 what an agent reads to learn the format. `src/examples/*.viewspec.json` is real generator
 output kept byte-identical; do not tidy it.
+
+Migrating one is not tidying, and is sometimes required: when a peer release makes a value
+inert, a specimen that no longer renders has stopped being evidence of anything. Make the
+smallest edit that restores the behaviour, leave everything else exactly as the generator
+wrote it, and record what changed in the changelog. `product-landing` carried
+`"gap": "var(--spacing-r4)"` — a real generator reaching for a CSS length because the prop
+was typed `string` — and 0.12.0 made that a no-op. That specimen is why the validator now
+knows which props take a fixed set of values.

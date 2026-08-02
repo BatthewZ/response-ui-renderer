@@ -45,7 +45,11 @@ describe("coverage corpus", () => {
     const { container } = render(
       <ViewRenderer spec={doc as ViewSpec} icons={lucideIcons} adapters={{ navigate: () => {} }} />,
     );
-    expect(findRenderDiagnostics(container)).toEqual([]);
+    // Scanned from the body, not the container: dialogs, menus, tooltips and
+    // listboxes render through a portal, so a diagnostic inside any open overlay
+    // is nowhere near the tree `render` handed back — and this gate stands for
+    // "nothing went wrong anywhere".
+    expect(findRenderDiagnostics(document.body)).toEqual([]);
     expect(container.querySelector("[data-rui-view]")?.children.length ?? 0).toBeGreaterThan(0);
   });
 

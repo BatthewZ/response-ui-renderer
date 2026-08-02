@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { exampleSpecs } from "../examples";
 import {
+  enumeratedValues,
   errorsOf,
   isDangerousUrl,
   isViewSpec,
   MAX_NODE_DEPTH,
+  PROP_ENUMS,
   validateViewSpec,
   warningsOf,
 } from "./validate";
@@ -248,6 +250,59 @@ describe("isDangerousUrl", () => {
   it("ignores non-strings", () => {
     expect(isDangerousUrl(null)).toBe(false);
     expect(isDangerousUrl(42)).toBe(false);
+  });
+});
+
+describe("props bounded to a set of values", () => {
+  const doc = (props: Record<string, unknown>) => ({
+    version: 1,
+    title: "T",
+    root: { component: "MasonryGrid", props },
+  });
+
+  it("names the prop, the value and the whole set", () => {
+    // The failure it is standing in for is silent: the component looks the value
+    // up in a class table, misses, and renders with no gutter at all.
+    const issues = warningsOf(validateViewSpec(doc({ gap: "1.25rem" })).issues);
+    expect(issues).toEqual([
+      {
+        severity: "warning",
+        path: "root.props.gap",
+        message:
+          '"1.25rem" is not one of MasonryGrid.gap\'s values (r1, r2, r3, r4, r5, r6); the component will render as if it were unset',
+      },
+    ]);
+  });
+
+  it("stays quiet on a value that is in the set", () => {
+    expect(warningsOf(validateViewSpec(doc({ gap: "r4" })).issues)).toEqual([]);
+  });
+
+  it("says nothing about a value it cannot see", () => {
+    // A `$ref` resolves at render time, and a prop the library does not bound is
+    // none of this check's business. Warning on either teaches authors to ignore
+    // warnings, which costs more than the check is worth.
+    expect(warningsOf(validateViewSpec(doc({ gap: { $ref: "data.gap" } })).issues)).toEqual([]);
+    expect(warningsOf(validateViewSpec(doc({ animate: false })).issues)).toEqual([]);
+  });
+
+  it("covers compound parts, not just roots", () => {
+    const issues = warningsOf(
+      validateViewSpec({
+        version: 1,
+        title: "T",
+        root: { component: "StatCard.Trend", props: { value: 1, direction: "upwards" } },
+      }).issues,
+    );
+    expect(issues.map((issue) => issue.path)).toEqual(["root.props.direction"]);
+  });
+
+  it("knows about more than a handful of props", () => {
+    // An emptied table would make every assertion above pass by doing nothing:
+    // no key, no lookup, no warning. Assert the table has content.
+    expect(Object.keys(PROP_ENUMS).length).toBeGreaterThan(20);
+    expect(enumeratedValues("MasonryGrid", "gap")).toEqual(["r1", "r2", "r3", "r4", "r5", "r6"]);
+    expect(enumeratedValues("MasonryGrid", "animate")).toBeUndefined();
   });
 });
 

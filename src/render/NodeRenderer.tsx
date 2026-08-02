@@ -3,6 +3,7 @@
 import { createElement, type ReactNode, useId } from "react";
 
 import { composeProp, inspectsChildren } from "../registry/child-introspection";
+import { argsToVars, functionChildrenArgs } from "../registry/function-children";
 import { Icon } from "../registry/Icon";
 import { wantsIconComponent } from "../registry/icon-slots";
 import {
@@ -455,14 +456,28 @@ export function NodeRenderer({
 
   const children = optionChildren ? [...optionChildren, ...(childNodes ?? [])] : childNodes;
 
+  // `MultiSelect` and `CommandPalette` type `children` as a function they call
+  // with their own filtered list, so nodes handed over as nodes are invoked and
+  // throw. Render them inside the call instead, with the arguments bound as
+  // reference names — the component stays the only writer of the data, the
+  // document becomes the only writer of the presentation.
+  //
+  // Omitting children leaves this untouched, so the component's default tree is
+  // exactly what it was.
+  const asFunctionChildren =
+    functionChildrenArgs(node.component) && children && children.length > 0
+      ? (args: unknown) => <ViewContextExtender vars={argsToVars(args)}>{children}</ViewContextExtender>
+      : undefined;
+
   // Spread rather than passing the array, so one child arrives as one element
   // exactly as JSX would deliver it. Components typed `children: ReactElement`
   // — `Tooltip` — reject an array of one and render nothing at all.
   //
   // Omitted entirely when the document supplied no nodes, so a `children` prop
   // that came from a $ref or a literal is not clobbered by an empty list.
-  const element =
-    children && children.length > 0
+  const element = asFunctionChildren
+    ? createElement(Component, { ...props, children: asFunctionChildren })
+    : children && children.length > 0
       ? createElement(Component, props, ...children)
       : createElement(Component, props);
 

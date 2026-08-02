@@ -660,12 +660,12 @@
                           "component": "Row",
                           "props": { "gap": "r5", "align": "center" },
                           "children": [
-                            { "component": "Skeleton", "props": { "variant": "circular", "width": 32, "height": 32 } },
-                            { "component": "Skeleton", "props": { "variant": "text", "width": "40%", "height": 12 } }
+                            { "component": "Skeleton", "props": { "variant": "circular", "className": "w-8" } },
+                            { "component": "Skeleton", "props": { "variant": "text", "className": "w-[40%] h-3" } }
                           ]
                         },
-                        { "component": "Skeleton", "props": { "variant": "rounded", "width": "100%", "height": 56 } },
-                        { "component": "Skeleton", "props": { "variant": "rectangular", "width": "72%", "height": 12 } },
+                        { "component": "Skeleton", "props": { "variant": "rounded", "className": "w-full h-14" } },
+                        { "component": "Skeleton", "props": { "variant": "rectangular", "className": "w-[72%] h-3" } },
                         {
                           "component": "Row",
                           "props": { "gap": "r5", "align": "center" },

@@ -12,7 +12,8 @@ when the library moves. An allowance in a gate is almost never the right fix.
 
 What is gated today: the components whose open state the renderer owns; the parents that
 clone or identity-check their children (checked by reading the library for `cloneElement` and
-`child.type ===`); every coerced prop, asserted to still be declared upstream; the icon slots
+`child.type ===`); the components whose `children` is a function, and the argument names they
+hand it; every coerced prop, asserted to still be declared upstream; the icon slots
 typed as a component rather than a node; that the reference doc matches a fresh generation;
 that every live component has a category and is either exercised by the corpus or excused
 with a reason; and that the counts quoted in the README are the counts the registry has.
@@ -96,6 +97,36 @@ An upgrade also invalidates derived artifacts. Anything generated from the libra
 reference doc most of all — has to be regenerated in the same change, because upstream adding
 a prop makes the committed copy stale by definition. That gate firing after a bump is it
 working, not a flake, and regenerating is the fix.
+
+## What no gate can see: a prop that was deleted upstream
+
+Every gate here asks "does what we name still exist?". None asks the reverse — whether a
+prop a *document* names still exists — and it cannot, because most components spread their
+rest props onto a DOM element, so an unknown key is indistinguishable from a legitimate
+`data-*` or `id`. A release that deletes a prop therefore leaves the corpus rendering
+green and wrong: the value lands as a DOM attribute and the dimension it was setting is
+simply absent.
+
+Two things follow. Sweep the corpus by hand against the upstream changelog's *Breaking*
+section on every peer bump — it is the only pass that will catch this. And prefer, where
+the library gives you the choice, a prop whose wrong value is *loud*: a bounded union is
+generated into `prop-enums.json` and warned about, so it degrades to a message rather than
+to silence.
+
+## Slot keys and value sets are generated, not written
+
+`classNames` keys and every prop bounded to a fixed set of strings are parsed out of the
+library's shipped declarations by the doc generator, into VIEWSPEC.md and into
+`src/spec/prop-enums.json` — one artifact, so the reference a model authors from and the
+check the validator applies cannot disagree. Regenerate after any peer bump.
+
+The generator throws rather than skips when it finds a `classNames` it cannot attribute to
+an addressable component, and that throw has already paid for itself three times: it found
+three separate props-type naming conventions upstream (`XProps`, the unprefixed `PartProps`,
+and `XOwnProps`), each of which had been silently costing components their entire Props
+column in the reference. Components that live in a sibling's file — `AvatarGroup`,
+`EmptyState*` — were invisible for the same reason, because lookup was by file basename.
+Resolve declarations by type name, not by filename.
 
 ## Theming
 

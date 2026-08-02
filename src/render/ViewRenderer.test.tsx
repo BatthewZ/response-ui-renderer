@@ -26,7 +26,8 @@ beforeEach(() => {
 describe("real generated documents", () => {
   it.each(Object.entries(exampleSpecs))("renders %s with no unknown components", (_name, doc) => {
     const { container } = render(<ViewRenderer spec={doc as ViewSpec} />);
-    expect(findRenderDiagnostics(container)).toEqual([]);
+    // From the body: an overlay's contents portal out of the container.
+    expect(findRenderDiagnostics(document.body)).toEqual([]);
     expect(container.textContent?.trim().length ?? 0).toBeGreaterThan(0);
   });
 

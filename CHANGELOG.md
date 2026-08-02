@@ -4,13 +4,80 @@
 
 ### Peer range
 
-- Peer bumped to `@batthewz/response-ui-react-components@^0.11.0` (dev dep on
+- Peer bumped to `@batthewz/response-ui-react-components@^0.12.0` (dev dep on
   `@batthewz/response-ui-css@^0.13.0`), which redefines the surface ramp: rung 0 is now the raised
   sheet in every theme and `--C-CANVAS` sits between rungs 1 and 2. Nothing in the renderer paints
   a surface rung, so no ViewSpec or registry change follows — but a document rendered against the
   new versions looks different by design: cards, dialogs and panels are the lightest surface and
   the page behind them is a step darker. `Card`, `StatCard` and `Timeline.Card` are the visible
   cases.
+
+### Tracking react-components 0.12.0
+
+The registry derives every name from the barrel, so the renames arrived addressable on their own;
+what did not was everything expressed in JSON, which no compiler reads.
+
+- **Renamed parts.** `Breadcrumbs.Separator` → `.Divider` (still not addressable — the root
+  identity-checks it), `DropdownMenu.Label` / `ContextMenu.Label` → `.GroupHeader`. The corpus was
+  naming the old menu parts, and because a menu panel is closed on mount those nodes never rendered
+  and no diagnostic ever appeared.
+- **Deleted props, silently.** `Skeleton`'s `width`/`height` are gone (geometry is `className`,
+  both axes), `MasonryGrid`'s `gap` takes a spacing token rather than a CSS length, and
+  `MediaCard.Image`'s `<img>`-only attributes moved to `imgProps`. Each of these lands as a DOM
+  attribute now and does nothing. Every occurrence in the corpus is fixed.
+- **A verbatim specimen was migrated.** `product-landing` carried `"gap": "var(--spacing-r4)"` —
+  a real generator reaching for a CSS length — which 0.12.0 made inert. Changed to `"r4"` and
+  nothing else. It is the reason for the value-set validation below.
+- **Curated notes corrected.** `Skeleton`'s said to size with props and that classes were inert,
+  which is now exactly backwards; `Sparkline`'s told you to pass `min: 0` for bars, which the
+  library now does itself; `VirtualizedDataTable`'s said it takes no `className`, which it does.
+
+### Children a component calls
+
+- **`children` on `MultiSelect` and `CommandPalette`.** Both type `children` as a function they
+  call with their own filtered data, so nodes handed over as nodes were invoked and the component
+  died whole. The renderer now renders those nodes inside the call with the arguments bound as
+  reference names — `$each` over `selected` and `options`, `$ref` to `item.label` — so `options` /
+  `items` stays the single writer of the data and the document becomes the single writer of the
+  presentation. Omit `children` and the default tree is untouched. The seven new compound parts are
+  addressable rather than excused, and a part addressed with data the root did not hand it renders
+  a diagnostic naming the mistake. `contracts.test.ts` fails if the library gains or loses a
+  function `children`, or renames one of its arguments.
+### Values a prop will not accept
+
+- **A value outside a prop's set is a validation warning.** `gap`, `variant`, `size` and 54 others
+  are bounded unions upstream; a document that misses gets a component rendered as if the prop were
+  unset — no error, no fallback, nothing in the DOM. The sets are generated from the library's
+  shipped declarations into `src/spec/prop-enums.json` and into VIEWSPEC.md, so the reference a
+  model authors from and the check it is validated against are one artifact. Exported as
+  `PROP_ENUMS` / `enumeratedValues` for prompt and schema building. `ok` is unchanged, so the Zod
+  mirror still agrees on conformance.
+### What the reference now carries
+
+- **Slot keys are in the reference.** 0.12.0 gave 51 components a `classNames` map, and it is the
+  override route for everything a `className` cannot reach. The keys are generated per component
+  into their own table rather than into the Props column, where the union both truncated mid-list
+  and pushed real props out of view.
+- **The reference says when a utility will not work.** Tailwind generates utilities by scanning
+  source at build time and a document arrives at runtime, so a class a document invents is absent
+  from the app's CSS unless something else already used it — a silent failure the docs had never
+  mentioned. VIEWSPEC.md and the README now say so, and name the `@source` fix for hosts with a
+  stored document store. The dev playground scans the committed documents for exactly this reason.
+
+### Gaps the upgrade exposed
+
+- **Components declared outside a file named after them had no props in the reference.** The
+  generator looked declarations up by file basename, so `AvatarGroup`, the four `EmptyState*`
+  parts and everything else co-located with a sibling showed an empty Props column. It now
+  resolves by type name, and understands the three props-type conventions upstream uses
+  (`XProps`, `XOwnProps`, and an unprefixed `PartProps`). `Tooltip`, `ProgressBar`, `Combobox`,
+  `DropdownMenu`, `ContextMenu` and `Portal` gain their props — including `Tooltip`'s **required**
+  `content`, which the reference had never listed.
+- **The corpus gate could not see a diagnostic inside an overlay.** It scanned the container
+  `render()` returns; every overlay portals to `document.body`. A dialog, menu or listbox that
+  failed to render reported nothing. Both corpus gates now scan from the body.
+- **Four excuses in the not-addressable table were double-encoded**, and rendered into
+  VIEWSPEC.md as `â` where an em dash belonged.
 
 ### Component parity
 
