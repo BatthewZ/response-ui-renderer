@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 // built dist), so edits are hot-reloaded with no rebuild step.
 export default defineConfig({
   root: __dirname,
+  base: "./",
   plugins: [react(), tailwindcss()],
   server: { port: 5180, open: true },
 });
