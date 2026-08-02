@@ -175,6 +175,41 @@ library's shipped declarations; only the category and one authoring note per com
 curated. A test fails if the checked-in file differs from a fresh generation, and another fails
 if any component lacks a category. Run `bun run docs:viewspec` after upgrading the library.
 
+### The demo site
+
+Nothing here ships in the tarball; `dev/` is still excluded. It is recorded because the
+published site is how most people will meet the package.
+
+- **The site has prose pages, and they are ViewSpec documents.** The overview and the ViewSpec
+  reference are rendered by `ViewRenderer` from the repository's own README and VIEWSPEC —
+  imported as text, bound through `data`, parsed by the library's `Markdown`. No markdown branch
+  was added to the renderer and no documentation component exists: the pages compose the same
+  registry a consumer's document reaches, so the format's claim is one the site stands on rather
+  than describes. The contents list is `$each` over sections, concatenated as text children —
+  the capability `Markdown` support added, used in earnest.
+- **Pages route on `?page=`, alongside the existing `?view=`.** Links are `href`s and every page
+  is a real URL, so static hosting still needs no SPA fallback. The playground remains what a
+  bare URL serves, and `?view=` still wins — it is the chrome-free route the corpus is verified
+  through. Theme and scope now persist across a navigation, because a link between pages is a
+  real page load and a theme that survived only the page you picked it on read as a toy.
+- **The reference is sectioned before it is bound.** `Markdown` renders no heading ids, so each
+  section is wrapped by the document and carries the anchor. The split is fence-aware: a `## `
+  inside a code block is sample text, and cutting there would leave both halves with an
+  unbalanced delimiter and render the rest of the page as code. Covered by tests — the runner
+  now reaches `dev/` for logic of this kind.
+- **Links between the repository's documents are rewritten to page URLs.** The site deploys the
+  rendering, not the file, so `[VIEWSPEC.md](VIEWSPEC.md)` would otherwise be a 404. A parsed
+  markdown link is an ordinary anchor and never the `navigate` action.
+
+### README
+
+- **Leads with the outcome and reaches a running result sooner.** A quickstart shows the document
+  and the host code separately — the distinction the package is built on — and says what should
+  happen, including what a misspelled component name does. The example is now gated: a test reads
+  the JSON out of the README, validates it, renders it and clicks the button, so the one example
+  every reader runs cannot rot unnoticed. The component counts were already gated for the same
+  reason.
+
 ### Fixed docs
 
 - **Slot keys hidden behind a type alias were silently absent from the reference.** The generator

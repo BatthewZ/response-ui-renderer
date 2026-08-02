@@ -1,16 +1,21 @@
 # @batthewz/response-ui-renderer
 
-Render declarative JSON as [`@batthewz/response-ui-react-components`](https://github.com/BatthewZ/response-ui-react-components).
+**Let a model build a page inside your app, without shipping code it wrote.**
 
-The machine-authorable layer of the response-ui design system: an LLM (or any producer)
-emits a **ViewSpec** document, you mount `<ViewRenderer spec={json} />`, and you get a
-themed, interactive page built from real design-system components — no per-component glue.
+A producer — an LLM, a CMS, your own backend — emits a **ViewSpec**: plain JSON describing a
+view. You mount it. What renders is a themed, interactive page assembled from
+[`@batthewz/response-ui-react-components`](https://github.com/BatthewZ/response-ui-react-components),
+your own component library, with no per-component glue and no generated code in your users'
+browsers.
 
 ```tsx
 import { ViewRenderer } from "@batthewz/response-ui-renderer";
 
 <ViewRenderer spec={await res.json()} />;
 ```
+
+**[Try it in the playground →](https://batthewz.github.io/response-ui-renderer/)** — edit a
+document, watch it render, reskin it with a theme. Nothing to install.
 
 - **Every component the library exports is addressable, and proven to render.** 99 components
   and 73 compound parts, derived from the library's own barrel at runtime — not a hand-copied
@@ -84,6 +89,49 @@ Three CSS imports, in this order:
 
 Order matters — each layer reads `var(--…)` from the one before it. Tailwind v4 must be in
 your build.
+
+### Your first document
+
+The document. Nothing here is special-cased — `Card`, `Text` and `Button` are ordinary exports
+of the component library, addressed by name:
+
+```json
+{
+  "version": 1,
+  "title": "Hello",
+  "root": {
+    "component": "Card",
+    "props": { "padding": "r4" },
+    "children": [
+      { "component": "Text", "props": { "variant": "h3" }, "children": ["It renders."] },
+      {
+        "component": "Button",
+        "props": { "onClick": { "action": "showToast", "payload": { "message": "Hi" } } },
+        "children": ["Say hello"]
+      }
+    ]
+  }
+}
+```
+
+The host — the only code you write:
+
+```tsx
+import { ViewRenderer } from "@batthewz/response-ui-renderer";
+
+import spec from "./hello.json";
+
+export default () => <ViewRenderer spec={spec} adapters={{ toast: console.log }} />;
+```
+
+You should see a themed card with an `<h3>` and a working button; clicking it logs `Hi`,
+because `toast` is a host adapter and you decided what it does. Change `"h3"` to `"h1"` and the
+heading grows. Change `"Card"` to `"Alert"` and the shell changes. That is the whole loop: the
+document says *what*, your library decides *how*, and the host decides what an action means.
+
+Misspell `"Card"` and you get an inline warning in that node's place while the rest of the page
+still renders — documents are assumed to be machine-written, so a bad one degrades instead of
+throwing.
 
 ---
 

@@ -21,6 +21,15 @@ with a reason; and that the counts quoted in the README are the counts the regis
 Two of these caught real drift the moment they were written — a generated cross-product named
 three date props that do not exist, and the doc gate caught a stale table. That is the point.
 
+## An example in prose is a claim, and rots the same way a number does
+
+Counts in the README are gated because a number in prose drifts silently. A quickstart is the
+same kind of claim and a worse failure: it is the one example a reader is guaranteed to run,
+and it lives in a file nothing executes. Gate it by *reading the example out of the document*
+— parse the fenced block, validate it, render it, exercise what the prose promises it does.
+Restating the example in the test instead creates a second copy, and the copy is what stays
+green while the README goes wrong.
+
 ## A gate's own input must be derived too
 
 A hand-maintained table gated by a hand-maintained list of the same names is two things that

@@ -1,8 +1,28 @@
 # The dev harness
 
-The playground is the package's only visual surface, and it is shown to people
-evaluating the package — not just to whoever is editing the renderer. What follows are
-the constraints that keep it honest, not a description of its layout.
+The harness is the package's only visual surface, and it is published — it is shown to
+people evaluating the package, not just to whoever is editing the renderer. What follows
+are the constraints that keep it honest, not a description of its layout.
+
+## The prose pages are documents, and that is the point
+
+The site's written pages are not a documentation feature bolted beside the demo: each one
+is a ViewSpec handed to the same `ViewRenderer` the playground previews into, composing
+the same registry a consumer's document reaches. That is the claim the package makes,
+stated in the only form that cannot be exaggerated — if rendering a document from JSON
+stopped working, the reference explaining how to do it would stop rendering.
+
+It follows that the pages may not reach for anything a consumer's document could not. A
+host-side special case for prose — a markdown branch in the renderer, a documentation
+component, a prop the registry does not derive — would quietly turn the demonstration into
+an assertion. What the host may legitimately do is what any host does: supply the data. It
+imports the markdown, splits it, and binds it, exactly as it would bind anything else.
+
+Two consequences worth keeping: the component library renders no heading ids, so anchors
+have to come from wrappers the *document* creates, which is why the source is sectioned
+before it is bound rather than parsed whole. And a link inside parsed prose is an ordinary
+anchor, never the `navigate` action — a link naming a repository file walks a reader off a
+site that only deploys the rendering, so those are rewritten to page URLs before parsing.
 
 ## Its chrome is built from the design system, and that is load-bearing
 
@@ -59,3 +79,10 @@ import gates deliberately stop at `src/`: the harness may use devDependencies th
 published package must not. It is still excluded from the published tarball —
 it is a demo, not API — and its build output is ignored, so `dev:build` is only ever a
 check that the thing compiles.
+
+The test runner reaches `dev/` as well, but only where the harness holds logic rather than
+layout. Deriving an outline from a document that is itself regenerated is the case that
+earned it: a heading that moves inside a code fence would split a page mid-fence and render
+the remainder as code, and compiling proves nothing about that. Assertions there are worth
+writing against an oracle computed a different way — re-walking the source the way the
+splitter walks it produces a test that agrees with the bug.

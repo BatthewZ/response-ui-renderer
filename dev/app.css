@@ -87,10 +87,34 @@ body {
   color: var(--C-TEXT-MUTED);
 }
 
-.pg-thesis {
-  display: none;
-  color: var(--C-TEXT-MUTED);
+.pg-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.pg-nav-link {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--RADIUS-SM);
+  color: var(--C-TEXT-SECONDARY);
   font-size: 0.8125rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--DURATION-FAST) var(--MOTION-EASE-SHIFT),
+    background var(--DURATION-FAST) var(--MOTION-EASE-SHIFT);
+}
+
+.pg-nav-link:hover {
+  background: var(--C-SURFACE-2);
+  color: var(--C-TEXT-PRIMARY);
+}
+
+/* The current page is marked by weight and a rule, not by colour alone. */
+.pg-nav-link[aria-current="page"] {
+  background: var(--C-SURFACE-2);
+  color: var(--C-TEXT-PRIMARY);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 0 var(--C-ACCENT);
 }
 
 /* Below the breakpoint the controls take their own row rather than shrinking the
@@ -182,10 +206,76 @@ body {
   max-width: 16rem;
 }
 
-@media (min-width: 64rem) {
-  .pg-thesis {
-    display: block;
-  }
+/* ------------------------------------------------------------------ */
+/*  Prose pages                                                        */
+/* ------------------------------------------------------------------ */
+
+/* A containing block as well as a scroller. The library's visually-hidden text
+   is `position: absolute` with no offsets, so without this it resolves against
+   the viewport, escapes the clip, and stretches the page to the height of
+   content scrolled out of sight — see memory/dev-harness.md. */
+.pg-page {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--C-SURFACE-1);
+}
+
+.pg-docs {
+  padding: var(--R-SIZE-3) var(--R-SIZE-4) var(--R-SIZE-1);
+}
+
+/* Prose sets its own measure: the container is sized for a page, and a reading
+   column is narrower than a layout column.
+   Tables and code blocks are exempt and keep the full column. A reference table
+   squeezed to a reading measure does not scroll — its wrapper can only scroll
+   what is wider than itself, and the table shrinks to fit, so the overflow lands
+   inside the cells instead and the last column is painted over. */
+.pg-docs .markdown > :not(.markdown-table, .markdown-codeblock) {
+  max-width: 68ch;
+}
+
+/* Prop types are long unbroken runs; without this they set an unbreakable
+   minimum and push the columns past the edge. */
+.pg-docs .markdown-table :is(th, td) {
+  overflow-wrap: anywhere;
+}
+
+/* Below this the columns are narrower than the words in them, and a four-column
+   reference table wraps to one word per line. The floor is what gives the
+   wrapper something wider than itself to scroll, which is the readable failure. */
+.pg-docs .markdown-table table {
+  min-width: 40rem;
+}
+
+.pg-docs-toc {
+  max-width: 68ch;
+  padding: var(--R-SIZE-5) var(--R-SIZE-4);
+  border: 1px solid var(--C-BORDER-DEFAULT);
+  border-radius: var(--RADIUS-MD);
+  background: var(--C-SURFACE-0);
+}
+
+/* The list is navigation, not prose — it should not read at body rhythm. */
+.pg-docs-toc .markdown-list {
+  margin-block: 0;
+}
+
+.pg-docs-toc .markdown-list-item {
+  line-height: 1.9;
+}
+
+.pg-docs-colophon {
+  padding-top: var(--R-SIZE-4);
+  border-top: 1px solid var(--C-BORDER-DEFAULT);
+  color: var(--C-TEXT-MUTED);
+}
+
+/* A heading jumped to sits flush against the top of the scroller, which reads as
+   clipped. The margin gives the anchor somewhere to land. */
+.pg-docs section {
+  scroll-margin-top: var(--R-SIZE-4);
 }
 
 /* ------------------------------------------------------------------ */

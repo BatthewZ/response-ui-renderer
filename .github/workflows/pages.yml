@@ -1,8 +1,10 @@
-# Publishes the dev playground to GitHub Pages.
+# Publishes the demo site to GitHub Pages.
 #
-# The site is the harness in `dev/`, built by `dev:build`. It routes on query
-# parameters only (`?view=`, `?theme=`, `?mode=`), never on path segments, so
-# Pages needs no SPA fallback — every URL it serves is `index.html`.
+# The site is the harness in `dev/`, built by `dev:build`: the playground, plus
+# the prose pages, which are ViewSpec documents rendered by the package itself.
+# It routes on query parameters only (`?page=`, `?view=`, `?theme=`, `?mode=`),
+# never on path segments, so Pages needs no SPA fallback — every URL it serves is
+# `index.html`.
 #
 # `dev/vite.config.ts` sets `base: "./"`. That is what makes the artifact work
 # under a project page's `/response-ui-renderer/` prefix; absolute asset paths
