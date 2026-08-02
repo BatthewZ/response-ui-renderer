@@ -37,7 +37,9 @@ leaves some component reading a default token and produces one unreadable region
 
 The dev harness renders any example full-page (no playground chrome) via the `view`
 query parameter, with `theme`/`mode` also accepted — screenshot that, not the split
-playground. Two traps when judging screenshots: a hero image still loading looks like
+playground. A document being edited in the playground reaches the same route through
+the playground's own full-page link, so an uncommitted draft can be judged the same
+way. Two traps when judging screenshots: a hero image still loading looks like
 a broken design (check `img.complete` before concluding), and a computed style can
 disagree with your reading of the pixels — sample the pixels before "fixing" colours.
 

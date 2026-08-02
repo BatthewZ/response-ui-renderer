@@ -45,8 +45,8 @@
   "scripts": {
     "build": "vite build",
     "prepack": "bun run build",
-    "typecheck": "tsc --noEmit && eslint src",
-    "lint": "eslint src",
+    "typecheck": "tsc --noEmit && eslint src dev",
+    "lint": "eslint src dev",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "bun run build && bun run typecheck && bun run docs:viewspec -- --check && bun run test",

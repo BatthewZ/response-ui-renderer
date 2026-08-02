@@ -28,6 +28,11 @@
    typed into the playground by hand are still limited to what is already here. */
 @source "../src/examples/**/*.json";
 
+/* Every colour, radius, shadow and duration below is a token, so `root` theme
+   mode repaints this shell along with the document — which is the difference
+   between the two theme modes, made visible. Structural sizes are literal: they
+   are chrome geometry, not part of the design language. */
+
 body {
   margin: 0;
   background: var(--C-CANVAS);
@@ -35,74 +40,646 @@ body {
   font-family: var(--DEFAULT-FONT);
 }
 
-/* Mobile-first: editor stacked above preview, each scrolls on its own. */
+/* ------------------------------------------------------------------ */
+/*  Shell                                                              */
+/* ------------------------------------------------------------------ */
+
 .pg-root {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 0.75rem;
-  padding: 0.75rem;
-  box-sizing: border-box;
-  min-height: 100vh;
-  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--C-CANVAS);
 }
 
-/* Wide screens: side-by-side, full viewport height. */
+.pg-topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--C-SURFACE-0);
+  border-bottom: 1px solid var(--C-BORDER-DEFAULT);
+}
+
+.pg-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+/* The document / render split, at logo scale — the same seam the rail draws. */
+.pg-mark {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: var(--RADIUS-SM);
+  background: linear-gradient(118deg, var(--C-SURFACE-3) 0 46%, var(--C-ACCENT) 46% 100%);
+  box-shadow: inset 0 0 0 1px var(--C-BORDER-DEFAULT);
+}
+
+.pg-brand-name {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.pg-brand-part {
+  color: var(--C-TEXT-MUTED);
+}
+
+.pg-thesis {
+  display: none;
+  color: var(--C-TEXT-MUTED);
+  font-size: 0.8125rem;
+}
+
+/* Below the breakpoint the controls take their own row rather than shrinking the
+   selects into chevrons. */
+.pg-topbar-controls {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.625rem;
+}
+
+.pg-control {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pg-control select {
+  min-width: 8rem;
+}
+
+.pg-topbar-badge,
+.pg-help-label {
+  display: none;
+}
+
+/* Hidden from the eye, not from the accessibility tree — it is the select's
+   only accessible name. */
+.pg-control-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
 @media (min-width: 48rem) {
-  .pg-root {
-    grid-template-rows: none;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    height: 100vh;
-    height: 100dvh;
-    padding: 1rem;
-    gap: 1rem;
+  .pg-topbar-controls {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .pg-topbar-badge {
+    display: inline-flex;
+  }
+
+  .pg-help-label {
+    display: inline;
+  }
+
+  .pg-control-label {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
   }
 }
 
-.pg-panel {
+.pg-control-label,
+.pg-eyebrow,
+.pg-meta {
+  font-family: var(--DEFAULT-MONO-FONT);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--C-TEXT-MUTED);
+  white-space: nowrap;
+}
+
+.pg-eyebrow {
+  margin: 0;
+  font-weight: 600;
+  color: var(--C-TEXT-SECONDARY);
+}
+
+.pg-meta {
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.pg-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 16rem;
+}
+
+@media (min-width: 64rem) {
+  .pg-thesis {
+    display: block;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Panes                                                              */
+/* ------------------------------------------------------------------ */
+
+.pg-main {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  min-height: 0; /* let the textarea/preview actually scroll inside the grid cell */
-}
-
-.pg-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.pg-editor {
   flex: 1;
-  min-height: 8rem;
-  font-family: var(--DEFAULT-MONO-FONT);
-  font-size: 0.8rem;
-  padding: 0.75rem;
-  border-radius: var(--RADIUS-MD);
-  border: 1px solid var(--C-BORDER-DEFAULT);
-  background: var(--C-SURFACE-2);
-  color: var(--C-TEXT-PRIMARY);
-  resize: none;
+  min-height: 0;
 }
 
-.pg-cell {
+.pg-doc {
+  --pg-doc-open: 55dvh;
+  flex: 0 0 var(--pg-doc-open);
+  overflow: hidden;
+  transition: flex-basis var(--DURATION-SLOW) var(--MOTION-EASE-SHIFT);
+}
+
+.pg-doc[data-open="false"] {
+  flex-basis: 0;
+}
+
+/* Fixed against the pane's own axis so the contents do not reflow mid-collapse. */
+.pg-doc-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: var(--pg-doc-open);
+  min-height: 0;
   background: var(--C-SURFACE-1);
-  border: 1px solid var(--C-BORDER-DEFAULT);
-  border-radius: var(--RADIUS-MD);
-  padding: 1rem;
-}
-
-.pg-validation {
-  max-height: 30%;
-  overflow: auto;
 }
 
 .pg-preview {
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  background: var(--C-SURFACE-1);
 }
 
-.pg-issue {
+.pg-pane-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.875rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.875rem;
+  border-bottom: 1px solid var(--C-BORDER-DEFAULT);
+}
+
+.pg-pane-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+@media (min-width: 64rem) {
+  .pg-main {
+    flex-direction: row;
+  }
+
+  .pg-doc {
+    --pg-doc-open: min(44rem, 42vw);
+  }
+
+  .pg-doc-inner {
+    width: var(--pg-doc-open);
+    height: 100%;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  The seam, and the gate on it                                       */
+/* ------------------------------------------------------------------ */
+
+.pg-rail {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0 0.375rem;
+  background: var(--C-CANVAS);
+  border-block: 1px solid var(--C-BORDER-DEFAULT);
+  transition:
+    background-color var(--DURATION-NORMAL),
+    border-color var(--DURATION-NORMAL);
+}
+
+/* The seam closes: a document that will not render lights the whole channel
+   between it and the space where its render should have been. */
+.pg-rail[data-verdict="warning"] {
+  background: var(--C-STATUS-WARNING-BG);
+  border-color: var(--C-STATUS-WARNING);
+}
+
+.pg-rail[data-verdict="error"] {
+  background: var(--C-STATUS-ERROR-BG);
+  border-color: var(--C-STATUS-ERROR);
+}
+
+.pg-rail::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  border-top: 1px dashed var(--C-BORDER-STRONG);
+  opacity: 0.5;
+}
+
+.pg-rail-control {
+  position: relative;
+}
+
+.pg-rail-gate {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@media (min-width: 64rem) {
+  .pg-rail {
+    flex-direction: column;
+    width: 3rem;
+    min-height: 0;
+    padding: 0.375rem 0;
+    border-block: 0;
+    border-inline: 1px solid var(--C-BORDER-DEFAULT);
+  }
+
+  .pg-rail::before {
+    inset-inline: auto;
+    inset-block: 0;
+    top: 0;
+    left: 50%;
+    border-top: 0;
+    border-left: 1px dashed var(--C-BORDER-STRONG);
+  }
+}
+
+.pg-gate {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  border: 2px solid var(--C-BORDER-DEFAULT);
+  border-radius: var(--RADIUS-FULL);
+  background: var(--C-SURFACE-0);
+  box-shadow: 0 0 0 0.25rem var(--C-SURFACE-0);
+  color: var(--C-TEXT-MUTED);
+  cursor: pointer;
+  animation: pg-gate-in var(--MOTION-DURATION-ENTER) var(--MOTION-EASE-BOUNCE);
+  transition: transform var(--DURATION-FAST) var(--MOTION-EASE-SHIFT);
+}
+
+.pg-gate:hover {
+  transform: scale(1.08);
+}
+
+/* Ink on rung 0 whatever the rail is tinted, so the node keeps its contrast
+   when the seam lights up behind it. */
+.pg-gate[data-verdict="clean"] {
+  color: var(--C-STATUS-SUCCESS);
+  border-color: var(--C-STATUS-SUCCESS);
+}
+
+.pg-gate[data-verdict="warning"] {
+  color: var(--C-STATUS-WARNING);
+  border-color: var(--C-STATUS-WARNING);
+}
+
+.pg-gate[data-verdict="error"] {
+  color: var(--C-STATUS-ERROR);
+  border-color: var(--C-STATUS-ERROR);
+}
+
+/* Outlined rather than filled: a status colour is only guaranteed to contrast
+   with its own tint, so the count keeps the pair the gate already uses. */
+.pg-gate-count {
+  position: absolute;
+  top: -0.3125rem;
+  right: -0.3125rem;
+  min-width: 1.0625rem;
+  padding: 0 0.25rem;
+  border: 1px solid currentColor;
+  border-radius: var(--RADIUS-FULL);
+  background: var(--C-SURFACE-0);
   font-family: var(--DEFAULT-MONO-FONT);
-  font-size: 0.8rem;
+  font-size: 0.625rem;
+  line-height: 1rem;
+  font-weight: 600;
+}
+
+@keyframes pg-gate-in {
+  from {
+    transform: scale(0.55);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Example picker                                                     */
+/* ------------------------------------------------------------------ */
+
+.pg-examples {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.625rem 0.875rem 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pg-examples::-webkit-scrollbar {
+  display: none;
+}
+
+.pg-chip {
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid var(--C-BORDER-DEFAULT);
+  border-radius: var(--RADIUS-FULL);
+  background: var(--C-SURFACE-0);
+  color: var(--C-TEXT-SECONDARY);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--DURATION-FAST),
+    background-color var(--DURATION-FAST),
+    border-color var(--DURATION-FAST);
+}
+
+.pg-chip:hover {
+  color: var(--C-TEXT-PRIMARY);
+  border-color: var(--C-BORDER-STRONG);
+}
+
+.pg-chip[aria-pressed="true"] {
+  background: var(--C-ACCENT);
+  border-color: var(--C-ACCENT);
+  color: var(--C-TEXT-ON-ACCENT);
+}
+
+.pg-doc-description {
+  margin: 0;
+  padding: 0.5rem 0.875rem 0.625rem;
+  color: var(--C-TEXT-MUTED);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Editor                                                             */
+/* ------------------------------------------------------------------ */
+
+.pg-editor {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  background: var(--C-SURFACE-0);
+  border-top: 1px solid var(--C-BORDER-DEFAULT);
+}
+
+.pg-editor:focus-within {
+  box-shadow: inset 0 0 0 1px var(--C-BORDER-FOCUS);
+}
+
+.pg-code {
+  font-family: var(--DEFAULT-MONO-FONT);
+  font-size: 0.8125rem;
+  line-height: 1.375rem;
+  tab-size: 2;
+}
+
+.pg-gutter {
+  min-width: 3rem;
+  padding: 0.75rem 0.5rem 0.75rem 0.875rem;
+  overflow: hidden;
+  text-align: right;
+  color: var(--C-TEXT-MUTED);
+  background: var(--C-SURFACE-1);
+  border-right: 1px solid var(--C-BORDER-DEFAULT);
+  opacity: 0.65;
+  user-select: none;
+}
+
+.pg-textarea {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 0.875rem;
+  border: 0;
+  outline: none;
+  resize: none;
+  overflow: auto;
+  white-space: pre;
+  background: transparent;
+  color: var(--C-TEXT-PRIMARY);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Validation detail, docked under the document it refers to          */
+/* ------------------------------------------------------------------ */
+
+.pg-issues {
+  max-height: 0;
+  overflow: hidden;
+  background: var(--C-SURFACE-1);
+  transition: max-height var(--DURATION-NORMAL) var(--MOTION-EASE-SHIFT);
+}
+
+.pg-issues[data-open="true"] {
+  max-height: 45%;
+  border-top: 1px solid var(--C-BORDER-DEFAULT);
+}
+
+.pg-issues-head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.875rem;
+}
+
+.pg-issues-verdict {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.pg-issues[data-verdict="clean"] .pg-issues-verdict {
+  color: var(--C-STATUS-SUCCESS);
+}
+
+.pg-issues[data-verdict="warning"] .pg-issues-verdict {
+  color: var(--C-STATUS-WARNING);
+}
+
+.pg-issues[data-verdict="error"] .pg-issues-verdict {
+  color: var(--C-STATUS-ERROR);
+}
+
+.pg-issues-detail {
+  flex: 1;
+  min-width: 0;
+  color: var(--C-TEXT-MUTED);
+  font-size: 0.75rem;
   overflow-wrap: anywhere;
+}
+
+.pg-issues-body {
+  max-height: 11rem;
+  overflow: auto;
+  padding: 0 0.875rem 0.75rem;
+}
+
+.pg-issues-none {
+  margin: 0;
+  color: var(--C-TEXT-MUTED);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.pg-issue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Severity and path share the first line, the message owns the second — one
+   ragged wrap per issue instead of three columns fighting over a narrow pane. */
+.pg-issue {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.pg-issue-severity {
+  padding: 0 0.375rem;
+  border-radius: var(--RADIUS-SM);
+  font-family: var(--DEFAULT-MONO-FONT);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pg-issue[data-severity="error"] .pg-issue-severity {
+  color: var(--C-STATUS-ERROR);
+  background: var(--C-STATUS-ERROR-BG);
+}
+
+.pg-issue[data-severity="warning"] .pg-issue-severity {
+  color: var(--C-STATUS-WARNING);
+  background: var(--C-STATUS-WARNING-BG);
+}
+
+.pg-issue-path {
+  font-family: var(--DEFAULT-MONO-FONT);
+  color: var(--C-TEXT-SECONDARY);
+  overflow-wrap: anywhere;
+}
+
+.pg-issue-message {
+  grid-column: 2;
+  color: var(--C-TEXT-MUTED);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Stage                                                              */
+/* ------------------------------------------------------------------ */
+
+.pg-stage {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--C-CANVAS);
+}
+
+.pg-stage-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 1.5rem;
+}
+
+/* ------------------------------------------------------------------ */
+/*  About                                                              */
+/* ------------------------------------------------------------------ */
+
+.pg-about {
+  max-width: 40rem;
+}
+
+.pg-about-list {
+  display: grid;
+  gap: 0.875rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.pg-about-list dt {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.pg-about-list dd {
+  margin: 0.1875rem 0 0;
+  color: var(--C-TEXT-SECONDARY);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.pg-about-list code {
+  padding: 0 0.25rem;
+  border-radius: var(--RADIUS-SM);
+  background: var(--C-SURFACE-2);
+  font-family: var(--DEFAULT-MONO-FONT);
+  font-size: 0.9em;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Focus and motion                                                   */
+/* ------------------------------------------------------------------ */
+
+.pg-chip:focus-visible,
+.pg-gate:focus-visible {
+  outline: 2px solid var(--C-BORDER-FOCUS);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-doc,
+  .pg-issues,
+  .pg-gate,
+  .pg-chip {
+    transition: none;
+  }
+
+  .pg-gate {
+    animation: none;
+  }
 }

@@ -222,7 +222,11 @@ describe("no suppressed diagnostics", () => {
     // CLAUDE.md: "Never suppress or add ts/eslint error ignores."
     // This file is excluded because it necessarily spells the patterns it hunts.
     const suppression = /eslint-disable|@ts-expect-error|@ts-ignore|@ts-nocheck/;
-    const offenders = sourceFiles
+    // `dev/` too: it is inside the TypeScript project and is linted alongside
+    // `src/`, so a suppression there silences a real gate. The dependency and
+    // import gates deliberately stay off it — a harness may use devDependencies
+    // the published package must not.
+    const offenders = [...sourceFiles, ...globSync("dev/**/*.{ts,tsx}", { cwd: root, absolute: true })]
       .filter((file) => rel(file) !== "src/contracts.test.ts")
       .filter((file) => suppression.test(read(file)));
     expect(offenders.map(rel)).toEqual([]);
