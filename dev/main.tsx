@@ -182,8 +182,42 @@ function Playground() {
   );
 }
 
+/** `?view=<example name>` renders one document full-page — no playground chrome. */
+function FullPageView({ spec, theme, themeMode }: {
+  spec: ViewSpec;
+  theme: string;
+  themeMode: ThemeMode;
+}) {
+  const { toast } = useToast();
+  return (
+    <ViewRenderer
+      spec={spec}
+      theme={theme}
+      themeMode={themeMode}
+      icons={lucideIcons}
+      adapters={{
+        navigate: (path) => toast(`navigate → ${path}`, { variant: "info" }),
+        toast,
+        fetch: (url, init) => fetch(url, init),
+      }}
+    />
+  );
+}
+
+const params = new URLSearchParams(window.location.search);
+const requestedView = params.get("view");
+const fullPage = EXAMPLES.find(([name]) => name === requestedView);
+
 createRoot(document.getElementById("root")!).render(
   <ToastProvider>
-    <Playground />
+    {fullPage ? (
+      <FullPageView
+        spec={fullPage[1]}
+        theme={params.get("theme") ?? "default"}
+        themeMode={(params.get("mode") as ThemeMode) ?? "root"}
+      />
+    ) : (
+      <Playground />
+    )}
   </ToastProvider>,
 );

@@ -1,76 +1,112 @@
 {
   "version": 1,
   "title": "Product Landing Page",
-  "description": "A marketing landing page with hero section, feature cards, and call-to-action",
+  "description": "A dark developer-tool landing page — tinted hero with overlay, stats band, feature grid with icon chips, a code-demo split section, and a closing CTA, themed emerald via themeOverrides",
+  "themeOverrides": {
+    "--C-CANVAS": "oklch(0.15 0.015 190)",
+    "--C-SURFACE-0": "oklch(0.21 0.018 190)",
+    "--C-SURFACE-1": "oklch(0.18 0.016 190)",
+    "--C-SURFACE-2": "oklch(0.13 0.014 190)",
+    "--C-SURFACE-3": "oklch(0.105 0.012 190)",
+    "--C-TEXT-PRIMARY": "oklch(0.96 0.008 175)",
+    "--C-TEXT-SECONDARY": "oklch(0.76 0.015 180)",
+    "--C-TEXT-MUTED": "oklch(0.6 0.018 185)",
+    "--C-TEXT-INVERSE": "oklch(0.18 0.02 190)",
+    "--C-PRIMARY": "oklch(0.82 0.15 165)",
+    "--C-PRIMARY-HOVER": "oklch(0.76 0.15 165)",
+    "--C-PRIMARY-ACTIVE": "oklch(0.71 0.14 165)",
+    "--C-TEXT-ON-PRIMARY": "oklch(0.2 0.05 170)",
+    "--C-SECONDARY": "oklch(0.28 0.02 190)",
+    "--C-SECONDARY-HOVER": "oklch(0.32 0.02 190)",
+    "--C-ACCENT": "oklch(0.82 0.15 165)",
+    "--C-ACCENT-HOVER": "oklch(0.76 0.15 165)",
+    "--C-TEXT-ON-ACCENT": "oklch(0.2 0.05 170)",
+    "--C-BORDER-DEFAULT": "oklch(0.3 0.02 190)",
+    "--C-BORDER-STRONG": "oklch(0.44 0.025 190)",
+    "--C-BORDER-FOCUS": "oklch(0.82 0.15 165)",
+    "--C-STATUS-SUCCESS": "oklch(0.82 0.15 165)",
+    "--C-STATUS-SUCCESS-BG": "oklch(0.25 0.04 170)",
+    "--C-STATUS-INFO": "oklch(0.8 0.1 210)",
+    "--C-STATUS-INFO-BG": "oklch(0.24 0.04 210)",
+    "--OVERLAY-SCRIM-COLOR": "oklch(0.13 0.02 190 / 0.72)",
+    "--SHADOW-MD": "0 4px 14px oklch(0 0 0 / 0.5)",
+    "--SHADOW-LG": "0 16px 40px oklch(0 0 0 / 0.6)"
+  },
   "data": {
+    "stats": {
+      "type": "static",
+      "value": [
+        { "value": "80+", "label": "Accessible components" },
+        { "value": "12 kB", "label": "Core CSS, gzipped" },
+        { "value": "MIT", "label": "Licensed, forever" }
+      ]
+    },
     "features": {
       "type": "static",
       "value": [
-        {
-          "title": "Lightning Fast",
-          "description": "Built for speed with optimized rendering and lazy loading. Your users never wait."
-        },
-        {
-          "title": "Beautiful Design",
-          "description": "Carefully crafted components following modern design principles and accessibility standards."
-        },
-        {
-          "title": "Fully Responsive",
-          "description": "Looks great on any device, from mobile phones to ultrawide monitors."
-        }
+        { "icon": "zap", "title": "Fast by default", "description": "Zero runtime styling. Tokens compile to plain CSS custom properties, so nothing is computed twice." },
+        { "icon": "palette", "title": "Themeable to the bone", "description": "Every colour, radius and shadow is a token. Reskin the whole system from one file — or one JSON document." },
+        { "icon": "accessibility", "title": "Accessible out of the box", "description": "Focus rings, reduced-motion fallbacks and accessible names are the default, not an afterthought." },
+        { "icon": "smartphone", "title": "Responsive scales", "description": "Type and spacing step up at the breakpoint together, so layouts hold their rhythm on every screen." },
+        { "icon": "moon", "title": "Dark mode that's designed", "description": "Surface rungs keep their order in every theme — raised stays raised, recessed stays recessed." },
+        { "icon": "braces", "title": "Machine-authorable", "description": "A declarative JSON wire format renders real components, so agents can author interfaces safely." }
+      ]
+    },
+    "checks": {
+      "type": "static",
+      "value": [
+        "One document, validated end to end",
+        "Unknown nodes degrade to diagnostics, never crashes",
+        "Theme overrides scoped to the view"
       ]
     },
     "showCta": { "type": "static", "value": true }
   },
   "root": {
     "component": "Stack",
-    "props": { "gap": "r1" },
+    "props": { "className": "min-h-dvh bg-canvas" },
     "children": [
       {
         "component": "Hero",
-        "props": { "size": "md", "overlay": true, "align": "center" },
+        "props": { "size": "lg", "overlay": true, "align": "center" },
         "children": [
           {
             "component": "Hero.Background",
-            "props": { "src": "https://picsum.photos/seed/hero-landing/1600/900", "parallax": true }
+            "props": { "src": "https://picsum.photos/seed/circuitry/1920/1080?grayscale&blur=1", "alt": "" }
           },
           {
             "component": "Hero.Content",
-            "props": { "animate": true, "animation": "fade-up" },
             "children": [
               {
                 "component": "Stack",
-                "props": { "gap": "r4" },
+                "props": { "gap": "r4", "className": "items-center text-center" },
                 "children": [
+                  { "component": "Badge", "props": { "variant": "success", "statusIcon": "sparkles" }, "children": ["v2.0 — theming, renderer, and 20 new components"] },
+                  { "component": "Text", "props": { "variant": "h1" }, "children": ["Ship interfaces, not stylesheets"] },
                   {
                     "component": "Text",
-                    "props": { "variant": "h1", "color": "inverse" },
-                    "children": ["Build Beautiful UIs"]
-                  },
-                  {
-                    "component": "Text",
-                    "props": { "variant": "body-1", "color": "inverse" },
-                    "children": ["Create stunning interfaces with our comprehensive component library. No code required."]
+                    "props": { "variant": "body-1", "color": "secondary", "className": "max-w-prose" },
+                    "children": ["Relay is a token-driven design system with a declarative JSON renderer — the same components your team uses are the ones your agents can author."]
                   },
                   {
                     "$cond": "data.showCta",
                     "then": {
                       "component": "Row",
-                      "props": { "gap": "r4", "justify": "center" },
+                      "props": { "gap": "r4", "justify": "center", "wrap": true },
                       "children": [
                         {
                           "component": "Button",
                           "props": {
                             "variant": "primary",
                             "size": "lg",
-                            "onClick": { "action": "showToast", "payload": { "message": "Welcome aboard!", "variant": "info" } }
+                            "onClick": { "action": "showToast", "payload": { "message": "Welcome aboard!", "variant": "success" } }
                           },
-                          "children": ["Get Started"]
+                          "children": ["Start building"]
                         },
                         {
                           "component": "Button",
-                          "props": { "variant": "ghost-inverse", "size": "lg" },
-                          "children": ["Learn More"]
+                          "props": { "variant": "ghost", "size": "lg", "onClick": { "action": "navigate", "payload": { "path": "/docs" } } },
+                          "children": ["Read the docs"]
                         }
                       ]
                     }
@@ -82,28 +118,61 @@
         ]
       },
       {
-        "component": "Container",
+        "component": "Stack",
+        "props": { "gap": "r1", "className": "py-r1" },
         "children": [
           {
-            "component": "Stack",
-            "props": { "gap": "r2" },
+            "component": "Container",
+            "props": { "size": "lg" },
             "children": [
               {
-                "component": "Text",
-                "props": { "variant": "h2" },
-                "children": ["Why Choose Us"]
-              },
-              {
-                "component": "MasonryGrid",
-                "props": { "columns": { "base": 1, "md": 3 }, "gap": "r4", "animate": true },
+                "component": "Grid",
+                "props": { "columns": { "base": 1, "sm": 3 }, "gap": "r4" },
                 "children": [
                   {
-                    "$each": "data.features",
-                    "as": "feature",
+                    "$each": "data.stats",
+                    "as": "stat",
                     "node": {
-                      "component": "MasonryGrid.Item",
+                      "component": "Stack",
+                      "props": { "gap": "r6", "className": "items-center text-center" },
                       "children": [
-                        {
+                        { "component": "Text", "props": { "variant": "h3", "as": "p" }, "children": [{ "$ref": "stat.value" }] },
+                        { "component": "Text", "props": { "variant": "body-3", "color": "muted" }, "children": [{ "$ref": "stat.label" }] }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "component": "Container",
+            "props": { "size": "xl" },
+            "children": [
+              {
+                "component": "Stack",
+                "props": { "gap": "r3" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r5", "className": "items-center text-center" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h2" }, "children": ["Everything you need to ship"] },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-1", "color": "secondary" },
+                        "children": ["Four packages, one contract. Use the CSS alone, or the whole renderer."]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Grid",
+                    "props": { "columns": { "base": 1, "md": 2, "lg": 3 }, "gap": "r4" },
+                    "children": [
+                      {
+                        "$each": "data.features",
+                        "as": "feature",
+                        "node": {
                           "component": "Card",
                           "props": { "padding": "r3" },
                           "children": [
@@ -112,21 +181,117 @@
                               "props": { "gap": "r5" },
                               "children": [
                                 {
-                                  "component": "Text",
-                                  "props": { "variant": "h4" },
-                                  "children": [{ "$ref": "feature.title" }]
+                                  "component": "Stack",
+                                  "props": { "className": "items-center justify-center size-r2 shrink-0 bg-surface-2 rounded-md text-accent" },
+                                  "children": [
+                                    { "component": "Icon", "props": { "name": { "$ref": "feature.icon" }, "size": 18 } }
+                                  ]
                                 },
-                                {
-                                  "component": "Text",
-                                  "props": { "variant": "body-2", "color": "secondary" },
-                                  "children": [{ "$ref": "feature.description" }]
-                                }
+                                { "component": "Text", "props": { "variant": "h5", "as": "h3" }, "children": [{ "$ref": "feature.title" }] },
+                                { "component": "Text", "props": { "variant": "body-2", "color": "secondary" }, "children": [{ "$ref": "feature.description" }] }
                               ]
                             }
                           ]
                         }
-                      ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "component": "Container",
+            "props": { "size": "xl" },
+            "children": [
+              {
+                "component": "Grid",
+                "props": { "columns": { "base": 1, "lg": 2 }, "gap": "r2", "className": "items-center" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
+                    "children": [
+                      { "component": "Badge", "props": { "variant": "info" }, "children": ["The wire format"] },
+                      { "component": "Text", "props": { "variant": "h3", "as": "h2" }, "children": ["Declarative to the core"] },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-1", "color": "secondary" },
+                        "children": ["A view is data. Send JSON over the wire and render real, themed, accessible components — no eval, no iframes, no innerHTML."]
+                      },
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r5" },
+                        "children": [
+                          {
+                            "$each": "data.checks",
+                            "as": "check",
+                            "node": {
+                              "component": "Row",
+                              "props": { "gap": "r5", "align": "center" },
+                              "children": [
+                                { "component": "Icon", "props": { "name": "circle-check", "size": 16, "className": "text-accent shrink-0" } },
+                                { "component": "Text", "props": { "variant": "body-2" }, "children": [{ "$ref": "check" }] }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "CodeBlock",
+                    "props": {
+                      "filename": "welcome.view.json",
+                      "language": "json",
+                      "copyable": true,
+                      "code": "{\n  \"version\": 1,\n  \"title\": \"Welcome\",\n  \"root\": {\n    \"component\": \"Card\",\n    \"children\": [\n      { \"component\": \"Text\",\n        \"props\": { \"variant\": \"h3\" },\n        \"children\": [\"Hello from JSON\"] },\n      { \"component\": \"Button\",\n        \"props\": { \"variant\": \"primary\" },\n        \"children\": [\"It's alive\"] }\n    ]\n  }\n}"
                     }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "component": "Container",
+            "props": { "size": "lg" },
+            "children": [
+              {
+                "component": "Card",
+                "props": { "padding": "r2", "shadow": "lg", "className": "border-primary border" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4", "className": "items-center text-center" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h3" }, "children": ["Build your first view tonight"] },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-1", "color": "secondary" },
+                        "children": ["Install the CSS, drop in a component, and theme it from one file. The whole system is MIT licensed."]
+                      },
+                      {
+                        "component": "Row",
+                        "props": { "gap": "r4", "justify": "center", "wrap": true },
+                        "children": [
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "primary",
+                              "size": "lg",
+                              "onClick": { "action": "showToast", "payload": { "message": "Welcome aboard!", "variant": "success" } }
+                            },
+                            "children": ["Get started free"]
+                          },
+                          {
+                            "component": "Button",
+                            "props": { "variant": "secondary", "size": "lg", "onClick": { "action": "navigate", "payload": { "path": "/examples" } } },
+                            "children": ["Browse examples"]
+                          }
+                        ]
+                      },
+                      { "component": "Text", "props": { "variant": "body-3", "color": "muted" }, "children": ["No account needed · bun add @relay/css"] }
+                    ]
                   }
                 ]
               }

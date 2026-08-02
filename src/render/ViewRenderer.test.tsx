@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { exampleSpecs } from "../examples";
+import { lucideIcons } from "../icons";
 import type { ViewSpec } from "../spec/types";
 import { findRenderDiagnostics } from "./diagnostics";
 import { ViewRenderer } from "./ViewRenderer";
@@ -24,8 +25,10 @@ beforeEach(() => {
 });
 
 describe("real generated documents", () => {
+  // `icons` as a host would inject it: the corpus uses `Icon` nodes, and
+  // without a set every one degrades to a missing-icon diagnostic.
   it.each(Object.entries(exampleSpecs))("renders %s with no unknown components", (_name, doc) => {
-    const { container } = render(<ViewRenderer spec={doc as ViewSpec} />);
+    const { container } = render(<ViewRenderer spec={doc as ViewSpec} icons={lucideIcons} />);
     // From the body: an overlay's contents portal out of the container.
     expect(findRenderDiagnostics(document.body)).toEqual([]);
     expect(container.textContent?.trim().length ?? 0).toBeGreaterThan(0);

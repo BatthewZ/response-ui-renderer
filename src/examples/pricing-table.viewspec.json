@@ -1,7 +1,32 @@
 {
   "version": 1,
   "title": "Pricing Table",
-  "description": "A three-tier pricing comparison with feature lists, badges, and call-to-action buttons",
+  "description": "A three-tier SaaS pricing page — violet palette via themeOverrides, a highlighted featured tier, check-list features, and an FAQ accordion",
+  "themeOverrides": {
+    "--C-CANVAS": "oklch(0.972 0.006 290)",
+    "--C-SURFACE-0": "oklch(0.995 0.002 290)",
+    "--C-SURFACE-1": "oklch(0.98 0.004 290)",
+    "--C-SURFACE-2": "oklch(0.945 0.01 290)",
+    "--C-SURFACE-3": "oklch(0.91 0.014 290)",
+    "--C-TEXT-PRIMARY": "oklch(0.25 0.03 295)",
+    "--C-TEXT-SECONDARY": "oklch(0.45 0.03 295)",
+    "--C-TEXT-MUTED": "oklch(0.58 0.025 295)",
+    "--C-PRIMARY": "oklch(0.51 0.19 285)",
+    "--C-PRIMARY-HOVER": "oklch(0.46 0.19 285)",
+    "--C-PRIMARY-ACTIVE": "oklch(0.42 0.18 285)",
+    "--C-TEXT-ON-PRIMARY": "oklch(0.98 0.005 290)",
+    "--C-SECONDARY": "oklch(0.93 0.015 290)",
+    "--C-SECONDARY-HOVER": "oklch(0.89 0.02 290)",
+    "--C-ACCENT": "oklch(0.51 0.19 285)",
+    "--C-ACCENT-HOVER": "oklch(0.46 0.19 285)",
+    "--C-TEXT-ON-ACCENT": "oklch(0.98 0.005 290)",
+    "--C-BORDER-DEFAULT": "oklch(0.89 0.012 290)",
+    "--C-BORDER-STRONG": "oklch(0.72 0.03 290)",
+    "--C-BORDER-FOCUS": "oklch(0.51 0.19 285)",
+    "--C-STATUS-INFO": "oklch(0.45 0.17 285)",
+    "--C-STATUS-INFO-BG": "oklch(0.93 0.03 290)",
+    "--SHADOW-LG": "0 16px 40px oklch(0.4 0.12 290 / 0.18)"
+  },
   "data": {
     "tiers": {
       "type": "static",
@@ -10,119 +35,229 @@
           "name": "Starter",
           "price": "$0",
           "period": "forever",
-          "description": "Perfect for trying things out",
+          "description": "For side projects and trying things out.",
           "featured": false,
-          "features": ["5 projects", "1 GB storage", "Community support", "Basic analytics"]
+          "cta": "Start for free",
+          "features": ["3 projects", "1 GB storage", "Community support", "Basic analytics"]
         },
         {
           "name": "Pro",
           "price": "$29",
-          "period": "per month",
-          "description": "For professionals and growing teams",
+          "period": "per seat / month",
+          "description": "For teams shipping to real customers.",
           "featured": true,
-          "features": ["Unlimited projects", "100 GB storage", "Priority support", "Advanced analytics", "Custom domains", "Team collaboration"]
+          "cta": "Start 14-day trial",
+          "features": ["Unlimited projects", "100 GB storage", "Priority support", "Advanced analytics", "Custom domains", "Team roles & permissions"]
         },
         {
           "name": "Enterprise",
-          "price": "$99",
-          "period": "per month",
-          "description": "For large organizations at scale",
+          "price": "Custom",
+          "period": "annual",
+          "description": "For organisations with compliance needs.",
           "featured": false,
-          "features": ["Everything in Pro", "Unlimited storage", "Dedicated support", "Custom integrations", "SLA guarantee", "SSO & SAML", "Audit logs"]
+          "cta": "Talk to sales",
+          "features": ["Everything in Pro", "Unlimited storage", "Dedicated support & SLA", "SSO & SAML", "Audit logs", "Custom data residency"]
         }
+      ]
+    },
+    "faqs": {
+      "type": "static",
+      "value": [
+        { "id": "switch", "q": "Can I change plans later?", "a": "Yes — upgrades apply immediately and we prorate the difference. Downgrades take effect at the end of the billing period." },
+        { "id": "trial", "q": "What happens when my trial ends?", "a": "You keep read-only access to everything you built. Add a card within 30 days and you pick up exactly where you left off." },
+        { "id": "nonprofit", "q": "Do you offer discounts?", "a": "Nonprofits and open-source maintainers get Pro at half price, and annual billing gives every team two months free." }
       ]
     }
   },
   "root": {
-    "component": "Container",
-    "props": { "size": "xl" },
+    "component": "Stack",
+    "props": { "className": "min-h-dvh bg-canvas py-r1" },
     "children": [
       {
-        "component": "Stack",
-        "props": { "gap": "r2" },
+        "component": "Container",
+        "props": { "size": "xl" },
         "children": [
           {
             "component": "Stack",
-            "props": { "gap": "r5" },
+            "props": { "gap": "r2" },
             "children": [
-              { "component": "Text", "props": { "variant": "h2" }, "children": ["Simple, Transparent Pricing"] },
+              {
+                "component": "Stack",
+                "props": { "gap": "r4", "className": "items-center text-center" },
+                "children": [
+                  { "component": "Badge", "props": { "variant": "info", "statusIcon": "sparkles" }, "children": ["14-day free trial · no card required"] },
+                  { "component": "Text", "props": { "variant": "h2" }, "children": ["Simple, transparent pricing"] },
+                  {
+                    "component": "Text",
+                    "props": { "variant": "body-1", "color": "secondary" },
+                    "children": ["Every plan includes unlimited collaborators. Pay only for the people who publish."]
+                  }
+                ]
+              },
+              {
+                "component": "Grid",
+                "props": { "columns": { "base": 1, "md": 3 }, "gap": "r4" },
+                "children": [
+                  {
+                    "$each": "data.tiers",
+                    "as": "tier",
+                    "node": {
+                      "$cond": "tier.featured",
+                      "then": {
+                        "component": "Card",
+                        "props": { "padding": "r3", "shadow": "lg", "className": "flex flex-col border-2 border-primary" },
+                        "children": [
+                          {
+                            "component": "Stack",
+                            "props": { "gap": "r4", "className": "flex-1" },
+                            "children": [
+                              {
+                                "component": "Row",
+                                "props": { "gap": "r5", "justify": "between", "align": "center" },
+                                "children": [
+                                  { "component": "Text", "props": { "variant": "h4" }, "children": [{ "$ref": "tier.name" }] },
+                                  { "component": "Badge", "props": { "variant": "info", "statusIcon": null }, "children": ["Most popular"] }
+                                ]
+                              },
+                              {
+                                "component": "Row",
+                                "props": { "gap": "r6", "align": "baseline" },
+                                "children": [
+                                  { "component": "Text", "props": { "variant": "h2", "as": "p" }, "children": [{ "$ref": "tier.price" }] },
+                                  { "component": "Text", "props": { "variant": "body-2", "color": "muted" }, "children": [{ "$ref": "tier.period" }] }
+                                ]
+                              },
+                              { "component": "Text", "props": { "variant": "body-2", "color": "secondary" }, "children": [{ "$ref": "tier.description" }] },
+                              { "component": "Divider" },
+                              {
+                                "component": "Stack",
+                                "props": { "gap": "r5" },
+                                "children": [
+                                  {
+                                    "$each": "tier.features",
+                                    "as": "feat",
+                                    "node": {
+                                      "component": "Row",
+                                      "props": { "gap": "r5", "align": "center" },
+                                      "children": [
+                                        { "component": "Icon", "props": { "name": "circle-check", "size": 16, "className": "text-accent shrink-0" } },
+                                        { "component": "Text", "props": { "variant": "body-2" }, "children": [{ "$ref": "feat" }] }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              { "component": "Spacer" },
+                              {
+                                "component": "Button",
+                                "props": {
+                                  "variant": "primary",
+                                  "size": "lg",
+                                  "className": "w-full",
+                                  "onClick": { "action": "showToast", "payload": { "message": "Starting your Pro trial — welcome aboard!", "variant": "success" } }
+                                },
+                                "children": [{ "$ref": "tier.cta" }]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "else": {
+                        "component": "Card",
+                        "props": { "padding": "r3", "className": "flex flex-col" },
+                        "children": [
+                          {
+                            "component": "Stack",
+                            "props": { "gap": "r4", "className": "flex-1" },
+                            "children": [
+                              { "component": "Text", "props": { "variant": "h4" }, "children": [{ "$ref": "tier.name" }] },
+                              {
+                                "component": "Row",
+                                "props": { "gap": "r6", "align": "baseline" },
+                                "children": [
+                                  { "component": "Text", "props": { "variant": "h2", "as": "p" }, "children": [{ "$ref": "tier.price" }] },
+                                  { "component": "Text", "props": { "variant": "body-2", "color": "muted" }, "children": [{ "$ref": "tier.period" }] }
+                                ]
+                              },
+                              { "component": "Text", "props": { "variant": "body-2", "color": "secondary" }, "children": [{ "$ref": "tier.description" }] },
+                              { "component": "Divider" },
+                              {
+                                "component": "Stack",
+                                "props": { "gap": "r5" },
+                                "children": [
+                                  {
+                                    "$each": "tier.features",
+                                    "as": "feat",
+                                    "node": {
+                                      "component": "Row",
+                                      "props": { "gap": "r5", "align": "center" },
+                                      "children": [
+                                        { "component": "Icon", "props": { "name": "circle-check", "size": 16, "className": "text-fg-muted shrink-0" } },
+                                        { "component": "Text", "props": { "variant": "body-2" }, "children": [{ "$ref": "feat" }] }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              { "component": "Spacer" },
+                              {
+                                "component": "Button",
+                                "props": {
+                                  "variant": "secondary",
+                                  "size": "lg",
+                                  "className": "w-full",
+                                  "onClick": { "action": "showToast", "payload": { "message": "We'll be in touch shortly.", "variant": "info" } }
+                                },
+                                "children": [{ "$ref": "tier.cta" }]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
               {
                 "component": "Text",
-                "props": { "variant": "body-1", "color": "secondary" },
-                "children": ["Choose the plan that's right for you. All plans include a 14-day free trial."]
-              }
-            ]
-          },
-          {
-            "component": "Row",
-            "props": { "gap": "r4", "wrap": true, "align": "stretch" },
-            "children": [
+                "props": { "variant": "body-3", "color": "muted", "className": "text-center" },
+                "children": ["Prices in USD, excluding VAT. Annual billing gives every team two months free. Cancel anytime."]
+              },
               {
-                "$each": "data.tiers",
-                "as": "tier",
-                "node": {
-                  "component": "Card",
-                  "props": { "padding": "r3" },
-                  "children": [
-                    {
-                      "component": "Stack",
-                      "props": { "gap": "r4" },
-                      "children": [
-                        {
-                          "component": "Row",
-                          "props": { "gap": "r5", "align": "center" },
-                          "children": [
-                            { "component": "Text", "props": { "variant": "h4" }, "children": [{ "$ref": "tier.name" }] },
-                            {
-                              "$cond": "tier.featured",
-                              "then": { "component": "Badge", "props": { "variant": "info", "children": "Popular" } }
+                "component": "Container",
+                "props": { "size": "md" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h4", "className": "text-center" }, "children": ["Questions, answered"] },
+                      {
+                        "component": "Accordion",
+                        "props": { "mode": "single", "defaultValue": "switch" },
+                        "children": [
+                          {
+                            "$each": "data.faqs",
+                            "as": "faq",
+                            "node": {
+                              "component": "Accordion.Item",
+                              "props": { "value": { "$ref": "faq.id" } },
+                              "children": [
+                                { "component": "Accordion.Trigger", "children": [{ "$ref": "faq.q" }] },
+                                {
+                                  "component": "Accordion.Content",
+                                  "children": [
+                                    { "component": "Text", "props": { "variant": "body-2", "color": "secondary" }, "children": [{ "$ref": "faq.a" }] }
+                                  ]
+                                }
+                              ]
                             }
-                          ]
-                        },
-                        {
-                          "component": "Row",
-                          "props": { "gap": "r6", "align": "baseline" },
-                          "children": [
-                            { "component": "Text", "props": { "variant": "h2" }, "children": [{ "$ref": "tier.price" }] },
-                            { "component": "Text", "props": { "variant": "body-2", "color": "muted" }, "children": [{ "$ref": "tier.period" }] }
-                          ]
-                        },
-                        {
-                          "component": "Text",
-                          "props": { "variant": "body-2", "color": "secondary" },
-                          "children": [{ "$ref": "tier.description" }]
-                        },
-                        { "component": "Divider" },
-                        {
-                          "component": "Stack",
-                          "props": { "gap": "r5" },
-                          "children": [
-                            {
-                              "$each": "tier.features",
-                              "as": "feat",
-                              "node": {
-                                "component": "Text",
-                                "props": { "variant": "body-2" },
-                                "children": [{ "$ref": "feat" }]
-                              }
-                            }
-                          ]
-                        },
-                        {
-                          "component": "Button",
-                          "props": {
-                            "variant": "primary",
-                            "onClick": {
-                              "action": "showToast",
-                              "payload": { "message": "Starting your free trial!", "variant": "success" }
-                            }
-                          },
-                          "children": ["Get Started"]
-                        }
-                      ]
-                    }
-                  ]
-                }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
               }
             ]
           }

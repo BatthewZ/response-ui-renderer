@@ -134,5 +134,7 @@ vitest suite and fails ~60 of them. jsdom lacks `matchMedia`, `ResizeObserver`,
 `test-setup.ts` stubs them — without them any component honouring reduced motion
 throws on mount and the error boundaries mask it as a render failure.
 
-The corpus in `src/examples/` is real generator output, kept verbatim. Prefer adding to it
-over inventing fixtures: synthetic ones drift towards what the renderer already handles.
+The corpus in `src/examples/` is a set of exemplar documents — fully themed pages kept
+looking like real products, visually verified against the rendered output. Prefer adding
+to it over inventing fixtures: synthetic ones drift towards what the renderer already
+handles.

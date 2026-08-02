@@ -1,93 +1,190 @@
 {
   "version": 1,
   "title": "Team Directory",
-  "description": "A team member directory with avatar cards, roles, and status badges",
+  "description": "A people-ops directory — stat tiles, then centred profile cards with avatars, presence, department badges and quick actions, on a cool teal palette via themeOverrides",
+  "themeOverrides": {
+    "--C-CANVAS": "oklch(0.968 0.008 215)",
+    "--C-SURFACE-0": "oklch(0.998 0.002 210)",
+    "--C-SURFACE-1": "oklch(0.982 0.005 212)",
+    "--C-SURFACE-2": "oklch(0.94 0.012 210)",
+    "--C-SURFACE-3": "oklch(0.905 0.015 210)",
+    "--C-TEXT-PRIMARY": "oklch(0.26 0.03 230)",
+    "--C-TEXT-SECONDARY": "oklch(0.45 0.03 225)",
+    "--C-TEXT-MUTED": "oklch(0.58 0.025 220)",
+    "--C-PRIMARY": "oklch(0.52 0.12 215)",
+    "--C-PRIMARY-HOVER": "oklch(0.46 0.12 215)",
+    "--C-PRIMARY-ACTIVE": "oklch(0.42 0.11 215)",
+    "--C-TEXT-ON-PRIMARY": "oklch(0.98 0.005 210)",
+    "--C-SECONDARY": "oklch(0.93 0.012 212)",
+    "--C-SECONDARY-HOVER": "oklch(0.89 0.016 212)",
+    "--C-ACCENT": "oklch(0.52 0.12 215)",
+    "--C-ACCENT-HOVER": "oklch(0.46 0.12 215)",
+    "--C-TEXT-ON-ACCENT": "oklch(0.98 0.005 210)",
+    "--C-BORDER-DEFAULT": "oklch(0.89 0.012 215)",
+    "--C-BORDER-STRONG": "oklch(0.72 0.03 215)",
+    "--C-BORDER-FOCUS": "oklch(0.52 0.12 215)",
+    "--C-STATUS-INFO": "oklch(0.48 0.11 240)",
+    "--C-STATUS-INFO-BG": "oklch(0.93 0.03 235)",
+    "--SHADOW-MD": "0 4px 14px oklch(0.35 0.05 225 / 0.1)"
+  },
   "data": {
+    "stats": {
+      "type": "static",
+      "value": [
+        { "icon": "users", "label": "People", "value": "6" },
+        { "icon": "radio", "label": "Online now", "value": "4" },
+        { "icon": "layers", "label": "Departments", "value": "3" }
+      ]
+    },
     "members": {
       "type": "static",
       "value": [
-        { "name": "Alex Chen", "role": "Engineering Lead", "department": "Engineering", "status": "online", "avatar": "https://i.pravatar.cc/150?u=alex" },
-        { "name": "Sarah Miller", "role": "Product Designer", "department": "Design", "status": "online", "avatar": "https://i.pravatar.cc/150?u=sarah" },
-        { "name": "James Wilson", "role": "Backend Developer", "department": "Engineering", "status": "away", "avatar": "https://i.pravatar.cc/150?u=james" },
-        { "name": "Emily Rodriguez", "role": "Product Manager", "department": "Product", "status": "online", "avatar": "https://i.pravatar.cc/150?u=emily" },
-        { "name": "Michael Park", "role": "Frontend Developer", "department": "Engineering", "status": "offline", "avatar": "https://i.pravatar.cc/150?u=michael" },
-        { "name": "Lisa Thompson", "role": "UX Researcher", "department": "Design", "status": "online", "avatar": "https://i.pravatar.cc/150?u=lisa" }
+        { "name": "Alex Chen", "role": "Engineering Lead", "department": "Engineering", "badge": "info", "status": "online", "location": "London · GMT", "avatar": "https://i.pravatar.cc/150?u=alex" },
+        { "name": "Sarah Miller", "role": "Product Designer", "department": "Design", "badge": "warning", "status": "online", "location": "Lisbon · GMT+1", "avatar": "https://i.pravatar.cc/150?u=sarah" },
+        { "name": "James Wilson", "role": "Backend Developer", "department": "Engineering", "badge": "info", "status": "away", "location": "Berlin · GMT+1", "avatar": "https://i.pravatar.cc/150?u=james" },
+        { "name": "Emily Rodriguez", "role": "Product Manager", "department": "Product", "badge": "success", "status": "online", "location": "New York · GMT-5", "avatar": "https://i.pravatar.cc/150?u=emily" },
+        { "name": "Michael Park", "role": "Frontend Developer", "department": "Engineering", "badge": "info", "status": "offline", "location": "Seoul · GMT+9", "avatar": "https://i.pravatar.cc/150?u=michael" },
+        { "name": "Lisa Thompson", "role": "UX Researcher", "department": "Design", "badge": "warning", "status": "online", "location": "London · GMT", "avatar": "https://i.pravatar.cc/150?u=lisa" }
       ]
-    },
-    "teamSize": { "type": "static", "value": "6" },
-    "onlineCount": { "type": "static", "value": "4" }
+    }
   },
   "root": {
-    "component": "Container",
+    "component": "Stack",
+    "props": { "className": "min-h-dvh bg-canvas py-r2" },
     "children": [
       {
-        "component": "Stack",
-        "props": { "gap": "r3" },
+        "component": "Container",
+        "props": { "size": "lg" },
         "children": [
-          { "component": "Text", "props": { "variant": "h2" }, "children": ["Team Directory"] },
           {
-            "component": "Row",
-            "props": { "gap": "r4" },
+            "component": "Stack",
+            "props": { "gap": "r3" },
             "children": [
               {
-                "component": "StatCard",
+                "component": "Row",
+                "props": { "gap": "r4", "justify": "between", "align": "center", "wrap": true },
                 "children": [
-                  { "component": "StatCard.Value", "props": { "children": { "$ref": "data.teamSize" } } },
-                  { "component": "StatCard.Label", "props": { "children": "Team Members" } }
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r6" },
+                    "children": [
+                      { "component": "Text", "props": { "variant": "h3" }, "children": ["Team directory"] },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-2", "color": "secondary" },
+                        "children": ["Everyone at Fernworks Studio, across three time zones."]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Button",
+                    "props": {
+                      "variant": "primary",
+                      "onClick": { "action": "showToast", "payload": { "message": "Invitation link copied to your clipboard.", "variant": "success" } }
+                    },
+                    "children": ["Invite people"]
+                  }
                 ]
               },
               {
-                "component": "StatCard",
+                "component": "Grid",
+                "props": { "columns": { "base": 1, "sm": 3 }, "gap": "r4" },
                 "children": [
-                  { "component": "StatCard.Value", "props": { "children": { "$ref": "data.onlineCount" } } },
-                  { "component": "StatCard.Label", "props": { "children": "Online Now" } }
-                ]
-              }
-            ]
-          },
-          {
-            "component": "Row",
-            "props": { "gap": "r4", "wrap": true },
-            "children": [
-              {
-                "$each": "data.members",
-                "as": "member",
-                "node": {
-                  "component": "Card",
-                  "props": { "padding": "r4" },
-                  "children": [
-                    {
-                      "component": "Stack",
-                      "props": { "gap": "r5" },
+                  {
+                    "$each": "data.stats",
+                    "as": "stat",
+                    "node": {
+                      "component": "StatCard",
                       "children": [
                         {
                           "component": "Row",
-                          "props": { "gap": "r4", "align": "center" },
+                          "props": { "gap": "r5", "justify": "between", "align": "start" },
+                          "children": [
+                            {
+                              "component": "Stack",
+                              "props": { "gap": "r6" },
+                              "children": [
+                                { "component": "StatCard.Label", "props": { "children": { "$ref": "stat.label" } } },
+                                { "component": "StatCard.Value", "props": { "children": { "$ref": "stat.value" } } }
+                              ]
+                            },
+                            {
+                              "component": "StatCard.Icon",
+                              "children": [{ "component": "Icon", "props": { "name": { "$ref": "stat.icon" }, "size": 18 } }]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "component": "Grid",
+                "props": { "columns": { "base": 1, "sm": 2, "lg": 3 }, "gap": "r4" },
+                "children": [
+                  {
+                    "$each": "data.members",
+                    "as": "member",
+                    "node": {
+                      "component": "Card",
+                      "props": { "padding": "r3", "shadow": "md" },
+                      "children": [
+                        {
+                          "component": "Stack",
+                          "props": { "gap": "r5", "className": "items-center text-center" },
                           "children": [
                             {
                               "component": "Avatar",
                               "props": {
                                 "src": { "$ref": "member.avatar" },
                                 "name": { "$ref": "member.name" },
-                                "size": "lg",
-                                "status": { "$ref": "member.status" }
+                                "size": "xl",
+                                "status": { "$ref": "member.status" },
+                                "statusLabel": { "$ref": "member.status" }
                               }
                             },
                             {
                               "component": "Stack",
-                              "props": { "gap": "r6" },
+                              "props": { "gap": "r6", "className": "items-center" },
                               "children": [
                                 { "component": "Text", "props": { "variant": "body-1", "weight": "semibold" }, "children": [{ "$ref": "member.name" }] },
                                 { "component": "Text", "props": { "variant": "body-2", "color": "secondary" }, "children": [{ "$ref": "member.role" }] }
                               ]
+                            },
+                            { "component": "Badge", "props": { "variant": { "$ref": "member.badge" }, "statusIcon": null }, "children": [{ "$ref": "member.department" }] },
+                            { "component": "Text", "props": { "variant": "body-3", "color": "muted" }, "children": [{ "$ref": "member.location" }] },
+                            { "component": "Divider", "props": { "className": "self-stretch" } },
+                            {
+                              "component": "Row",
+                              "props": { "gap": "r5", "justify": "center" },
+                              "children": [
+                                {
+                                  "component": "Button",
+                                  "props": {
+                                    "variant": "ghost",
+                                    "size": "sm",
+                                    "onClick": { "action": "showToast", "payload": { "message": { "$ref": "member.name" }, "title": "Opening chat with", "variant": "info" } }
+                                  },
+                                  "children": ["Message"]
+                                },
+                                {
+                                  "component": "Button",
+                                  "props": {
+                                    "variant": "ghost",
+                                    "size": "sm",
+                                    "onClick": { "action": "navigate", "payload": { "path": "/people" } }
+                                  },
+                                  "children": ["View profile"]
+                                }
+                              ]
                             }
                           ]
-                        },
-                        { "component": "Badge", "props": { "children": { "$ref": "member.department" } } }
+                        }
                       ]
                     }
-                  ]
-                }
+                  }
+                ]
               }
             ]
           }

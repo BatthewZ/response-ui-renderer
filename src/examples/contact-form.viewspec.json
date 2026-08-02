@@ -1,101 +1,259 @@
 {
   "version": 1,
   "title": "Contact Form",
-  "description": "A contact form with name, email, subject selector, and message textarea",
+  "description": "A warm editorial contact page — split layout with contact channels beside a validated form that posts through apiCall; serif headings and a terracotta palette via themeOverrides",
+  "themeOverrides": {
+    "--C-CANVAS": "oklch(0.965 0.012 85)",
+    "--C-SURFACE-0": "oklch(0.995 0.005 90)",
+    "--C-SURFACE-1": "oklch(0.98 0.008 88)",
+    "--C-SURFACE-2": "oklch(0.936 0.016 82)",
+    "--C-SURFACE-3": "oklch(0.9 0.02 80)",
+    "--C-TEXT-PRIMARY": "oklch(0.28 0.025 50)",
+    "--C-TEXT-SECONDARY": "oklch(0.45 0.03 50)",
+    "--C-TEXT-MUTED": "oklch(0.58 0.025 55)",
+    "--C-PRIMARY": "oklch(0.55 0.13 40)",
+    "--C-PRIMARY-HOVER": "oklch(0.49 0.13 40)",
+    "--C-PRIMARY-ACTIVE": "oklch(0.45 0.13 40)",
+    "--C-TEXT-ON-PRIMARY": "oklch(0.985 0.01 85)",
+    "--C-SECONDARY": "oklch(0.92 0.02 82)",
+    "--C-SECONDARY-HOVER": "oklch(0.88 0.025 80)",
+    "--C-ACCENT": "oklch(0.55 0.13 40)",
+    "--C-ACCENT-HOVER": "oklch(0.49 0.13 40)",
+    "--C-TEXT-ON-ACCENT": "oklch(0.985 0.01 85)",
+    "--C-BORDER-DEFAULT": "oklch(0.87 0.02 75)",
+    "--C-BORDER-STRONG": "oklch(0.7 0.03 60)",
+    "--C-BORDER-FOCUS": "oklch(0.55 0.13 40)",
+    "--HEADING-FONT": "Georgia, 'Times New Roman', serif",
+    "--RADIUS-MD": "0.375rem",
+    "--RADIUS-LG": "0.625rem"
+  },
   "forms": {
     "contact": {
       "fields": {
-        "name": { "initialValue": "" },
-        "email": { "initialValue": "" },
+        "name": {
+          "initialValue": "",
+          "validation": { "required": true, "message": "Please tell us your name." }
+        },
+        "email": {
+          "initialValue": "",
+          "validation": {
+            "required": true,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[a-zA-Z]{2,}$",
+            "message": "Enter an address we can reply to, like you@example.com"
+          }
+        },
         "subject": { "initialValue": "general" },
-        "message": { "initialValue": "" }
+        "message": {
+          "initialValue": "",
+          "validation": { "required": true, "minLength": 10, "message": "A few more words helps us help you — ten characters at least." }
+        }
       },
       "onSubmit": {
-        "action": "showToast",
-        "payload": { "message": "Form submitted successfully!", "variant": "success", "title": "Success" }
+        "action": "apiCall",
+        "payload": {
+          "endpoint": "/api/contact",
+          "method": "POST",
+          "body": { "$ref": "forms.contact.values" },
+          "onSuccess": {
+            "action": "showToast",
+            "payload": { "message": "Thanks — we'll get back to you within a day.", "variant": "success", "title": "Message sent" }
+          },
+          "onError": {
+            "action": "showToast",
+            "payload": { "message": "Your message didn't go through. Please try again.", "variant": "error", "title": "Something went wrong" }
+          }
+        }
       }
     }
   },
+  "data": {
+    "channels": {
+      "type": "static",
+      "value": [
+        { "icon": "mail", "label": "Email us", "value": "hello@fernworks.studio" },
+        { "icon": "phone", "label": "Call the studio", "value": "+44 20 7946 0821 · Mon–Fri, 9–5" },
+        { "icon": "map-pin", "label": "Visit", "value": "14 Old Nichol Street, London E2 7HR" }
+      ]
+    }
+  },
   "root": {
-    "component": "Container",
+    "component": "Stack",
+    "props": { "className": "min-h-dvh bg-canvas py-r1" },
     "children": [
       {
-        "component": "Stack",
-        "props": { "gap": "r3" },
+        "component": "Container",
+        "props": { "size": "xl" },
         "children": [
-          { "component": "Text", "props": { "variant": "h2" }, "children": ["Contact Us"] },
           {
-            "component": "Text",
-            "props": { "variant": "body-2", "color": "secondary" },
-            "children": ["We'd love to hear from you. Fill out the form below and we'll get back to you as soon as possible."]
-          },
-          {
-            "component": "Card",
-            "props": { "padding": "r3" },
+            "component": "Grid",
+            "props": { "columns": { "base": 1, "md": 5 }, "gap": "r2" },
             "children": [
               {
                 "component": "Stack",
-                "props": { "gap": "r4" },
+                "props": { "gap": "r3", "className": "md:col-span-2" },
                 "children": [
                   {
-                    "component": "Row",
-                    "props": { "gap": "r4", "wrap": true },
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
                     "children": [
+                      { "component": "Text", "props": { "variant": "h2" }, "children": ["Contact Us"] },
                       {
-                        "component": "Field",
-                        "children": [
-                          { "component": "Label", "children": ["Name"] },
-                          { "component": "Input", "props": { "placeholder": "Your name" } }
-                        ]
-                      },
-                      {
-                        "component": "Field",
-                        "children": [
-                          { "component": "Label", "children": ["Email"] },
-                          { "component": "Input", "props": { "type": "email", "placeholder": "you@example.com" } }
-                        ]
+                        "component": "Text",
+                        "props": { "variant": "body-1", "color": "secondary" },
+                        "children": ["Commissions, collaborations, or a question about an order — write to us and a real person will reply within one working day."]
                       }
                     ]
                   },
+                  { "component": "Divider" },
                   {
-                    "component": "Field",
+                    "component": "Stack",
+                    "props": { "gap": "r4" },
                     "children": [
-                      { "component": "Label", "children": ["Subject"] },
                       {
-                        "component": "Select",
-                        "props": {
-                          "options": [
-                            { "label": "General Inquiry", "value": "general" },
-                            { "label": "Support", "value": "support" },
-                            { "label": "Feedback", "value": "feedback" },
-                            { "label": "Partnership", "value": "partnership" }
+                        "$each": "data.channels",
+                        "as": "channel",
+                        "node": {
+                          "component": "Row",
+                          "props": { "gap": "r4", "align": "center" },
+                          "children": [
+                            {
+                              "component": "Stack",
+                              "props": { "className": "items-center justify-center size-r2 shrink-0 bg-surface-2 rounded-md text-accent" },
+                              "children": [
+                                { "component": "Icon", "props": { "name": { "$ref": "channel.icon" }, "size": 18 } }
+                              ]
+                            },
+                            {
+                              "component": "Stack",
+                              "props": { "gap": "r6" },
+                              "children": [
+                                { "component": "Text", "props": { "variant": "body-2", "weight": "semibold" }, "children": [{ "$ref": "channel.label" }] },
+                                { "component": "Text", "props": { "variant": "body-2", "color": "secondary" }, "children": [{ "$ref": "channel.value" }] }
+                              ]
+                            }
                           ]
                         }
                       }
                     ]
                   },
+                  { "component": "Spacer" },
                   {
-                    "component": "Field",
-                    "children": [
-                      { "component": "Label", "children": ["Message"] },
-                      { "component": "Textarea", "props": { "placeholder": "What's on your mind?", "rows": 5 } }
-                    ]
-                  },
-                  {
-                    "component": "FormActions",
+                    "component": "Card",
+                    "props": { "padding": "r4", "className": "bg-surface-2 border-0" },
                     "children": [
                       {
-                        "component": "Button",
-                        "props": {
-                          "variant": "primary",
-                          "onClick": {
-                            "action": "showToast",
-                            "payload": { "message": "Form submitted successfully!", "variant": "success", "title": "Success" }
+                        "component": "Row",
+                        "props": { "gap": "r5", "align": "start" },
+                        "children": [
+                          { "component": "Icon", "props": { "name": "leaf", "size": 20, "className": "text-accent shrink-0" } },
+                          {
+                            "component": "Text",
+                            "props": { "variant": "body-3", "color": "secondary" },
+                            "children": ["Every piece is made to order in our east London workshop. If you're asking about a timeline, most commissions ship in three to five weeks."]
                           }
-                        },
-                        "children": ["Send Message"]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "component": "Card",
+                "props": { "padding": "r3", "shadow": "md", "className": "md:col-span-3 flex flex-col" },
+                "children": [
+                  {
+                    "component": "Stack",
+                    "props": { "gap": "r4", "className": "flex-1" },
+                    "children": [
+                      {
+                        "component": "Grid",
+                        "props": { "columns": { "base": 1, "sm": 2 }, "gap": "r4" },
+                        "children": [
+                          {
+                            "component": "Field",
+                            "props": { "name": "contact.name" },
+                            "children": [
+                              { "component": "Label", "props": { "htmlFor": "contact-name" }, "children": ["Name"] },
+                              {
+                                "component": "Input",
+                                "props": { "id": "contact-name", "placeholder": "Your name", "autoComplete": "name", "className": "w-full", "$field": "contact.name" }
+                              },
+                              { "component": "FieldError", "props": { "name": "contact.name" } }
+                            ]
+                          },
+                          {
+                            "component": "Field",
+                            "props": { "name": "contact.email" },
+                            "children": [
+                              { "component": "Label", "props": { "htmlFor": "contact-email" }, "children": ["Email"] },
+                              {
+                                "component": "Input",
+                                "props": { "id": "contact-email", "type": "email", "placeholder": "you@example.com", "autoComplete": "email", "className": "w-full", "$field": "contact.email" }
+                              },
+                              { "component": "FieldError", "props": { "name": "contact.email" } }
+                            ]
+                          }
+                        ]
                       },
-                      { "component": "Button", "props": { "variant": "ghost" }, "children": ["Cancel"] }
+                      {
+                        "component": "Field",
+                        "props": { "name": "contact.subject" },
+                        "children": [
+                          { "component": "Label", "props": { "htmlFor": "contact-subject" }, "children": ["Subject"] },
+                          {
+                            "component": "Select",
+                            "props": {
+                              "id": "contact-subject",
+                              "$field": "contact.subject",
+                              "options": [
+                                { "label": "General enquiry", "value": "general" },
+                                { "label": "Commission a piece", "value": "commission" },
+                                { "label": "Order support", "value": "support" },
+                                { "label": "Press & partnerships", "value": "press" }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "component": "Field",
+                        "props": { "name": "contact.message" },
+                        "children": [
+                          { "component": "Label", "props": { "htmlFor": "contact-message" }, "children": ["Message"] },
+                          {
+                            "component": "Textarea",
+                            "props": { "id": "contact-message", "placeholder": "Tell us what you have in mind…", "rows": 6, "className": "w-full", "$field": "contact.message" }
+                          },
+                          { "component": "FieldError", "props": { "name": "contact.message" } }
+                        ]
+                      },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-3", "color": "muted" },
+                        "children": ["We only use your details to reply."]
+                      },
+                      { "component": "Spacer" },
+                      {
+                        "component": "FormActions",
+                        "children": [
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "ghost",
+                              "onClick": { "action": "resetForm", "payload": { "form": "contact" } }
+                            },
+                            "children": ["Clear"]
+                          },
+                          {
+                            "component": "Button",
+                            "props": {
+                              "variant": "primary",
+                              "onClick": { "action": "submitForm", "payload": { "form": "contact" } }
+                            },
+                            "children": ["Send message"]
+                          }
+                        ]
+                      }
                     ]
                   }
                 ]

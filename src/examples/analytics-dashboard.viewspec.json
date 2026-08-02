@@ -1,130 +1,439 @@
 {
   "version": 1,
   "title": "Analytics Dashboard",
-  "description": "A metrics dashboard with stat cards, progress tracking, and activity timeline",
+  "description": "A dark revenue-operations console: KPI cards with sparklines, channel breakdown, goal ring, top pages table, and a deploy timeline — reskinned entirely through themeOverrides",
+  "themeOverrides": {
+    "--C-CANVAS": "oklch(0.16 0.02 255)",
+    "--C-SURFACE-0": "oklch(0.22 0.025 255)",
+    "--C-SURFACE-1": "oklch(0.19 0.022 255)",
+    "--C-SURFACE-2": "oklch(0.14 0.018 255)",
+    "--C-SURFACE-3": "oklch(0.115 0.015 255)",
+    "--C-TEXT-PRIMARY": "oklch(0.95 0.01 255)",
+    "--C-TEXT-SECONDARY": "oklch(0.76 0.015 255)",
+    "--C-TEXT-MUTED": "oklch(0.58 0.015 255)",
+    "--C-TEXT-INVERSE": "oklch(0.2 0.02 255)",
+    "--C-PRIMARY": "oklch(0.8 0.13 195)",
+    "--C-PRIMARY-HOVER": "oklch(0.74 0.13 195)",
+    "--C-PRIMARY-ACTIVE": "oklch(0.7 0.13 195)",
+    "--C-TEXT-ON-PRIMARY": "oklch(0.17 0.03 210)",
+    "--C-SECONDARY": "oklch(0.3 0.03 255)",
+    "--C-SECONDARY-HOVER": "oklch(0.34 0.03 255)",
+    "--C-ACCENT": "oklch(0.8 0.13 195)",
+    "--C-ACCENT-HOVER": "oklch(0.74 0.13 195)",
+    "--C-TEXT-ON-ACCENT": "oklch(0.17 0.03 210)",
+    "--C-BORDER-DEFAULT": "oklch(0.31 0.02 255)",
+    "--C-BORDER-STRONG": "oklch(0.45 0.02 255)",
+    "--C-BORDER-FOCUS": "oklch(0.8 0.13 195)",
+    "--C-STATUS-SUCCESS": "oklch(0.82 0.16 155)",
+    "--C-STATUS-SUCCESS-BG": "oklch(0.26 0.05 155)",
+    "--C-STATUS-ERROR": "oklch(0.72 0.19 25)",
+    "--C-STATUS-ERROR-BG": "oklch(0.25 0.06 25)",
+    "--C-STATUS-WARNING": "oklch(0.84 0.14 85)",
+    "--C-STATUS-WARNING-BG": "oklch(0.26 0.05 85)",
+    "--C-STATUS-INFO": "oklch(0.78 0.11 230)",
+    "--C-STATUS-INFO-BG": "oklch(0.25 0.05 230)",
+    "--SHADOW-SM": "0 1px 2px oklch(0 0 0 / 0.45)",
+    "--SHADOW-MD": "0 4px 14px oklch(0 0 0 / 0.5)",
+    "--SHADOW-LG": "0 14px 36px oklch(0 0 0 / 0.6)"
+  },
   "data": {
-    "metrics": {
+    "kpis": {
       "type": "static",
       "value": [
-        { "label": "Total Users", "value": "12,493", "trend": 12, "direction": "up" },
-        { "label": "Revenue", "value": "$48,259", "trend": 8, "direction": "up" },
-        { "label": "Active Sessions", "value": "1,429", "trend": -3, "direction": "down" },
-        { "label": "Conversion Rate", "value": "3.24%", "trend": 0.5, "direction": "up" }
+        {
+          "label": "Recurring revenue",
+          "value": "$412,890",
+          "trend": 8.2,
+          "direction": "up",
+          "sentiment": "positive",
+          "icon": "circle-dollar-sign",
+          "spark": [286, 301, 298, 312, 330, 341, 338, 356, 371, 384, 398, 413]
+        },
+        {
+          "label": "Active workspaces",
+          "value": "9,214",
+          "trend": 4.6,
+          "direction": "up",
+          "sentiment": "positive",
+          "icon": "building-2",
+          "spark": [7.9, 8.0, 8.2, 8.1, 8.4, 8.5, 8.7, 8.8, 8.9, 9.0, 9.1, 9.2]
+        },
+        {
+          "label": "API error rate",
+          "value": "0.42%",
+          "trend": 0.08,
+          "direction": "down",
+          "sentiment": "positive",
+          "icon": "shield-check",
+          "spark": [0.61, 0.58, 0.6, 0.55, 0.52, 0.54, 0.5, 0.47, 0.48, 0.45, 0.44, 0.42]
+        },
+        {
+          "label": "P95 latency",
+          "value": "218 ms",
+          "trend": 3.1,
+          "direction": "up",
+          "sentiment": "negative",
+          "icon": "gauge",
+          "spark": [201, 204, 199, 207, 210, 206, 212, 209, 214, 211, 216, 218]
+        }
       ]
     },
-    "projects": {
+    "channels": {
       "type": "static",
       "value": [
-        { "name": "Website Redesign", "progress": 75 },
-        { "name": "Mobile App", "progress": 45 },
-        { "name": "API v2", "progress": 90 },
-        { "name": "Design System", "progress": 60 }
+        { "name": "Organic search", "revenue": "$148,220", "share": 36 },
+        { "name": "Paid social", "revenue": "$96,410", "share": 23 },
+        { "name": "Referral", "revenue": "$78,930", "share": 19 },
+        { "name": "Email", "revenue": "$54,780", "share": 13 },
+        { "name": "Direct", "revenue": "$34,550", "share": 9 }
       ]
     },
-    "activities": {
+    "topPages": {
       "type": "static",
       "value": [
-        { "title": "Design review completed", "date": "Feb 15, 2026", "status": "Completed" },
-        { "title": "API integration started", "date": "Feb 18, 2026", "status": "In Progress" },
-        { "title": "User testing scheduled", "date": "Feb 22, 2026", "status": "Planned" },
-        { "title": "Performance audit", "date": "Feb 25, 2026", "status": "Planned" }
+        { "page": "/pricing", "views": "48,112", "conversion": "6.4%", "change": "+12%" },
+        { "page": "/docs/quickstart", "views": "39,804", "conversion": "4.1%", "change": "+8%" },
+        { "page": "/templates", "views": "27,655", "conversion": "3.7%", "change": "+21%" },
+        { "page": "/changelog", "views": "19,320", "conversion": "1.9%", "change": "-3%" },
+        { "page": "/integrations/slack", "views": "14,208", "conversion": "5.2%", "change": "+6%" }
       ]
     },
-    "showWelcome": { "type": "static", "value": true }
+    "deploys": {
+      "type": "static",
+      "value": [
+        { "title": "api-gateway v2.14.0", "date": "Today, 14:32", "status": "Deployed", "variant": "success", "note": "Canary clean for 45 min, promoted to all regions." },
+        { "title": "billing-service v1.9.2", "date": "Today, 11:07", "status": "Deployed", "variant": "success", "note": "Fixes proration rounding on annual upgrades." },
+        { "title": "web-app v5.2.0", "date": "Yesterday, 18:20", "status": "Rolled back", "variant": "warning", "note": "Hydration mismatch on the workspace switcher; fix in review." }
+      ]
+    },
+    "digest": { "type": "static", "value": true }
   },
   "root": {
-    "component": "Container",
+    "component": "Stack",
+    "props": { "className": "min-h-dvh bg-canvas py-r2" },
     "children": [
       {
-        "component": "Stack",
-        "props": { "gap": "r3" },
+        "component": "Container",
+        "props": { "size": "xl" },
         "children": [
-          { "component": "Text", "props": { "variant": "h2" }, "children": ["Dashboard"] },
           {
-            "$cond": "data.showWelcome",
-            "then": {
-              "component": "Alert",
-              "props": { "variant": "info" },
-              "children": ["Welcome back! Your analytics have been updated."]
-            }
-          },
-          {
-            "component": "Row",
-            "props": { "gap": "r4", "wrap": true },
+            "component": "Stack",
+            "props": { "gap": "r3" },
             "children": [
               {
-                "$each": "data.metrics",
-                "as": "metric",
-                "node": {
-                  "component": "StatCard",
-                  "children": [
-                    { "component": "StatCard.Value", "props": { "children": { "$ref": "metric.value" } } },
-                    { "component": "StatCard.Label", "props": { "children": { "$ref": "metric.label" } } },
-                    { "component": "StatCard.Trend", "props": { "value": { "$ref": "metric.trend" }, "direction": { "$ref": "metric.direction" } } }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "component": "Tabs",
-            "props": { "defaultValue": "progress", "variant": "underline" },
-            "children": [
-              {
-                "component": "Tabs.List",
-                "children": [
-                  { "component": "Tabs.Tab", "props": { "value": "progress" }, "children": ["Project Progress"] },
-                  { "component": "Tabs.Tab", "props": { "value": "activity" }, "children": ["Recent Activity"] }
-                ]
-              },
-              {
-                "component": "Tabs.Panel",
-                "props": { "value": "progress" },
+                "component": "Row",
+                "props": { "gap": "r4", "justify": "between", "align": "center", "wrap": true },
                 "children": [
                   {
                     "component": "Stack",
-                    "props": { "gap": "r4" },
+                    "props": { "gap": "r6" },
                     "children": [
                       {
-                        "$each": "data.projects",
-                        "as": "project",
-                        "node": {
-                          "component": "Card",
-                          "props": { "padding": "r4" },
-                          "children": [
-                            {
-                              "component": "Stack",
-                              "props": { "gap": "r5" },
-                              "children": [
-                                { "component": "Text", "props": { "variant": "body-1", "weight": "semibold" }, "children": [{ "$ref": "project.name" }] },
-                                { "component": "ProgressBar", "props": { "value": { "$ref": "project.progress" }, "max": 100, "animate": true } }
-                              ]
-                            }
-                          ]
-                        }
+                        "component": "Row",
+                        "props": { "gap": "r5", "align": "center" },
+                        "children": [
+                          { "component": "Text", "props": { "variant": "h4" }, "children": ["Revenue operations"] },
+                          { "component": "Badge", "props": { "variant": "success", "statusIcon": "activity" }, "children": ["Live"] }
+                        ]
+                      },
+                      {
+                        "component": "Text",
+                        "props": { "variant": "body-3", "color": "muted" },
+                        "children": ["Meridian workspace · updated 2 minutes ago"]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Row",
+                    "props": { "gap": "r5", "align": "center" },
+                    "children": [
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "secondary",
+                          "onClick": { "action": "showToast", "payload": { "message": "Export queued — we'll email you a link.", "variant": "info" } }
+                        },
+                        "children": ["Export"]
+                      },
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "primary",
+                          "onClick": { "action": "showToast", "payload": { "message": "Report builder coming right up.", "variant": "success" } }
+                        },
+                        "children": ["New report"]
                       }
                     ]
                   }
                 ]
               },
               {
-                "component": "Tabs.Panel",
-                "props": { "value": "activity" },
+                "$cond": "data.digest",
+                "then": {
+                  "component": "Alert",
+                  "props": { "variant": "info", "statusIcon": "flask-conical" },
+                  "children": ["Three pricing experiments end this Friday. Review results before the weekly sync."]
+                }
+              },
+              {
+                "component": "Grid",
+                "props": { "columns": { "base": 1, "sm": 2, "lg": 4 }, "gap": "r4" },
                 "children": [
                   {
-                    "component": "Timeline",
-                    "props": { "animate": true },
+                    "$each": "data.kpis",
+                    "as": "kpi",
+                    "node": {
+                      "component": "StatCard",
+                      "children": [
+                        {
+                          "component": "Row",
+                          "props": { "gap": "r5", "justify": "between", "align": "start" },
+                          "children": [
+                            {
+                              "component": "Stack",
+                              "props": { "gap": "r6" },
+                              "children": [
+                                { "component": "StatCard.Label", "props": { "children": { "$ref": "kpi.label" } } },
+                                { "component": "StatCard.Value", "props": { "children": { "$ref": "kpi.value" } } }
+                              ]
+                            },
+                            {
+                              "component": "StatCard.Icon",
+                              "children": [{ "component": "Icon", "props": { "name": { "$ref": "kpi.icon" }, "size": 18 } }]
+                            }
+                          ]
+                        },
+                        {
+                          "component": "Row",
+                          "props": { "gap": "r6", "align": "center" },
+                          "children": [
+                            {
+                              "component": "StatCard.Trend",
+                              "props": {
+                                "value": { "$ref": "kpi.trend" },
+                                "direction": { "$ref": "kpi.direction" },
+                                "sentiment": { "$ref": "kpi.sentiment" }
+                              }
+                            },
+                            { "component": "Text", "props": { "variant": "body-3", "color": "muted", "as": "span" }, "children": ["vs last month"] }
+                          ]
+                        },
+                        {
+                          "component": "StatCard.Sparkline",
+                          "props": {
+                            "values": { "$ref": "kpi.spark" },
+                            "variant": "area",
+                            "height": 36,
+                            "direction": { "$ref": "kpi.direction" },
+                            "sentiment": { "$ref": "kpi.sentiment" }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "component": "Grid",
+                "props": { "columns": { "base": 1, "lg": 3 }, "gap": "r4" },
+                "children": [
+                  {
+                    "component": "Card",
+                    "props": { "padding": "r3", "className": "lg:col-span-2" },
                     "children": [
                       {
-                        "$each": "data.activities",
-                        "as": "activity",
-                        "node": {
-                          "component": "Timeline.Item",
-                          "props": { "title": { "$ref": "activity.title" }, "date": { "$ref": "activity.date" } },
-                          "children": [
-                            { "component": "Badge", "props": { "children": { "$ref": "activity.status" } } }
-                          ]
-                        }
+                        "component": "Stack",
+                        "props": { "gap": "r4" },
+                        "children": [
+                          {
+                            "component": "Row",
+                            "props": { "gap": "r5", "justify": "between", "align": "center", "wrap": true },
+                            "children": [
+                              {
+                                "component": "Stack",
+                                "props": { "gap": "r6" },
+                                "children": [
+                                  { "component": "Text", "props": { "variant": "h5" }, "children": ["Revenue by channel"] },
+                                  { "component": "Text", "props": { "variant": "body-3", "color": "muted" }, "children": ["Trailing 30 days, all plans"] }
+                                ]
+                              },
+                              { "component": "Badge", "props": { "variant": "info" }, "children": ["Last-touch attribution"] }
+                            ]
+                          },
+                          {
+                            "$each": "data.channels",
+                            "as": "channel",
+                            "node": {
+                              "component": "Stack",
+                              "props": { "gap": "r6" },
+                              "children": [
+                                {
+                                  "component": "Row",
+                                  "props": { "gap": "r5", "justify": "between", "align": "baseline" },
+                                  "children": [
+                                    { "component": "Text", "props": { "variant": "body-2", "weight": "semibold" }, "children": [{ "$ref": "channel.name" }] },
+                                    {
+                                      "component": "Row",
+                                      "props": { "gap": "r5", "align": "baseline" },
+                                      "children": [
+                                        { "component": "Text", "props": { "variant": "body-2", "color": "secondary" }, "children": [{ "$ref": "channel.revenue" }] },
+                                        { "component": "Text", "props": { "variant": "body-3", "color": "muted" }, "children": [{ "$ref": "channel.share" }, "%"] }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "component": "ProgressBar",
+                                  "props": { "value": { "$ref": "channel.share" }, "max": 40, "aria-label": { "$ref": "channel.name" } }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Card",
+                    "props": { "padding": "r3" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r4" },
+                        "children": [
+                          {
+                            "component": "Stack",
+                            "props": { "gap": "r6" },
+                            "children": [
+                              { "component": "Text", "props": { "variant": "h5" }, "children": ["Quarter goal"] },
+                              { "component": "Text", "props": { "variant": "body-3", "color": "muted" }, "children": ["Net-new ARR against a $520k target"] }
+                            ]
+                          },
+                          {
+                            "component": "Center",
+                            "children": [
+                              {
+                                "component": "ProgressRing",
+                                "props": { "value": 78, "size": 168, "thickness": 12, "color": "accent", "aria-label": "Quarter goal progress" },
+                                "children": [
+                                  {
+                                    "component": "Stack",
+                                    "props": { "gap": "r6", "className": "text-center" },
+                                    "children": [
+                                      { "component": "Text", "props": { "variant": "h3", "as": "p" }, "children": ["78%"] },
+                                      { "component": "Text", "props": { "variant": "body-3", "color": "muted" }, "children": ["$405k closed"] }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          { "component": "Divider" },
+                          {
+                            "component": "Stack",
+                            "props": { "gap": "r5" },
+                            "children": [
+                              {
+                                "component": "Row",
+                                "props": { "gap": "r5", "justify": "between" },
+                                "children": [
+                                  { "component": "Text", "props": { "variant": "body-3", "color": "secondary" }, "children": ["Pipeline coverage"] },
+                                  { "component": "Text", "props": { "variant": "body-3", "weight": "semibold" }, "children": ["3.4×"] }
+                                ]
+                              },
+                              {
+                                "component": "Row",
+                                "props": { "gap": "r5", "justify": "between" },
+                                "children": [
+                                  { "component": "Text", "props": { "variant": "body-3", "color": "secondary" }, "children": ["Days remaining"] },
+                                  { "component": "Text", "props": { "variant": "body-3", "weight": "semibold" }, "children": ["23"] }
+                                ]
+                              },
+                              {
+                                "component": "Row",
+                                "props": { "gap": "r5", "justify": "between" },
+                                "children": [
+                                  { "component": "Text", "props": { "variant": "body-3", "color": "secondary" }, "children": ["Forecast"] },
+                                  { "component": "Badge", "props": { "variant": "success" }, "children": ["On track"] }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "component": "Grid",
+                "props": { "columns": { "base": 1, "lg": 3 }, "gap": "r4", "className": "items-start" },
+                "children": [
+                  {
+                    "component": "Card",
+                    "props": { "padding": "r3", "className": "lg:col-span-2" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r4" },
+                        "children": [
+                          { "component": "Text", "props": { "variant": "h5" }, "children": ["Top pages"] },
+                          {
+                            "component": "DataTable",
+                            "props": {
+                              "data": { "$ref": "data.topPages" },
+                              "rowKey": "page",
+                              "columns": [
+                                { "key": "page", "header": "Page" },
+                                { "key": "views", "header": "Views", "align": "right" },
+                                { "key": "conversion", "header": "Conversion", "align": "right" },
+                                { "key": "change", "header": "30d change", "align": "right" }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "Card",
+                    "props": { "padding": "r3" },
+                    "children": [
+                      {
+                        "component": "Stack",
+                        "props": { "gap": "r4" },
+                        "children": [
+                          { "component": "Text", "props": { "variant": "h5" }, "children": ["Deploys"] },
+                          {
+                            "component": "Timeline",
+                            "props": { "animate": false, "align": "left", "density": "dense" },
+                            "children": [
+                              {
+                                "$each": "data.deploys",
+                                "as": "deploy",
+                                "node": {
+                                  "component": "Timeline.Item",
+                                  "props": { "title": { "$ref": "deploy.title" }, "titleAs": "h6", "date": { "$ref": "deploy.date" } },
+                                  "children": [
+                                    {
+                                      "component": "Stack",
+                                      "props": { "gap": "r6" },
+                                      "children": [
+                                        { "component": "Text", "props": { "variant": "body-3", "color": "secondary" }, "children": [{ "$ref": "deploy.note" }] },
+                                        {
+                                          "component": "Row",
+                                          "children": [
+                                            { "component": "Badge", "props": { "variant": { "$ref": "deploy.variant" } }, "children": [{ "$ref": "deploy.status" }] }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        ]
                       }
                     ]
                   }
