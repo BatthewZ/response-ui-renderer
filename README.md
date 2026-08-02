@@ -24,6 +24,49 @@ import { ViewRenderer } from "@batthewz/response-ui-renderer";
 
 ---
 
+## Why a document, and not model-written HTML?
+
+A model can emit HTML directly, so it is fair to ask what the JSON detour buys. The
+difference is categorical: generated HTML+JS is a **program** you have to trust, sandbox
+and freeze, while a ViewSpec is **data** you can validate against a contract. Everything
+this package offers follows from that. (The underlying pattern is server-driven UI — the
+architecture Airbnb, Lyft and Shopify run natively — with a model as one possible author.)
+
+**Safety is structural, not best-effort.** A document cannot do anything the renderer
+does not allow: there is no script to inject, events come from a fixed action vocabulary,
+and you decide what `navigate`, `fetch` and `resolveSource` actually do. Model-authored
+HTML is arbitrary code running in your users' browsers, mitigable only with sandboxed
+iframes — and the sandbox that makes it safe also cuts it off from your app's navigation,
+state and toasts, which a document reaches through adapters.
+
+**The data never passes through the model.** An `api` or `source` binding means the model
+designs the *shape* of a view while the client fetches the numbers — with the user's own
+credentials, at render time. The model needs no access to the data it is presenting, a
+cached document stays live, and one document serves every tenant. Generated HTML either
+bakes stale data into the markup or ships model-written fetch code you then have to trust.
+
+**Consistency and accessibility come from the components.** Every view is assembled from
+your themed, focus-managed, ARIA-correct component library, so it lands looking native to
+your app and follows its theme — including one it has never seen. Model-authored markup
+reliably gets both wrong, and no prompt fully fixes that.
+
+**A document has a lifecycle a blob does not.** JSON can be validated before render (and
+regenerated on failure), diffed, patched — "make that a bar chart" is a small edit, not a
+regeneration — stored, and re-rendered better later: upgrade the component library and
+every stored document picks up the improvement. An HTML blob is frozen at generation
+time. A ViewSpec is also a fraction of the tokens of the equivalent HTML+CSS+JS, which
+compounds when generation happens per request rather than once.
+
+**What it costs.** Expressiveness is bounded by the registry: a document composes what is
+registered, and while [custom components](#custom-components) raise the ceiling, a
+genuinely novel visualization or bespoke interaction is outside the format on purpose.
+For a one-off, self-contained artifact that will never live inside your app — a shareable
+page, a throwaway prototype — letting the model write HTML is the better tool. This
+package is for UI that lives inside a product: matching its design language, bound to
+live authenticated data, interactive without shipping code, generated repeatedly, cached.
+
+---
+
 ## Install
 
 ```bash
