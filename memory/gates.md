@@ -133,3 +133,12 @@ Resolve declarations by type name, not by filename.
 Never write an example theme name into a selector, type, default, config list, doc table or
 fixture — invent one. `default` is the only theme the design system defines. A test asserts
 the reference doc names none of them.
+
+The reference doc's Theming section *inlines* the css package's theme contract — the token
+tables and their invariants — so a document-authoring model needs no second source. That
+mirror is hand-written prose, and the doc gate only regenerates the generated regions, so no
+gate sees the upstream contract move. A css bump that touches the theme contract requires a
+manual sweep of that section, the same way a peer bump requires sweeping the corpus against
+the changelog. The mirror also carries renderer-only caveats the css doc rightly does not:
+overrides are inline `--*` properties, so `color-scheme`, `@keyframes` and the 40rem
+media-query step-ups are all unreachable from a document.

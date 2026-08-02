@@ -93,8 +93,9 @@ of the contract this reference can describe.
 generates utilities by scanning source files at build time, and a document arrives at
 runtime — long after. Common utilities the library itself uses are present; an arbitrary
 one (`w-[37%]`, `text-[13px]`) usually is not, and it fails **silently**. Stay near the
-scale (`gap-r4`, `p-r3`, `w-full`, `text-body-2`), or ask the host to add its document
-store to Tailwind's `@source` list.
+scale (`gap-r4`, `p-r3`, `w-full`, `text-body-2`) — the Utility columns of the token
+tables under Theming are the vocabulary to draw from — or ask the host to add its
+document store to Tailwind's `@source` list.
 
 <!-- GENERATED:slots -->
 | Component | `classNames` keys |
@@ -452,13 +453,102 @@ largest step, `r6` the smallest. Never write raw pixels.
 
 ## Theming
 
-`themeOverrides` sets CSS custom properties on the view's wrapper — always scoped, always
-works. Keys must start with `--`.
+Two optional levers. `theme` names a theme **your application defines**; `response-ui-css`
+defines only `default`, which *is* `:root`. A theme authored `:root[data-theme="…"]` matches
+`<html>` and nothing else, so it cannot be scoped to a subtree; the renderer's default
+`themeMode: "root"` writes there. For per-view theming prefer `themeOverrides`.
 
-`theme` names a theme **your application defines**; `response-ui-css` defines only `default`,
-which *is* `:root`. A theme authored `:root[data-theme="…"]` matches `<html>` and nothing
-else, so it cannot be scoped to a subtree; the renderer's default `themeMode: "root"` writes
-there. For per-view theming prefer `themeOverrides`.
+`themeOverrides` sets CSS custom properties inline on the view's wrapper — always scoped to
+the view, always works, and independent of `themeMode`. Only keys starting with `--` are
+applied; anything else is dropped, so a document can re-point design tokens but never
+restyle arbitrary CSS. Every token has a default, so override only what the design calls
+for. (`Portal` renders outside the wrapper and does not receive them.)
+
+```jsonc
+"themeOverrides": {
+  "--C-PRIMARY": "oklch(0.55 0.2 275)",
+  "--C-PRIMARY-HOVER": "oklch(0.5 0.2 275)",
+  "--C-PRIMARY-ACTIVE": "oklch(0.45 0.2 275)",
+  "--C-TEXT-ON-PRIMARY": "oklch(0.98 0.01 275)",
+  "--RADIUS-MD": "0.25rem"
+}
+```
+
+### Color tokens
+
+All colors are OKLCH — write overrides in OKLCH. The Utility column is the class the token
+drives (each color also works behind the other prefixes: `bg-`, `text-`, `border-`, `ring-`).
+
+| Token | Utility | Use |
+| --- | --- | --- |
+| `--C-CANVAS` | `bg-canvas` | Page background — the floor everything sits on |
+| `--C-PRIMARY` / `-HOVER` / `-ACTIVE` | `bg-primary` / `-hover` / `-active` | Brand primary fill and its states |
+| `--C-SECONDARY` / `-HOVER` | `bg-secondary` / `-hover` | Secondary fill |
+| `--C-ACCENT` / `-HOVER` | `bg-accent` / `-hover` | Links, focus indicators |
+| `--C-SURFACE-0` | `bg-surface-0` | The raised sheet — cards, dialogs, popovers, menus, resting input fills |
+| `--C-SURFACE-1` | `bg-surface-1` | Still raised, one step less — panels nested in a sheet, table header rows |
+| `--C-SURFACE-2` | `bg-surface-2` | Mildly recessed — hover washes, chips, badges, nested wells |
+| `--C-SURFACE-3` | `bg-surface-3` | The deepest wells — progress and slider tracks, disabled fills |
+| `--C-TEXT-PRIMARY` | `text-fg-primary` | Default body text |
+| `--C-TEXT-SECONDARY` | `text-fg-secondary` | De-emphasized text (captions, helpers) |
+| `--C-TEXT-MUTED` | `text-fg-muted` | Most-muted (placeholders, hints) |
+| `--C-TEXT-INVERSE` | `text-fg-inverse` | Text on a dark surface in a light theme (and vice versa) |
+| `--C-TEXT-ON-PRIMARY` | `text-fg-on-primary` | Text drawn on `--C-PRIMARY` fill |
+| `--C-TEXT-ON-ACCENT` | `text-fg-on-accent` | Text drawn on `--C-ACCENT` fill |
+| `--C-BORDER-DEFAULT` | `border-border-default` | Default border (cards, inputs) |
+| `--C-BORDER-STRONG` | `border-border-strong` | Higher-contrast border |
+| `--C-BORDER-FOCUS` | `ring-border-focus` | Focus ring color |
+| `--C-STATUS-ERROR` / `-SUCCESS` / `-WARNING` / `-INFO` | `text-status-error` … | Status foregrounds |
+| `--C-STATUS-ERROR-BG` / `-SUCCESS-BG` / `-WARNING-BG` / `-INFO-BG` | `bg-status-error-bg` … | Their tinted backgrounds |
+
+**Surfaces.** The scale runs **raised → recessed**, and the lightness direction never
+flips: `--C-SURFACE-0` is the lightest of the four in a light theme *and* in a dark one.
+`--C-CANVAS` is not the end of the scale — it sits **between rungs 1 and 2**, with 0–1
+raised above the page and 2–3 recessed into it. When overriding: keep that order, do not
+let the canvas collide with a rung, and do not pin the canvas at pure white or pure black
+(the recessed rungs then have nowhere to go). A rung is not an elevation — a dialog and a
+card both sit on rung 0 and are supposed to look alike; separate same-rung things with
+`--SHADOW-*` or `--C-BORDER-DEFAULT`, never by borrowing a neighbouring rung. Adjacent
+rungs are a deliberately **weak** cue — never hang meaning on a single step being visible.
+
+**Pairs move together.** `--C-TEXT-ON-PRIMARY` is chosen to read on `--C-PRIMARY`,
+`--C-TEXT-ON-ACCENT` on `--C-ACCENT`, and each status foreground on its `-BG`. Re-tint one
+half of a pair and you must re-tint the other. The pairing guarantees legibility only
+against its own fill — a fill placed on a surface or over an image is your own contrast
+problem to check.
+
+### Other tokens
+
+| Token | Utility | Notes |
+| --- | --- | --- |
+| `--RADIUS-SM` / `-MD` / `-LG` / `-XL` / `-FULL` | `rounded-sm` … `rounded-full` | Defaults `0.25 / 0.5 / 0.75 / 1rem / 9999px` |
+| `--SHADOW-SM` / `-MD` / `-LG` | `shadow-sm` … | Dark palettes want deeper, less-blurry shadows |
+| `--DURATION-FAST` / `-NORMAL` / `-SLOW` | `duration-fast` … | Transition durations |
+| `--HEADING-FONT` | — | Heading font-family |
+| `--HEADING-LETTER-SPACING` | — | `normal` or a length like `0.06em` |
+| `--HEADING-TEXT-TRANSFORM` | — | `none` / `uppercase` / `lowercase` |
+| `--DEFAULT-FONT`, `--DEFAULT-MONO-FONT` | — | Body and mono font-families |
+| `--OVERLAY-SCRIM-COLOR`, `--OVERLAY-GRADIENT-START` / `-END`, `--OVERLAY-BLUR` / `-HEAVY` | — | Spotlight, Carousel overlays, modal scrims |
+| `--ASPECT-WIDE`, `--ASPECT-SQUARE` | `aspect-wide`, `aspect-square` | Default `16 / 9` and `1 / 1` |
+| `--MOTION-DURATION-{ENTER,EXIT,SHIFT,PAGE}`, `--MOTION-EASE-{ENTER,EXIT,SHIFT,PAGE,BOUNCE}` | `duration-enter`, `ease-enter`, … | Motion primitives |
+| `--MOTION-DISTANCE-{SM,MD,LG}`, `--MOTION-STAGGER-DELAY`, `--MOTION-SCALE-{HOVER,PRESS}` | — | Motion primitives |
+
+A font-family override only takes effect if the host app already loads that font — a
+document cannot import font-faces, and an unloaded family falls back silently.
+
+### What `themeOverrides` cannot do
+
+- **Flip light ↔ dark.** `color-scheme` is a CSS property, not a custom property, so no
+  `--` key reaches it — and form controls, scrollbars and the shipped shadow/status
+  palette all follow it. Re-tint *within* the host's scheme; a real dark variant is an
+  app-defined theme (`theme`), not an override set.
+- **Responsive tokens.** `--H1`–`--H6`, `--BodyText-1..3` (each with a paired
+  `*-line-height`), `--R-SIZE-1..6`, `--Semibold-Weight` and `--Bold-Weight` step up at a
+  `40rem` media query. An inline override is one flat value at every width, which freezes
+  that step — so leave the type, spacing and weight scales alone. If you must touch a
+  size, override its `*-line-height` in the same breath or the leading will be wrong.
+- **`@keyframes`.** `--MOTION-PAGE-TRANSITION-IN` / `-OUT` name keyframes a theme must
+  also define; a document cannot define keyframes, so skip them.
 
 ## Rules
 
