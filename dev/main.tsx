@@ -12,66 +12,8 @@ import { exampleSpecs } from "../src/examples";
 import { lucideIcons } from "../src/icons";
 import { type ThemeMode, ViewRenderer } from "../src/index";
 import { type ValidationIssue, validateViewSpec, type ViewSpec } from "../src/spec";
-import { gridExamples } from "./fixed";
 
-/**
- * Hand-authored — NOT one of the real generator fixtures. Demonstrates the
- * `themeOverrides` capability: CSS variables from response-ui-css set inside the
- * document itself, reskinning real components with no theme file and no rebuild.
- */
-const themedOverridesDemo: ViewSpec = {
-  version: 1,
-  title: "Theme variables in the JSON",
-  themeOverrides: {
-    "--C-SURFACE-1": "oklch(0.22 0.04 265)",
-    "--C-TEXT-PRIMARY": "oklch(0.96 0.01 265)",
-    "--C-TEXT-SECONDARY": "oklch(0.78 0.02 265)",
-    "--C-PRIMARY": "oklch(0.72 0.16 200)",
-    "--C-PRIMARY-HOVER": "oklch(0.66 0.16 200)",
-    "--C-TEXT-ON-PRIMARY": "oklch(0.16 0.03 265)",
-    "--C-BORDER-DEFAULT": "oklch(0.32 0.04 265)",
-    "--RADIUS-MD": "1rem",
-  },
-  root: {
-    component: "Container",
-    children: [
-      {
-        component: "Card",
-        props: { padding: "r3" },
-        children: [
-          {
-            component: "Stack",
-            props: { gap: "r4" },
-            children: [
-              { component: "Text", props: { variant: "h3" }, children: ["Reskinned from JSON"] },
-              {
-                component: "Text",
-                props: { variant: "body-2", color: "secondary" },
-                children: [
-                  "Every colour here comes from themeOverrides in this document — no theme file, no CSS edit. Change a value and it re-renders live.",
-                ],
-              },
-              {
-                component: "Row",
-                props: { gap: "r4" },
-                children: [
-                  { component: "Button", props: { variant: "primary" }, children: ["Primary"] },
-                  { component: "Badge", props: { variant: "info" }, children: ["Badge"] },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-};
-
-const EXAMPLES: [string, ViewSpec][] = [
-  ...(Object.entries(exampleSpecs) as [string, ViewSpec][]),
-  ...gridExamples,
-  ["themeOverrides demo", themedOverridesDemo],
-];
+const EXAMPLES: [string, ViewSpec][] = Object.entries(exampleSpecs) as [string, ViewSpec][];
 
 // Dev harness only: the example themes are opt-in, and app.css imports them deliberately.
 const THEMES = EXAMPLE_THEMES;
