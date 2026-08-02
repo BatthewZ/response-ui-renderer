@@ -2,11 +2,7 @@
 
 **Let a model build a page inside your app, without shipping code it wrote.**
 
-A producer — an LLM, a CMS, your own backend — emits a **ViewSpec**: plain JSON describing a
-view. You mount it. What renders is a themed, interactive page assembled from
-[`@batthewz/response-ui-react-components`](https://github.com/BatthewZ/response-ui-react-components),
-your own component library, with no per-component glue and no generated code in your users'
-browsers.
+A producer — an LLM, a CMS, your own backend — emits a **ViewSpec**: plain JSON describing a view. You mount it. What renders is a themed, interactive page assembled from [`@batthewz/response-ui-react-components`](https://github.com/BatthewZ/response-ui-react-components), your own component library, with no per-component glue and no generated code in your users' browsers.
 
 ```tsx
 import { ViewRenderer } from "@batthewz/response-ui-renderer";
@@ -14,61 +10,28 @@ import { ViewRenderer } from "@batthewz/response-ui-renderer";
 <ViewRenderer spec={await res.json()} />;
 ```
 
-**[Try it in the playground →](https://batthewz.github.io/response-ui-renderer/)** — edit a
-document, watch it render, reskin it with a theme. Nothing to install.
+**[Try it in the playground →](https://batthewz.github.io/response-ui-renderer/)** — edit a document, watch it render, reskin it with a theme. Nothing to install.
 
-- **Every component the library exports is addressable, and proven to render.** 99 components
-  and 73 compound parts, derived from the library's own barrel at runtime — not a hand-copied
-  list — and a coverage corpus renders every one of them. 7 need host code; they are named,
-  with the reason, in [VIEWSPEC.md](VIEWSPEC.md).
+- **Every component the library exports is addressable, and proven to render.** 99 components and 73 compound parts, derived from the library's own barrel at runtime — not a hand-copied list — and a coverage corpus renders every one of them. 7 need host code; they are named, with the reason, in [VIEWSPEC.md](VIEWSPEC.md).
 - **Zero runtime dependencies.** React and response-ui are peers; nothing else ships.
-- **Host-agnostic.** No router, no server routes, no auth model. Navigation, network and
-  toasts are injected.
-- **Hardened for machine-generated input.** Per-node error boundaries, prototype-safe
-  lookups, forbidden-prop stripping, URL-scheme filtering, depth limits.
+- **Host-agnostic.** No router, no server routes, no auth model. Navigation, network and toasts are injected.
+- **Hardened for machine-generated input.** Per-node error boundaries, prototype-safe lookups, forbidden-prop stripping, URL-scheme filtering, depth limits.
 
 ---
 
 ## Why a document, and not model-written HTML?
 
-A model can emit HTML directly, so it is fair to ask what the JSON detour buys. The
-difference is categorical: generated HTML+JS is a **program** you have to trust, sandbox
-and freeze, while a ViewSpec is **data** you can validate against a contract. Everything
-this package offers follows from that. (The underlying pattern is server-driven UI — the
-architecture Airbnb, Lyft and Shopify run natively — with a model as one possible author.)
+A model can emit HTML directly, so it is fair to ask what the JSON detour buys. The difference is categorical: generated HTML+JS is a **program** you have to trust, sandbox and freeze, while a ViewSpec is **data** you can validate against a contract. Everything this package offers follows from that. (The underlying pattern is server-driven UI — the architecture Airbnb, Lyft and Shopify run natively — with a model as one possible author.)
 
-**Safety is structural, not best-effort.** A document cannot do anything the renderer
-does not allow: there is no script to inject, events come from a fixed action vocabulary,
-and you decide what `navigate`, `fetch` and `resolveSource` actually do. Model-authored
-HTML is arbitrary code running in your users' browsers, mitigable only with sandboxed
-iframes — and the sandbox that makes it safe also cuts it off from your app's navigation,
-state and toasts, which a document reaches through adapters.
+**Safety is structural, not best-effort.** A document cannot do anything the renderer does not allow: there is no script to inject, events come from a fixed action vocabulary, and you decide what `navigate`, `fetch` and `resolveSource` actually do. Model-authored HTML is arbitrary code running in your users' browsers, mitigable only with sandboxed iframes — and the sandbox that makes it safe also cuts it off from your app's navigation, state and toasts, which a document reaches through adapters.
 
-**The data never passes through the model.** An `api` or `source` binding means the model
-designs the *shape* of a view while the client fetches the numbers — with the user's own
-credentials, at render time. The model needs no access to the data it is presenting, a
-cached document stays live, and one document serves every tenant. Generated HTML either
-bakes stale data into the markup or ships model-written fetch code you then have to trust.
+**The data never passes through the model.** An `api` or `source` binding means the model designs the *shape* of a view while the client fetches the numbers — with the user's own credentials, at render time. The model needs no access to the data it is presenting, a cached document stays live, and one document serves every tenant. Generated HTML either bakes stale data into the markup or ships model-written fetch code you then have to trust.
 
-**Consistency and accessibility come from the components.** Every view is assembled from
-your themed, focus-managed, ARIA-correct component library, so it lands looking native to
-your app and follows its theme — including one it has never seen. Model-authored markup
-reliably gets both wrong, and no prompt fully fixes that.
+**Consistency and accessibility come from the components.** Every view is assembled from your themed, focus-managed, ARIA-correct component library, so it lands looking native to your app and follows its theme — including one it has never seen. Model-authored markup reliably gets both wrong, and no prompt fully fixes that.
 
-**A document has a lifecycle a blob does not.** JSON can be validated before render (and
-regenerated on failure), diffed, patched — "make that a bar chart" is a small edit, not a
-regeneration — stored, and re-rendered better later: upgrade the component library and
-every stored document picks up the improvement. An HTML blob is frozen at generation
-time. A ViewSpec is also a fraction of the tokens of the equivalent HTML+CSS+JS, which
-compounds when generation happens per request rather than once.
+**A document has a lifecycle a blob does not.** JSON can be validated before render (and regenerated on failure), diffed, patched — "make that a bar chart" is a small edit, not a regeneration — stored, and re-rendered better later: upgrade the component library and every stored document picks up the improvement. An HTML blob is frozen at generation time. A ViewSpec is also a fraction of the tokens of the equivalent HTML+CSS+JS, which compounds when generation happens per request rather than once.
 
-**What it costs.** Expressiveness is bounded by the registry: a document composes what is
-registered, and while [custom components](#custom-components) raise the ceiling, a
-genuinely novel visualization or bespoke interaction is outside the format on purpose.
-For a one-off, self-contained artifact that will never live inside your app — a shareable
-page, a throwaway prototype — letting the model write HTML is the better tool. This
-package is for UI that lives inside a product: matching its design language, bound to
-live authenticated data, interactive without shipping code, generated repeatedly, cached.
+**What it costs.** Expressiveness is bounded by the registry: a document composes what is registered, and while [custom components](#custom-components) raise the ceiling, a genuinely novel visualization or bespoke interaction is outside the format on purpose. For a one-off, self-contained artifact that will never live inside your app — a shareable page, a throwaway prototype — letting the model write HTML is the better tool. This package is for UI that lives inside a product: matching its design language, bound to live authenticated data, interactive without shipping code, generated repeatedly, cached.
 
 ---
 
@@ -87,13 +50,11 @@ Three CSS imports, in this order:
 @import "@batthewz/response-ui-renderer/styles";          /* renderer diagnostics */
 ```
 
-Order matters — each layer reads `var(--…)` from the one before it. Tailwind v4 must be in
-your build.
+Order matters — each layer reads `var(--…)` from the one before it. Tailwind v4 must be in your build.
 
 ### Your first document
 
-The document. Nothing here is special-cased — `Card`, `Text` and `Button` are ordinary exports
-of the component library, addressed by name:
+The document. Nothing here is special-cased — `Card`, `Text` and `Button` are ordinary exports of the component library, addressed by name:
 
 ```json
 {
@@ -124,21 +85,15 @@ import spec from "./hello.json";
 export default () => <ViewRenderer spec={spec} adapters={{ toast: console.log }} />;
 ```
 
-You should see a themed card with an `<h3>` and a working button; clicking it logs `Hi`,
-because `toast` is a host adapter and you decided what it does. Change `"h3"` to `"h1"` and the
-heading grows. Change `"Card"` to `"Alert"` and the shell changes. That is the whole loop: the
-document says *what*, your library decides *how*, and the host decides what an action means.
+You should see a themed card with an `<h3>` and a working button; clicking it logs `Hi`, because `toast` is a host adapter and you decided what it does. Change `"h3"` to `"h1"` and the heading grows. Change `"Card"` to `"Alert"` and the shell changes. That is the whole loop: the document says *what*, your library decides *how*, and the host decides what an action means.
 
-Misspell `"Card"` and you get an inline warning in that node's place while the rest of the page
-still renders — documents are assumed to be machine-written, so a bad one degrades instead of
-throwing.
+Misspell `"Card"` and you get an inline warning in that node's place while the rest of the page still renders — documents are assumed to be machine-written, so a bad one degrades instead of throwing.
 
 ---
 
 ## The ViewSpec format
 
-**[VIEWSPEC.md](VIEWSPEC.md) is the terse reference to hand a model** — the whole format plus
-every component, its compound parts and its props, generated from the live library.
+**[VIEWSPEC.md](VIEWSPEC.md) is the terse reference to hand a model** — the whole format plus every component, its compound parts and its props, generated from the live library.
 
 ```jsonc
 {
@@ -163,22 +118,17 @@ every component, its compound parts and its props, generated from the live libra
 | Loop | `{ "$each": "data.rows", "as": "row", "node": {…} }` | `node` once per element |
 | Conditional | `{ "$cond": "data.flag", "then": {…}, "else": {…} }` | one branch, by truthiness |
 
-`component` accepts compound parts by dot path: `"Table.Row"`, `"Accordion.Item"`,
-`"StatCard.Sparkline"`. Unknown names render an inline warning; the rest of the view is
-unaffected.
+`component` accepts compound parts by dot path: `"Table.Row"`, `"Accordion.Item"`, `"StatCard.Sparkline"`. Unknown names render an inline warning; the rest of the view is unaffected.
 
 ### Reference paths
 
 Resolved highest-precedence first:
 
 1. `data.…` and `forms.…` — explicit namespaces
-2. `$each` aliases (`row`, `rowIndex`) and `state.…` — an alias shadows a data key of the
-   same name, so a loop body always reads its own item
+2. `$each` aliases (`row`, `rowIndex`) and `state.…` — an alias shadows a data key of the same name, so a loop body always reads its own item
 3. bare data keys — `users.0.name` means `data.users[0].name`
 
-Form values are `forms.<name>.values.<field>`; `forms.<name>.<field>` is accepted as
-shorthand. Missing paths resolve to nothing rather than throwing, and prototype members
-(`constructor`, `__proto__`, `toString`) never resolve.
+Form values are `forms.<name>.values.<field>`; `forms.<name>.<field>` is accepted as shorthand. Missing paths resolve to nothing rather than throwing, and prototype members (`constructor`, `__proto__`, `toString`) never resolve.
 
 ### Props
 
@@ -190,12 +140,9 @@ A prop value may be a literal, or one of:
 { "$node": { "component": "Badge", "children": ["New"] } }  // a ViewNode in a prop
 ```
 
-`$ref`, `$node` and complete handler objects resolve **inside array and object props** too, so
-`CommandPalette.items[].onSelect` and a `DataTable` column's `render` template work. Ordinary
-data is left alone — a row that happens to carry an `action` string stays a row.
+`$ref`, `$node` and complete handler objects resolve **inside array and object props** too, so `CommandPalette.items[].onSelect` and a `DataTable` column's `render` template work. Ordinary data is left alone — a row that happens to carry an `action` string stays a row.
 
-Two-way form binding uses a bare `$field` key, which wires `value`/`checked` and `onChange`
-together:
+Two-way form binding uses a bare `$field` key, which wires `value`/`checked` and `onChange` together:
 
 ```jsonc
 { "component": "Input", "props": { "$field": "contact.email" } }
@@ -204,8 +151,7 @@ together:
 
 The longhand `{ "value": { "$field": "contact.email" } }` is also accepted.
 
-A string on an icon-shaped prop (`icon`, `leftIcon`, `trailingIcon`, …) becomes an icon —
-see [Icons](#icons).
+A string on an icon-shaped prop (`icon`, `leftIcon`, `trailingIcon`, …) becomes an icon — see [Icons](#icons).
 
 ### Data bindings
 
@@ -215,30 +161,20 @@ see [Icons](#icons).
 | `api` | `{ "type": "api", "endpoint": "/x", "method": "GET", "headers": {}, "body": … }` | fetched on mount via `adapters.fetch` |
 | `source` | `{ "type": "source", "source": "crm", "params": {} }` | delegated to `adapters.resolveSource` |
 
-`api` URLs are **not rewritten**. By default only relative or same-origin URLs are
-requested — override with `adapters.allowUrl`. `source` is the escape hatch for
-host-specific access (credentialed proxies, RPC, in-memory stores), so no host's server
-contract has to live in the wire format.
+`api` URLs are **not rewritten**. By default only relative or same-origin URLs are requested — override with `adapters.allowUrl`. `source` is the escape hatch for host-specific access (credentialed proxies, RPC, in-memory stores), so no host's server contract has to live in the wire format.
 
 ### Events
 
-`submitForm`, `resetForm`, `navigate`, `showToast`, `apiCall`, `openDialog`, `closeDialog`,
-`setState`. Payloads are `$ref`-resolved before dispatch (except `apiCall.endpoint` and
-`setState.key`, read literally so state shape can't depend on data). Handler chains
-(`onSuccess`/`onError`/`onSubmit`) stop at depth 5.
+`submitForm`, `resetForm`, `navigate`, `showToast`, `apiCall`, `openDialog`, `closeDialog`, `setState`. Payloads are `$ref`-resolved before dispatch (except `apiCall.endpoint` and `setState.key`, read literally so state shape can't depend on data). Handler chains (`onSuccess`/`onError`/`onSubmit`) stop at depth 5.
 
-Inside a payload, **`event` names the callback's arguments** — `event.value` for the first one
-(DOM events unwrapped), `event.args.N` for the rest. Without it a controlled component could
-never report anything back, so `Pagination` — controlled-only, with no `defaultPage` — could
-not move at all:
+Inside a payload, **`event` names the callback's arguments** — `event.value` for the first one (DOM events unwrapped), `event.args.N` for the rest. Without it a controlled component could never report anything back, so `Pagination` — controlled-only, with no `defaultPage` — could not move at all:
 
 ```jsonc
 "onPageChange": { "action": "setState",
                   "payload": { "key": "page", "value": { "$ref": "event.value" } } }
 ```
 
-`event` resolves to nothing outside a handler. Prefer an uncontrolled seed (`defaultValue`,
-`defaultOpen`) where the component has one.
+`event` resolves to nothing outside a handler. Prefer an uncontrolled seed (`defaultValue`, `defaultOpen`) where the component has one.
 
 ```jsonc
 {
@@ -261,10 +197,7 @@ not move at all:
 }
 ```
 
-Rules: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `message`. `min`/`max`
-apply to numeric **strings** too, so they work on a plain text input. `submitForm` validates
-first and only then runs `onSubmit`. `Field` and `FieldError` accept
-`"name": "contact.email"` to surface the live error.
+Rules: `required`, `min`, `max`, `minLength`, `maxLength`, `pattern`, `message`. `min`/`max` apply to numeric **strings** too, so they work on a plain text input. `submitForm` validates first and only then runs `onSubmit`. `Field` and `FieldError` accept `"name": "contact.email"` to surface the live error.
 
 ---
 
@@ -300,35 +233,25 @@ const { toast } = useToast();
 | `resolveSource` | reports a diagnostic | `source` bindings |
 | `allowUrl` | relative or same-origin | every request |
 
-`toast` is injected rather than read from `useToast()` internally, because the library's
-hook throws without a `ToastProvider` — the renderer must stay mountable anywhere.
+`toast` is injected rather than read from `useToast()` internally, because the library's hook throws without a `ToastProvider` — the renderer must stay mountable anywhere.
 
 ---
 
 ## Theming
 
-`themeOverrides` sets CSS custom properties inline on the view's wrapper. They cascade to
-descendants, so **this always works and is always scoped to the view**:
+`themeOverrides` sets CSS custom properties inline on the view's wrapper. They cascade to descendants, so **this always works and is always scoped to the view**:
 
 ```jsonc
 "themeOverrides": { "--C-PRIMARY": "oklch(0.6 0.15 220)", "--RADIUS-MD": "1rem" }
 ```
 
-Keys must start with `--`; anything else is ignored. See the
-[theme contract](https://github.com/BatthewZ/response-ui-css/blob/main/docs/theme-contract.md)
-for the full token list.
+Keys must start with `--`; anything else is ignored. See the [theme contract](https://github.com/BatthewZ/response-ui-css/blob/main/docs/theme-contract.md) for the full token list.
 
 ### `theme` and the `:root` caveat
 
-A `theme` name refers to a theme **your application defines** — writing your own is the
-normal case. `response-ui-css` defines only `default` (which is `:root` itself); the
-`events` / `grimdark` / `tech` themes it ships are opt-in worked examples, not a built-in
-set, and nothing imports them for you.
+A `theme` name refers to a theme **your application defines** — writing your own is the normal case. `response-ui-css` defines only `default` (which is `:root` itself); the `events` / `grimdark` / `tech` themes it ships are opt-in worked examples, not a built-in set, and nothing imports them for you.
 
-⚠️ **A theme authored `:root[data-theme="…"]` matches `<html>` and nothing else.** A theme
-name therefore cannot be scoped to a subtree if it is written that way — the attribute has
-to be on the document element or the rule matches nothing. The worked examples, and the
-theme template most themes start from, are written that way.
+⚠️ **A theme authored `:root[data-theme="…"]` matches `<html>` and nothing else.** A theme name therefore cannot be scoped to a subtree if it is written that way — the attribute has to be on the document element or the rule matches nothing. The worked examples, and the theme template most themes start from, are written that way.
 
 `themeMode` makes the trade-off explicit:
 
@@ -337,20 +260,13 @@ theme template most themes start from, are written that way.
 | `"root"` *(default)* | `<html>` | ✅ yes | whole document |
 | `"scoped"` | the view's wrapper | ❌ no — needs a bare `[data-theme]` theme | the view only |
 
-A view that declares no theme makes no claim at all, so it never strips the host's theme.
-`"root"` claims are a stack — the most recently mounted wins, releasing one falls back to
-the next, and the last one out restores the host's own value — and it warns whenever more
-than one view is claiming `<html>`. For genuinely independent per-view themes, either author your themes with
-a bare `[data-theme="…"]` selector and use `"scoped"`, or express the theme as
-`themeOverrides`.
+A view that declares no theme makes no claim at all, so it never strips the host's theme. `"root"` claims are a stack — the most recently mounted wins, releasing one falls back to the next, and the last one out restores the host's own value — and it warns whenever more than one view is claiming `<html>`. For genuinely independent per-view themes, either author your themes with a bare `[data-theme="…"]` selector and use `"scoped"`, or express the theme as `themeOverrides`.
 
 ---
 
 ## Icons
 
-response-ui exports no `Icon` component, but many of its components take `icon` props typed
-`ReactNode` — which JSON cannot express. This package adds an `Icon` node and coerces
-string-valued icon props, given an icon set:
+response-ui exports no `Icon` component, but many of its components take `icon` props typed `ReactNode` — which JSON cannot express. This package adds an `Icon` node and coerces string-valued icon props, given an icon set:
 
 ```tsx
 import { lucideIcons } from "@batthewz/response-ui-renderer/icons";
@@ -363,16 +279,14 @@ import { lucideIcons } from "@batthewz/response-ui-renderer/icons";
 { "component": "Timeline.Item", "props": { "icon": "Check" } }
 ```
 
-The full lucide set is a **separate entry point** because it is ~1600 modules and the core
-must not make you pay for it. For a smaller bundle, pass a curated map:
+The full lucide set is a **separate entry point** because it is ~1600 modules and the core must not make you pay for it. For a smaller bundle, pass a curated map:
 
 ```tsx
 import { Check, TrendingUp, X } from "lucide-react";
 <ViewRenderer spec={spec} icons={{ Check, TrendingUp, X }} />;
 ```
 
-Names are matched leniently — `"trending-up"`, `"trending_up"` and `"TrendingUp"` all
-resolve. An unresolved name renders a placeholder that holds its slot rather than throwing.
+Names are matched leniently — `"trending-up"`, `"trending_up"` and `"TrendingUp"` all resolve. An unresolved name renders a placeholder that holds its slot rather than throwing.
 
 ---
 
@@ -391,24 +305,15 @@ for (const issue of result.issues) console.warn(issue.path, issue.message);
 Every issue carries a `severity`:
 
 - `"error"` — the document does not conform; `ok` is `false`. Use `errorsOf(issues)`.
-- `"warning"` — it conforms, but names something that will not do what it looks like: a
-  forbidden prop, a `javascript:` URL, an unknown action inside a prop, a theme override
-  that is not a custom property, nesting past the depth cap, or a value outside the set a
-  prop accepts. Use `warningsOf(issues)`.
+- `"warning"` — it conforms, but names something that will not do what it looks like: a forbidden prop, a `javascript:` URL, an unknown action inside a prop, a theme override that is not a custom property, nesting past the depth cap, or a value outside the set a prop accepts. Use `warningsOf(issues)`.
 
-That last one is the difference between a document that fails and one that quietly
-underdelivers. Props like `gap`, `variant` and `size` are looked up in a table of classes; a
-miss returns nothing, so the component renders with that dimension absent and nothing in the
-DOM to notice. The accepted values are read out of the library's own declarations, so the
-reference a model authors from and the check it is validated against are one artifact.
+That last one is the difference between a document that fails and one that quietly underdelivers. Props like `gap`, `variant` and `size` are looked up in a table of classes; a miss returns nothing, so the component renders with that dimension absent and nothing in the DOM to notice. The accepted values are read out of the library's own declarations, so the reference a model authors from and the check it is validated against are one artifact.
 
-`ViewRenderer` never consults this — it degrades per node regardless — so validation is a
-gate you choose to put in front of it.
+`ViewRenderer` never consults this — it degrades per node regardless — so validation is a gate you choose to put in front of it.
 
 ### Zod (optional)
 
-`zod` is an **optional peer**; importing this subpath is opt-in and the core never pulls it
-in.
+`zod` is an **optional peer**; importing this subpath is opt-in and the core never pulls it in.
 
 ```ts
 import { viewSpecSchema, viewSpecJsonSchema } from "@batthewz/response-ui-renderer/zod";
@@ -417,14 +322,9 @@ viewSpecSchema.safeParse(json);           // server-side gate
 const schema = viewSpecJsonSchema();      // JSON Schema for LLM structured output
 ```
 
-`viewSpecJsonSchema()` is the more interesting one: hand it to a model as a tool /
-structured-output schema and shape generation into valid documents, rather than repairing
-them afterwards. The node types are mutually recursive, so the output uses `$ref` cycles —
-check your provider accepts them.
+`viewSpecJsonSchema()` is the more interesting one: hand it to a model as a tool / structured-output schema and shape generation into valid documents, rather than repairing them afterwards. The node types are mutually recursive, so the output uses `$ref` cycles — check your provider accepts them.
 
-The two agree on **conformance** (`ok`), and a test suite fails if they ever diverge. They
-deliberately differ below that: Zod types `props` as an open record, so the warning tier
-above has no Zod counterpart. Validate with `validateViewSpec` if you want those.
+The two agree on **conformance** (`ok`), and a test suite fails if they ever diverge. They deliberately differ below that: Zod types `props` as an open record, so the warning tier above has no Zod counterpart. Validate with `validateViewSpec` if you want those.
 
 ---
 
@@ -444,29 +344,21 @@ Documents are assumed untrusted, because a generator wrote them.
 | Handler recursion | capped at 5 |
 | Cross-origin requests | blocked unless `allowUrl` says otherwise |
 
-This is defence in depth, not a sanitiser: a component given hostile *content* still
-renders that content as text.
+This is defence in depth, not a sanitiser: a component given hostile *content* still renders that content as text.
 
 ---
 
 ## Styling from a document
 
-`className` reaches the element a component renders itself; `classNames` reaches the ones it
-renders inside itself, keyed by slot. Both are passed through untouched and both still
-collapse correctly — every response-ui component merges them through `cn()` internally, so
-`"p-r3 p-r5"` resolves to `p-r5` without the renderer doing anything. The slot keys for every
-component are listed in [VIEWSPEC.md](VIEWSPEC.md).
+`className` reaches the element a component renders itself; `classNames` reaches the ones it renders inside itself, keyed by slot. Both are passed through untouched and both still collapse correctly — every response-ui component merges them through `cn()` internally, so `"p-r3 p-r5"` resolves to `p-r5` without the renderer doing anything. The slot keys for every component are listed in [VIEWSPEC.md](VIEWSPEC.md).
 
-⚠️ **Tailwind generates utilities by scanning source at build time, and a document arrives at
-runtime.** A class a document invents is therefore not in your CSS unless something else
-already used it. If your documents are stored rather than streamed, point Tailwind at them:
+⚠️ **Tailwind generates utilities by scanning source at build time, and a document arrives at runtime.** A class a document invents is therefore not in your CSS unless something else already used it. If your documents are stored rather than streamed, point Tailwind at them:
 
 ```css
 @source "./content/views/**/*.json";
 ```
 
-Otherwise keep documents to the scale (`gap-r4`, `p-r3`, `w-full`) and prefer real props —
-which is what the reference tells a model to do, and what `validateViewSpec` checks.
+Otherwise keep documents to the scale (`gap-r4`, `p-r3`, `w-full`) and prefer real props — which is what the reference tells a model to do, and what `validateViewSpec` checks.
 
 ---
 
@@ -479,25 +371,17 @@ const registry = extendRegistry(defaultRegistry, { BarChart, Widget: { component
 <ViewRenderer spec={spec} registry={registry} />;
 ```
 
-`listComponentNames(registry)` returns every addressable name including compound parts —
-useful for generating the catalogue you give a model.
+`listComponentNames(registry)` returns every addressable name including compound parts — useful for generating the catalogue you give a model.
 
 ---
 
 ## API
 
-`ViewRenderer` · `NodeRenderer` · `NodeErrorBoundary` · `ViewThemeScope` · `ViewDataProvider`
-· `ViewContextExtender` · `useViewData` · `defaultRegistry` · `extendRegistry` ·
-`createRegistryFromModule` · `lookupComponent` · `listComponentNames` · `Icon` ·
-`IconSetProvider` · `useIconSet` · `useFormsState` · `createEventCallback` · `validateField`
-· `validateForm` · `resolveRef` · `resolveDeep` · `validateViewSpec` · `isViewSpec` ·
-`PROP_ENUMS` / `enumeratedValues` · `FUNCTION_CHILDREN` — plus every type.
+`ViewRenderer` · `NodeRenderer` · `NodeErrorBoundary` · `ViewThemeScope` · `ViewDataProvider` · `ViewContextExtender` · `useViewData` · `defaultRegistry` · `extendRegistry` · `createRegistryFromModule` · `lookupComponent` · `listComponentNames` · `Icon` · `IconSetProvider` · `useIconSet` · `useFormsState` · `createEventCallback` · `validateField` · `validateForm` · `resolveRef` · `resolveDeep` · `validateViewSpec` · `isViewSpec` · `PROP_ENUMS` / `enumeratedValues` · `FUNCTION_CHILDREN` — plus every type.
 
-The last three are there for prompt and schema building: the accepted values of every
-bounded prop, and the components whose `children` is a function of their own data.
+The last three are there for prompt and schema building: the accepted values of every bounded prop, and the components whose `children` is a function of their own data.
 
-Subpaths: `/spec` (types + validator, no React) · `/icons` (lucide set) · `/zod` (schemas) ·
-`/styles` (CSS).
+Subpaths: `/spec` (types + validator, no React) · `/icons` (lucide set) · `/zod` (schemas) · `/styles` (CSS).
 
 ## License
 
