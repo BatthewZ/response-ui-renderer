@@ -195,6 +195,10 @@
     "category": "Layout",
     "note": "Pass `animate: false` unless a viewport observer will run \u2014 items start at `opacity: 0`."
   },
+  "Markdown": {
+    "category": "Typography",
+    "note": "`children` is source **text**, concatenated verbatim — not nodes. Fenced blocks become `CodeBlock`s and pipe tables become `Table`s, so reach for it instead of hand-composing prose."
+  },
   "MediaCard": {
     "category": "Media",
     "note": "`.Image` requires `alt`, and its `className` addresses the ratio box — `loading`, `srcSet`, `sizes` and friends belong in `imgProps`. The card is only as tall as its image and clips overflow."

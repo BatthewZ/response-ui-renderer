@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { parseIsoDate } from "../registry/prop-coercions";
-import type { ViewSpec } from "../spec/types";
+import type { ViewNode, ViewSpec } from "../spec/types";
 import { validateViewSpec, warningsOf } from "../spec/validate";
 import { findRenderDiagnostics } from "./diagnostics";
 import { ViewRenderer } from "./ViewRenderer";
@@ -764,5 +764,109 @@ describe("children a component calls", () => {
       "must be returned from CommandPalette's children function",
     );
     expect(screen.getByText("still here")).toBeInTheDocument();
+  });
+});
+
+describe("children a component parses", () => {
+  // `Markdown` types `children` as a `string` it parses. A document supplies
+  // nodes, so before the renderer resolved them to text the parser was handed
+  // React elements and died on the first `.replace` — taking the whole subtree
+  // with it, not merely the prose.
+
+  const markdown = (children: ViewNode[], data?: ViewSpec["data"]) =>
+    spec({ data, root: { component: "Markdown", children } });
+
+  it("parses a document's string children as markdown source", () => {
+    const { container } = render(<ViewRenderer spec={markdown(["## Runbook\n\nDrain first.\n"])} />);
+
+    expect(findRenderDiagnostics(container)).toEqual([]);
+    expect(container.querySelector("h2")).toHaveTextContent("Runbook");
+    expect(container.querySelector("p")).toHaveTextContent("Drain first.");
+  });
+
+  it("concatenates children verbatim, so a $ref interpolates mid-sentence", () => {
+    // Joining on a newline instead would split this into two paragraphs — the
+    // reason the contract is concatenation and the reference says so.
+    const doc = markdown(["Pinned to release **", { $ref: "data.version" }, "**."], {
+      version: { type: "static", value: "2026.7.3" },
+    });
+
+    const { container } = render(<ViewRenderer spec={doc} />);
+
+    const paragraphs = container.querySelectorAll("p");
+    expect(paragraphs).toHaveLength(1);
+    expect(paragraphs[0]).toHaveTextContent("Pinned to release 2026.7.3.");
+    expect(paragraphs[0].querySelector("strong")).toHaveTextContent("2026.7.3");
+  });
+
+  it("resolves $each and $cond into the source, binding the loop's own names", () => {
+    // `$each` emits one node's text per item, so a document concatenates
+    // fragments rather than composing them — the same shape the format has
+    // everywhere else, minus the wrapper a rendered tree would give it.
+    const doc = markdown(
+      [
+        "# Checks\n\n",
+        { $each: "data.checks", as: "check", node: { $ref: "check" } },
+        { $cond: "data.degraded", then: "\nDegraded.\n", else: "\nHealthy.\n" },
+      ],
+      {
+        checks: { type: "static", value: ["- drain\n", "- rollout\n"] },
+        degraded: { type: "static", value: false },
+      },
+    );
+
+    const { container } = render(<ViewRenderer spec={doc} />);
+
+    expect(findRenderDiagnostics(container)).toEqual([]);
+    expect([...container.querySelectorAll("li")].map((li) => li.textContent)).toEqual([
+      "drain",
+      "rollout",
+    ]);
+    expect(container.querySelector("p")).toHaveTextContent("Healthy.");
+  });
+
+  it("still accepts the source as a props.children $ref", () => {
+    // The other spelling, and the one a document should use when the whole
+    // source is a single fetched value. It must not be clobbered by the
+    // children path resolving an empty list to "".
+    const doc = spec({
+      data: { article: { type: "static", value: "### From props\n" } },
+      root: { component: "Markdown", props: { children: { $ref: "data.article" } } },
+    });
+
+    const { container } = render(<ViewRenderer spec={doc} />);
+
+    expect(findRenderDiagnostics(container)).toEqual([]);
+    expect(container.querySelector("h3")).toHaveTextContent("From props");
+  });
+
+  it("keeps the text a composed child sits beside, and warns about the child", () => {
+    // A component child has no text to contribute. Dropping it silently is the
+    // failure this package is built to avoid, so the validator names it.
+    const doc = markdown(["# Kept\n", { component: "Badge", children: ["New"] }]);
+
+    const { container } = render(<ViewRenderer spec={doc} />);
+
+    expect(container.querySelector("h1")).toHaveTextContent("Kept");
+    expect(screen.queryByText("New")).not.toBeInTheDocument();
+    expect(warningText(doc)).toContain("parses its children as text");
+  });
+
+  it("warns when a document gives it no source at all", () => {
+    expect(warningText(spec({ root: { component: "Markdown" } }))).toContain(
+      "needs its source text",
+    );
+  });
+
+  it("renders a fenced block as a real CodeBlock, not a <pre> of its own", () => {
+    // The reason to reach for this component from a document rather than
+    // hand-composing prose: the subset lands as design-system components.
+    const { container } = render(
+      <ViewRenderer spec={markdown(["```bash\nkubectl drain node/ingest-07\n```\n"])} />,
+    );
+
+    expect(findRenderDiagnostics(container)).toEqual([]);
+    expect(screen.getByText(/kubectl drain/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /copy/i })).toBeInTheDocument();
   });
 });

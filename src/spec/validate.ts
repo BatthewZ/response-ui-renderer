@@ -1,4 +1,5 @@
 import { IDENTITY_CHECKED_PARENTS } from "../registry/child-introspection";
+import { takesTextChildren } from "../registry/text-children";
 import propEnums from "./prop-enums.json";
 import {
   type DataBinding,
@@ -226,6 +227,24 @@ function checkComponentContract(
       at.warn(
         `${path}.props.${key}`,
         `"${value}" is not one of ${component}.${key}'s values (${allowed.join(", ")}); the component will render as if it were unset`,
+      );
+    }
+  }
+
+  // This root parses its children as source text, so a composed child has
+  // nothing to contribute and is dropped — and a document that has none at all,
+  // by either spelling, hands the parser nothing to parse.
+  if (takesTextChildren(component)) {
+    const composed = children.map(childComponent).filter((name) => name !== undefined);
+    if (composed.length > 0) {
+      at.warn(
+        `${path}.children`,
+        `${component} parses its children as text; ${composed.join(", ")} contributes none and will be dropped — put the source in a string, or in props.children`,
+      );
+    } else if (children.length === 0 && props.children === undefined) {
+      at.warn(
+        `${path}.children`,
+        `${component} needs its source text, as children or as props.children; without it there is nothing to parse`,
       );
     }
   }

@@ -31,7 +31,16 @@ shapes to recur whenever the library grows.
    a function". Recoverable, and worth recovering: render the nodes inside the call and bind
    the arguments as reference names, exactly as `$each` binds a row. The component stays the
    only writer of the data; the document becomes the only writer of the presentation.
-7. **A prop bounded to a set of values.** The compiler enforces these upstream; JSON has
+7. **`children` that the component *parses* rather than places.** A root typed
+   `children: string` is a parser, not a composer. Rendered as nodes its children arrive as
+   React elements where a string was expected, and it dies on the first string method — so
+   the component is addressable in name and unusable in fact. Resolve the children to text
+   instead, before the element is created. Concatenate them **verbatim**: joining on a
+   newline reads well for a document that splits a block per child and silently corrupts one
+   that interpolates a `$ref` mid-sentence, and nothing distinguishes the two. Note that
+   `$each` can only contribute one node's text per item, because the format has no wrapper to
+   give it — a document concatenates fragments rather than composing them.
+8. **A prop bounded to a set of values.** The compiler enforces these upstream; JSON has
    nothing. The component looks the value up in a table of classes, misses, and renders as
    if the prop were unset — no error, no fallback, nothing in the DOM. Generate the sets
    from the library's declarations and warn, or the failure is invisible on both sides.

@@ -4,6 +4,8 @@
 
 ### Peer range
 
+- Peer now `@batthewz/response-ui-react-components@^0.14.0`, which adds `Markdown` — see below —
+  and a `glyph` slot on `Stepper.Step`.
 - Peer bumped to `@batthewz/response-ui-react-components@^0.12.0` (dev dep on
   `@batthewz/response-ui-css@^0.13.0`), which redefines the surface ramp: rung 0 is now the raised
   sheet in every theme and `--C-CANVAS` sits between rungs 1 and 2. Nothing in the renderer paints
@@ -43,6 +45,18 @@ what did not was everything expressed in JSON, which no compiler reads.
   addressable rather than excused, and a part addressed with data the root did not hand it renders
   a diagnostic naming the mistake. `contracts.test.ts` fails if the library gains or loses a
   function `children`, or renames one of its arguments.
+### Children a component parses
+
+- **`children` on `Markdown`.** 0.14.0 added the first component that types `children` as a
+  `string` it parses rather than nodes it places. A document's children arrive as React elements,
+  so the parser died on the first `.replace` and took the whole subtree with it — the component was
+  addressable in name only. The renderer now resolves those children to text before handing them
+  over: `$ref`, `$cond` and `$each` all resolve, concatenated **verbatim** so the document owns its
+  own whitespace, and `props.children` remains the spelling for a single fetched source. A composed
+  child has no text to contribute and is dropped with a validation warning rather than silently,
+  and a root given no source by either spelling is warned about too. `contracts.test.ts` fails if
+  the library gains or loses a string `children`, mirroring the function-children gate.
+
 ### Values a prop will not accept
 
 - **A value outside a prop's set is a validation warning.** `gap`, `variant`, `size` and 54 others
@@ -163,6 +177,11 @@ if any component lacks a category. Run `bun run docs:viewspec` after upgrading t
 
 ### Fixed docs
 
+- **Slot keys hidden behind a type alias were silently absent from the reference.** The generator
+  matched `classNames?: SlotClassNames<…>` literally, so a component declaring `classNames?: Slots`
+  contributed nothing — and `--check` still passed, because it compares a generation against
+  itself. `Calendar`, `RangeCalendar` and `Markdown` were missing all of their keys, 41 in total.
+  The alias is now resolved at either position.
 - `AGENTS.md` said to test with `bun test`, which runs Bun's own runner against a vitest suite
   and fails about sixty of them. It is `bun run test`.
 - The `ApiBinding` docblock named an `adapters.fetchData` that does not exist; the adapter is

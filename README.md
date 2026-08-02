@@ -12,7 +12,7 @@ import { ViewRenderer } from "@batthewz/response-ui-renderer";
 <ViewRenderer spec={await res.json()} />;
 ```
 
-- **Every component the library exports is addressable, and proven to render.** 98 components
+- **Every component the library exports is addressable, and proven to render.** 99 components
   and 73 compound parts, derived from the library's own barrel at runtime — not a hand-copied
   list — and a coverage corpus renders every one of them. 7 need host code; they are named,
   with the reason, in [VIEWSPEC.md](VIEWSPEC.md).

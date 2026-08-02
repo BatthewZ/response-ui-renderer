@@ -16,6 +16,7 @@ import { FUNCTION_CHILDREN } from "./registry/function-children";
 import { COMPONENT_TYPED_ICON_OWNERS } from "./registry/icon-slots";
 import { PROP_COERCION_OWNERS, PROP_COERCIONS } from "./registry/prop-coercions";
 import { defaultRegistry, listComponentNames } from "./registry/registry";
+import { TEXT_CHILDREN } from "./registry/text-children";
 import { lookupComponent } from "./registry/types";
 import { RENDER_DIAGNOSTIC_CLASSES, RENDER_DIAGNOSTIC_SELECTOR } from "./render/diagnostics";
 import { DIALOG_COMPONENTS } from "./spec/validate";
@@ -371,6 +372,36 @@ describe("function children stay in step with the library", () => {
       for (const arg of entry.args) {
         expect(doc, `VIEWSPEC.md does not name ${name}'s "${arg}" argument`).toContain(`\`${arg}\``);
       }
+    }
+  });
+});
+
+describe("text children stay in step with the library", () => {
+  it("names every component whose children the library types as a string", () => {
+    // The mirror of the function-children gate, and it fails the same way: such
+    // a root is handed elements where a string was expected and throws inside
+    // the library, so one gained without an entry here is a component a document
+    // kills by using it normally.
+    const declared: string[] = [];
+    for (const file of globSync("src/components/**/*.tsx", { cwd: libraryRoot })) {
+      if (/\.(test|examples)\.tsx$/.test(file)) continue;
+      if (!/\bchildren\??:\s*string\s*;/.test(read(path.join(libraryRoot, file)))) continue;
+      // The generator already relies on file basename === component name.
+      declared.push(path.basename(file, ".tsx"));
+    }
+
+    expect(declared.sort()).toEqual(Object.keys(TEXT_CHILDREN).sort());
+  });
+
+  it("tells the reference how those children combine", () => {
+    // Concatenation is a decision, not a type: an author who assumes a newline
+    // between entries writes a document that renders one run-on paragraph and
+    // has nothing to read that would say why.
+    const doc = read(path.join(root, "VIEWSPEC.md"));
+    expect(Object.keys(TEXT_CHILDREN).length).toBeGreaterThan(0);
+    for (const [name, note] of Object.entries(TEXT_CHILDREN)) {
+      expect(note, `${name} has no note`).not.toEqual("");
+      expect(doc, `VIEWSPEC.md does not carry ${name}'s note`).toContain(note);
     }
   });
 });

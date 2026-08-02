@@ -608,6 +608,14 @@
                         ]
                       },
                       {
+                        "component": "Markdown",
+                        "children": [
+                          "Before you run this\n\nThe worker set is pinned to release **",
+                          { "$ref": "data.release.version" },
+                          "** — confirm on the [rollout board](/rollouts) first.\n\n| Step | Owner |\n| --- | --- |\n| Drain the node | Platform |\n| Roll the set | On-call |\n\n1. Wait for the drain to finish.\n2. Watch `rollout status` to completion.\n"
+                        ]
+                      },
+                      {
                         "component": "CodeBlock",
                         "props": {
                           "code": { "$ref": "data.runbook" },

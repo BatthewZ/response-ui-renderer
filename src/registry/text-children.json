@@ -1,0 +1,3 @@
+{
+  "Markdown": "Concatenated **verbatim**, so the document owns its own whitespace — write one string with real `\\n\\n` between blocks rather than one child per line. `$ref`, `$cond` and `$each` resolve to their text; a component child has no text to contribute and is dropped."
+}

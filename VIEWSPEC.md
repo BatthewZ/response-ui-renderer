@@ -111,6 +111,7 @@ document store to Tailwind's `@source` list.
 | `AvatarGroup` | `itemRing` `overflow` |
 | `Breadcrumbs` | `list` `ellipsis` |
 | `Breadcrumbs.Item` | `current` `link` `text` |
+| `Calendar` | `header` `labelButton` `months` `footer` `todayButton` `pickerGrid` `pickerCell` `month` `caption` `grid` `weekdays` `weekday` `row` `cell` `day` |
 | `Carousel` | `title` `viewport` `prev` `next` |
 | `CodeBlock` | `header` `filename` `language` `pre` `code` `line` |
 | `ColorPicker` | `trigger` `swatch` `value` `panel` `plane` `thumb` `hue` `hex` `presets` `preset` |
@@ -122,6 +123,7 @@ document store to Tailwind's `@source` list.
 | `DateRangePicker` | `control` `panel` |
 | `Hero` | `overlay` |
 | `HoverCard.Content` | `arrow` |
+| `Markdown` | `heading` `paragraph` `list` `listItem` `blockquote` `code` `codeBlock` `link` `image` `table` `hr` |
 | `MultiSelect` | `control` `list` `input` `chevron` |
 | `NumberInput` | `control` `chevron` |
 | `OTPInput` | `box` |
@@ -129,11 +131,12 @@ document store to Tailwind's `@source` list.
 | `Popover.Content` | `arrow` |
 | `ProgressBar` | `fill` |
 | `ProgressRing` | `svg` `track` `indicator` `center` |
+| `RangeCalendar` | `header` `labelButton` `months` `footer` `todayButton` `pickerGrid` `pickerCell` `month` `caption` `grid` `weekdays` `weekday` `row` `cell` `day` |
 | `RangeSlider` | `track` `fill` `input` |
 | `SearchInput` | `icon` `input` `clear` |
 | `Select` | `control` `chevron` |
 | `StatCard.Trend` | `trendIcon` |
-| `Stepper.Step` | `indicator` `itemBody` `title` `description` `connector` |
+| `Stepper.Step` | `indicator` `glyph` `itemBody` `title` `description` `connector` |
 | `Swimlane` | `header` `titleGroup` `title` `description` `body` |
 | `Switch` | `thumb` |
 | `Table.HeaderCell` | `sortButton` `sortIcon` |
@@ -186,6 +189,27 @@ Omit `children` and the component renders its own default tree, which is the sam
 composition — so there is nothing to keep in step. A part addressed with data the root did
 not hand it (an invented `option`, an `index` outside the selection) renders a diagnostic
 naming the mistake.
+
+## Children a component parses
+
+These roots take `children` as **source text**, not as nodes. Give them strings — or
+anything that resolves to one — and the component does the composing.
+
+<!-- GENERATED:text-children -->
+| Component | `children` is |
+| --- | --- |
+| `Markdown` | Concatenated **verbatim**, so the document owns its own whitespace — write one string with real `\n\n` between blocks rather than one child per line. `$ref`, `$cond` and `$each` resolve to their text; a component child has no text to contribute and is dropped. |
+<!-- /GENERATED:text-children -->
+
+```jsonc
+{ "component": "Markdown",
+  "children": ["## ", { "$ref": "data.report.title" }, "\n\nShipped **", { "$ref": "data.report.count" }, "** changes.\n\n- one\n- two\n"] }
+```
+
+One string is the normal case; the array exists so a value can be interpolated into it.
+`props.children` is the other spelling and takes a `$ref` of its own —
+`{ "props": { "children": { "$ref": "data.article" } } }` — which is what a document
+should use when the whole source is a single fetched value.
 
 ## Event Actions
 
@@ -291,6 +315,7 @@ Text and inline marks.
 | `CodeBlock` | — | `code`: string · `language?`: string · `filename?`: string · `showLineNumbers?`: boolean · `copyable?`: boolean · `copyButtonProps?`: Omit<ComponentPropsWithRef<typeof CopyButton>, "value"> | Takes a `code` string and no children. No syntax highlighting. |
 | `Icon` | — | — | Added by this package, not the library. `name` is resolved from the injected icon set. |
 | `Kbd` | — | — |  |
+| `Markdown` | — | `codeBlockProps?`: Omit<ComponentPropsWithRef<typeof CodeBlock>, "code"\|"language"> | `children` is source **text**, concatenated verbatim — not nodes. Fenced blocks become `CodeBlock`s and pipe tables become `Table`s, so reach for it instead of hand-composing prose. |
 | `Text` | — | `variant?`: "h1"\|"h2"\|"h3"\|"h4"\|"h5"\|"h6"\|"body-1"\|"body-2"\|"body-3" · `weight?`: "semibold"\|"bold" · `color?`: "primary"\|"secondary"\|"muted"\|"inverse"\|"on-primary" · `as?`: T | A heading `variant` emits a real heading element — pass `as: "p"` for heading-sized body text. |
 
 ### Action

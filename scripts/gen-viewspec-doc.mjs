@@ -212,9 +212,22 @@ function declarationsIn(source) {
   return found;
 }
 
-/** `classNames?: SlotClassNames<"a" | "b">` → the keys, resolving an alias. */
+/**
+ * `classNames?: SlotClassNames<"a" | "b">` → the keys.
+ *
+ * An alias is resolved at either position: the union may be one
+ * (`SlotClassNames<Keys>`), and so may the whole type — `Markdown` declares
+ * `classNames?: Slots`, and matching only the first spelling dropped its eleven
+ * keys from the reference with a `--check` that still passed, because the
+ * generator dropped them on both sides.
+ */
 function slotKeysIn(source, body) {
-  const match = /classNames\?:\s*SlotClassNames<\s*([^>]+?)\s*>/.exec(body);
+  const declared = /classNames\?:\s*([\w<>"|\s]+?);/.exec(body);
+  if (!declared) return null;
+  const type = /^[A-Z]\w*$/.test(declared[1].trim())
+    ? resolveAlias(source, declared[1].trim())
+    : declared[1];
+  const match = /SlotClassNames<\s*([^>]+?)\s*>/.exec(type);
   if (!match) return null;
   const inner = match[1].includes('"') ? match[1] : resolveAlias(source, match[1]);
   const keys = [...inner.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
@@ -323,6 +336,14 @@ function renderFunctionChildren(functionChildren) {
   return lines.join("\n");
 }
 
+function renderTextChildren(textChildren) {
+  const lines = ["| Component | `children` is |", "| --- | --- |"];
+  for (const [name, note] of Object.entries(textChildren)) {
+    lines.push(`| \`${name}\` | ${note} |`);
+  }
+  return lines.join("\n");
+}
+
 function formatProps(props, limit = 7) {
   if (props.length === 0) return "—";
   const required = props.filter((p) => !p.optional);
@@ -412,6 +433,9 @@ function main() {
   const functionChildren = JSON.parse(
     readFileSync(path.join(root, "src/registry/function-children.json"), "utf8"),
   );
+  const textChildren = JSON.parse(
+    readFileSync(path.join(root, "src/registry/text-children.json"), "utf8"),
+  );
 
   const components = liveComponents();
   const { slots, enums } = describeInternals(components, notAddressable);
@@ -420,6 +444,7 @@ function main() {
   let doc = replaceRegion(original, "components", render(components, notes, notAddressable));
   doc = replaceRegion(doc, "slots", renderSlots(slots));
   doc = replaceRegion(doc, "function-children", renderFunctionChildren(functionChildren));
+  doc = replaceRegion(doc, "text-children", renderTextChildren(textChildren));
   doc = replaceRegion(doc, "not-addressable", renderNotAddressable(notAddressable));
 
   // Read by the validator at runtime, so a document can be told that a value is

@@ -12,6 +12,7 @@ import {
   propCoercion,
   toKeyAccessor,
 } from "../registry/prop-coercions";
+import { takesTextChildren } from "../registry/text-children";
 import { type ComponentRegistry, lookupComponent } from "../registry/types";
 import {
   FIELD_BINDING_KEY,
@@ -34,6 +35,7 @@ import {
   isUrlProp,
   MAX_NODE_DEPTH,
 } from "../spec/validate";
+import { childrenToText } from "./children-text";
 import { RENDER_DIAGNOSTIC_CLASSES } from "./diagnostics";
 import { createEventCallback, type EventHandlerContext } from "./event-handler";
 import type { FormState } from "./form-state";
@@ -436,6 +438,21 @@ export function NodeRenderer({
   for (const [key, value] of Object.entries(injected)) {
     if (FORBIDDEN_PROPS.has(key) && key !== "ref") continue;
     props[key] = composeProp(key, props[key], value);
+  }
+
+  // A root that parses `children` takes the document's children as one string.
+  // Rendered as nodes they would arrive as elements where a string was expected
+  // and the parser dies, taking the whole subtree with it.
+  //
+  // Only when the document supplied children, so a `children` prop that came
+  // from a `$ref` or a literal still stands — that is the other spelling of the
+  // same thing, and it already resolves to a string on its own.
+  if (takesTextChildren(node.component) && node.children && node.children.length > 0) {
+    return (
+      <NodeErrorBoundary label={node.component}>
+        {createElement(Component, { ...props, children: childrenToText(node.children, refContext) })}
+      </NodeErrorBoundary>
+    );
   }
 
   // A parent that clones or identity-checks its children cannot see past a

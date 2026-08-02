@@ -128,6 +128,13 @@ column in the reference. Components that live in a sibling's file — `AvatarGro
 `EmptyState*` — were invisible for the same reason, because lookup was by file basename.
 Resolve declarations by type name, not by filename.
 
+That throw only covers a `classNames` the generator *found*. Matching the declaration's
+shape literally is the other half, and it failed silently: a component that names its slot
+union through a local alias (`classNames?: Slots`) matched nothing, so three components lost
+all of their keys with `--check` still green. Resolve an alias at every position a type can
+appear, and treat "this component has no slots" as a claim worth doubting whenever the
+library's own source shows a `classNames` prop.
+
 ## Theming
 
 Never write an example theme name into a selector, type, default, config list, doc table or
