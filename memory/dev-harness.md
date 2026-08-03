@@ -24,6 +24,28 @@ before it is bound rather than parsed whole. And a link inside parsed prose is a
 anchor, never the `navigate` action — a link naming a repository file walks a reader off a
 site that only deploys the rendering, so those are rewritten to page URLs before parsing.
 
+## The frame outlives the page, and pages must not draw chrome
+
+Following a link between pages used to be a real page load, which rebuilt the whole shell:
+the top bar flashed, its controls lost what they were holding, and the theme was re-read
+from storage every time. A frame that owns the bar and swaps only what is under it fixes
+all three, and costs the URLs nothing — a plain left-click is intercepted and pushed, so
+every page is still a real URL that cold-loads, is shareable, and needs no rewrite rule.
+
+Two rules come out of it. A page renders no chrome of its own: a page that draws the top
+bar is a page that throws it away, so a page with controls of its own hands them to the
+frame instead. And the interception stays narrow — a modified click, a middle click, a link
+with a `target`, a URL naming no page — because the whole point of the `href` being real is
+that everything a real link does still works.
+
+What the browser used to do for free now has an owner, and it is the frame. A swap leaves
+the scroller exactly where the last page left it, so the next one opens partway down
+unless something resets it; a fragment is only ever acted on at load, when the document it
+names is still JSON that has not been rendered; and focus stays on the link that was
+followed, so a reader on a screen reader is told nothing happened at all. Arriving at a
+page is a single behaviour and belongs wherever the navigation does — not spread across
+the pages, each of which would owe it and one of which would forget.
+
 ## Its chrome is built from the design system, and that is load-bearing
 
 Every colour, radius, shadow and duration in the harness is a token, and its controls
@@ -60,6 +82,22 @@ document and is not one. Any pane that scrolls a render needs `position: relativ
 alongside its `overflow`. This is not specific to the harness — a host embedding
 `ViewRenderer` in a scrolling panel owes its container the same.
 
+## The prose pages have one measure, and the pane that scrolls them hides the proof
+
+Every block on a prose page fills the container: paragraphs, tables and code blocks share
+both edges, and the container is the only place to change how wide the page reads. Giving
+prose a narrower reading measure of its own was tried and removed — it is defensible
+typography and it reads as ragged, because the eye tracks the mismatch between a
+paragraph's right edge and the code block's below it rather than the line length.
+
+The same pane that scrolls a document also conceals what a document does wrong at a phone's
+width. A pane with `overflow-y: auto` computes `overflow-x` to `auto` as well, so it
+absorbs a horizontal overflow that never reaches the window: `documentElement.scrollWidth`
+equals its `clientWidth` while the content plainly drags sideways. Measure the pane, not the
+document element — and attribute the overflow by toggling the candidate CSS and diffing
+`scrollWidth - clientWidth` per block, since every table and code block on the page is
+legitimately wider than its box and a right-edge scan returns all of them.
+
 ## Both full-page routes matter
 
 The `view` query parameter renders one document with no chrome — that is how the corpus
@@ -86,3 +124,10 @@ earned it: a heading that moves inside a code fence would split a page mid-fence
 the remainder as code, and compiling proves nothing about that. Assertions there are worth
 writing against an oracle computed a different way — re-walking the source the way the
 splitter walks it produces a test that agrees with the bug.
+
+Which clicks the frame takes over is the second case, and it is the more slippery one:
+swallowing too much and swallowing too little both compile, both render, and neither shows
+up until someone tries to open a page in a new tab. A cancelled click and a click left to
+the browser are the same assertion read from either side, so the discrimination itself is
+what the test states — including that the bar is the same node afterwards, which is the
+whole reason the frame exists.

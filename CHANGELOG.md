@@ -190,8 +190,14 @@ published site is how most people will meet the package.
 - **Pages route on `?page=`, alongside the existing `?view=`.** Links are `href`s and every page
   is a real URL, so static hosting still needs no SPA fallback. The playground remains what a
   bare URL serves, and `?view=` still wins — it is the chrome-free route the corpus is verified
-  through. Theme and scope now persist across a navigation, because a link between pages is a
-  real page load and a theme that survived only the page you picked it on read as a toy.
+  through. Theme and scope persist across a navigation, and are stored as well, so a theme that
+  survived only the page you picked it on no longer reads as a toy.
+- **A frame holds the site, so the top bar outlives the page.** A plain left-click on a link
+  naming a page is intercepted and pushed rather than followed: the URLs are untouched and
+  every one of them still cold-loads, but the bar is mounted once instead of being rebuilt —
+  and flashing — on every link. The interception is narrow by design; a modified click, a
+  middle click, a link with a `target`, `?view=` and anything outbound are all still browser
+  navigations. Covered by tests.
 - **The reference is sectioned before it is bound.** `Markdown` renders no heading ids, so each
   section is wrapped by the document and carries the anchor. The split is fence-aware: a `## `
   inside a code block is sample text, and cutting there would leave both halves with an

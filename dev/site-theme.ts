@@ -12,13 +12,15 @@ const MODE_KEY = "response-ui-renderer:theme-mode";
 const MODES: readonly ThemeMode[] = ["root", "scoped"];
 
 /**
- * Kept across navigations, because a link between pages is a real page load.
+ * Held by the frame, and kept in storage as well.
  *
- * Without this a theme survives exactly as long as the page you picked it on,
- * and the feature reads as a toy on the playground rather than something the
- * whole site is wearing. Restored through the allowed list rather than trusted:
- * the value is whatever was last in storage, including a theme name that has
- * since stopped existing.
+ * The frame outlives a link between pages, so state alone carries the choice
+ * around the site; storage is what carries it across a reload, a bookmark and a
+ * tab opened from scratch. Without that, a theme survives exactly as long as the
+ * page you picked it on, and the feature reads as a toy on the playground rather
+ * than something the whole site is wearing. Restored through the allowed list
+ * rather than trusted: the value is whatever was last in storage, including a
+ * theme name that has since stopped existing.
  */
 function restore<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
   const stored = localStorage.getItem(key);

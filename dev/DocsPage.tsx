@@ -1,10 +1,18 @@
+import type { Ref } from "react";
+
 import { lucideIcons } from "../src/icons";
-import { ViewRenderer } from "../src/index";
+import { type ThemeMode, ViewRenderer } from "../src/index";
 import { useDemoAdapters } from "./adapters";
 import { DOC_PAGES } from "./pages";
 import type { DocPageId } from "./site";
-import { useSiteTheme } from "./site-theme";
-import { SiteHeader } from "./SiteHeader";
+
+interface DocsPageProps {
+  page: DocPageId;
+  theme: string;
+  themeMode: ThemeMode;
+  /** The frame scrolls and focuses this on arrival — see `Site`. */
+  ref?: Ref<HTMLElement>;
+}
 
 /**
  * A prose page, rendered the way any host renders a document.
@@ -18,30 +26,19 @@ import { SiteHeader } from "./SiteHeader";
  * something a parsed link becomes. Links to another of the repository's
  * documents are therefore rewritten to page URLs before parsing; see `./pages`.
  */
-export function DocsPage({ page }: { page: DocPageId }) {
-  const { theme, setTheme, themeMode, setThemeMode } = useSiteTheme();
+export function DocsPage({ page, theme, themeMode, ref }: DocsPageProps) {
   const adapters = useDemoAdapters();
 
   return (
-    <div className="pg-root">
-      <SiteHeader
-        page={page}
+    // `position: relative` is not decoration — see `.pg-page` in app.css.
+    <main className="pg-page" ref={ref} tabIndex={-1}>
+      <ViewRenderer
+        spec={DOC_PAGES[page]}
         theme={theme}
-        onThemeChange={setTheme}
         themeMode={themeMode}
-        onThemeModeChange={setThemeMode}
+        icons={lucideIcons}
+        adapters={adapters}
       />
-
-      {/* `position: relative` is not decoration — see `.pg-page` in app.css. */}
-      <main className="pg-page">
-        <ViewRenderer
-          spec={DOC_PAGES[page]}
-          theme={theme}
-          themeMode={themeMode}
-          icons={lucideIcons}
-          adapters={adapters}
-        />
-      </main>
-    </div>
+    </main>
   );
 }

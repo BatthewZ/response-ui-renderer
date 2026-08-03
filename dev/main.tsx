@@ -8,10 +8,8 @@ import { lucideIcons } from "../src/icons";
 import { type ThemeMode, ViewRenderer } from "../src/index";
 import type { ViewSpec } from "../src/spec";
 import { useDemoAdapters } from "./adapters";
-import { DocsPage } from "./DocsPage";
 import { EDITOR_HANDOFF_KEY, EDITOR_VIEW } from "./full-page";
-import { Playground } from "./Playground";
-import { PLAYGROUND_PAGE, requestedPage } from "./site";
+import { Site } from "./Site";
 import { readSpec } from "./spec-state";
 
 /** One document, full-page, exactly as a host would mount it. */
@@ -48,9 +46,8 @@ const requested = params.get("view");
 const fullPage = resolveRequestedView(requested);
 
 // `?view=` wins over `?page=`: it is the chrome-free route the corpus is
-// verified through, and a page frame around it would defeat the point.
-const page = requestedPage(window.location.search);
-
+// verified through, and a page frame around it would defeat the point. Which
+// page the frame opens on is the frame's business, so it is read there.
 createRoot(document.getElementById("root")!).render(
   <ToastProvider>
     {fullPage ? (
@@ -59,10 +56,8 @@ createRoot(document.getElementById("root")!).render(
         theme={params.get("theme") ?? "default"}
         themeMode={(params.get("mode") as ThemeMode) ?? "root"}
       />
-    ) : page === PLAYGROUND_PAGE ? (
-      <Playground />
     ) : (
-      <DocsPage page={page} />
+      <Site />
     )}
   </ToastProvider>,
 );

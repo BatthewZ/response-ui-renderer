@@ -51,8 +51,9 @@ function docPage(title: string, markdown: string): ViewSpec {
     },
     root: {
       component: "Container",
-      // Wider than a reading measure on purpose: prose is capped to one in CSS,
-      // and the width left over is what the reference tables need.
+      // The page's one measure: every block fills it, so prose, tables and code
+      // blocks share both edges. Wide enough for a four-column reference table,
+      // which is the widest thing here.
       props: { size: "xl", className: "pg-docs" },
       children: [
         {

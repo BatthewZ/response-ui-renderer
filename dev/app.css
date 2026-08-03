@@ -222,22 +222,21 @@ body {
   background: var(--C-SURFACE-1);
 }
 
+/* One measure for the whole page, and it is the container's: paragraph, table
+   and code-block edges line up down both sides. Prose carried a narrower
+   reading measure here and was the only thing that did, which read as ragged
+   rather than as typography — the eye tracks the mismatch between one block's
+   right edge and the next block's, not the line length. `Container size="xl"`
+   in `dev/pages` is that measure, and the one thing to change if these pages
+   should read narrower. */
 .pg-docs {
   padding: var(--R-SIZE-3) var(--R-SIZE-4) var(--R-SIZE-1);
 }
 
-/* Prose sets its own measure: the container is sized for a page, and a reading
-   column is narrower than a layout column.
-   Tables and code blocks are exempt and keep the full column. A reference table
-   squeezed to a reading measure does not scroll — its wrapper can only scroll
-   what is wider than itself, and the table shrinks to fit, so the overflow lands
-   inside the cells instead and the last column is painted over. */
-.pg-docs .markdown > :not(.markdown-table, .markdown-codeblock) {
-  max-width: 68ch;
-}
-
-/* Prop types are long unbroken runs; without this they set an unbreakable
-   minimum and push the columns past the edge. */
+/* Prop types are long unbroken runs. A cell is the one place the library
+   deliberately does not break them — a wide table scrolls in its wrapper, which
+   is `Table`'s contract — but a four-column reference of them scrolls further
+   than it reads, so this page opts its own cells in. */
 .pg-docs .markdown-table :is(th, td) {
   overflow-wrap: anywhere;
 }
@@ -250,7 +249,6 @@ body {
 }
 
 .pg-docs-toc {
-  max-width: 68ch;
   padding: var(--R-SIZE-5) var(--R-SIZE-4);
   border: 1px solid var(--C-BORDER-DEFAULT);
   border-radius: var(--RADIUS-MD);

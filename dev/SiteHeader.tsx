@@ -22,6 +22,11 @@ interface SiteHeaderProps {
  * are rendered documents too — picking a theme reskins the reference you are
  * reading, which is the claim the package makes stated in the one form that
  * cannot be exaggerated.
+ *
+ * Mounted once, by `Site`, and never by a page: a bar a page renders is a bar
+ * that is thrown away and rebuilt every time you follow a link in it, which
+ * shows as a flash and loses whatever state its controls were holding. A page
+ * with controls of its own passes them as children.
  */
 export function SiteHeader({
   page,
