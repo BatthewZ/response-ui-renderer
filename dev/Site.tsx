@@ -1,10 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { type ComponentType, useEffect, useRef, useState } from "react";
 
 import { DocsPage } from "./DocsPage";
 import { Playground } from "./Playground";
 import { PlaygroundHeaderControls } from "./PlaygroundHeaderControls";
+import { ReferenceHeaderControls } from "./ReferenceHeaderControls";
 import { type PageId, pageOf, PLAYGROUND_PAGE, requestedPage } from "./site";
 import { SiteHeader } from "./SiteHeader";
+
+/**
+ * What each page adds to the top bar, if anything.
+ *
+ * Keyed by page rather than branched on, so a page that grows a control declares
+ * it in one place and the frame keeps knowing nothing about any page in
+ * particular — which is the whole reason the bar is mounted here.
+ */
+const HEADER_CONTROLS: Partial<Record<PageId, ComponentType>> = {
+  playground: PlaygroundHeaderControls,
+  reference: ReferenceHeaderControls,
+};
 
 /** Where the current URL points, as the frame needs it. */
 function routeOf(): { page: PageId; hash: string } {
@@ -92,10 +105,11 @@ export function Site() {
   }, [page, hash]);
 
   const playground = page === PLAYGROUND_PAGE;
+  const Controls = HEADER_CONTROLS[page];
 
   return (
     <div className="pg-root">
-      <SiteHeader page={page}>{playground && <PlaygroundHeaderControls />}</SiteHeader>
+      <SiteHeader page={page}>{Controls && <Controls />}</SiteHeader>
 
       {playground ? <Playground ref={region} /> : <DocsPage ref={region} page={page} />}
     </div>

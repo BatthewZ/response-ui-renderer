@@ -22,7 +22,7 @@ const PAGE_PARAM = "page";
 export const SITE_PAGES: readonly { id: PageId; label: string }[] = [
   { id: PLAYGROUND_PAGE, label: "Playground" },
   { id: "overview", label: "Overview" },
-  { id: "reference", label: "ViewSpec reference" },
+  { id: "reference", label: "ViewSpec Reference" },
 ];
 
 export function pageHref(id: PageId): string {

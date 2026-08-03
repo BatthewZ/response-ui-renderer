@@ -36,11 +36,11 @@ describe("Site", () => {
     const { container } = mount("/?page=overview");
     const before = bar(container);
 
-    fireEvent.click(screen.getByRole("link", { name: "ViewSpec reference" }));
+    fireEvent.click(screen.getByRole("link", { name: "ViewSpec Reference" }));
 
     expect(window.location.search).toBe("?page=reference");
     expect(bar(container)).toBe(before);
-    expect(screen.getByRole("link", { name: "ViewSpec reference" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "ViewSpec Reference" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -58,6 +58,8 @@ describe("Site", () => {
   });
 
   it("swaps the page under the bar, and the page's own controls into it", () => {
+    // Overview contributes none, so it is the page that proves a control is
+    // taken away again rather than merely added to.
     mount("/?page=overview");
     expect(screen.queryByRole("button", { name: "How this works" })).toBeNull();
 
@@ -66,6 +68,26 @@ describe("Site", () => {
     expect(screen.getByRole("button", { name: "How this works" })).toBeInTheDocument();
     expect(document.querySelector(".pg-page")).toBeNull();
     expect(document.querySelector(".pg-main")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("link", { name: "ViewSpec Reference" }));
+
+    expect(screen.getByRole("button", { name: "What is a ViewSpec?" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "How this works" })).toBeNull();
+  });
+
+  it("opens the page's dialog from its own control", () => {
+    // The dialog is declared beside the button rather than in the page, so this
+    // is the assertion that the pair actually survived being handed to the bar.
+    mount("/?page=reference");
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "What is a ViewSpec?" }));
+
+    const dialog = screen.getByRole("dialog", { name: "What is a ViewSpec?" });
+    expect(dialog).toHaveTextContent("written for a model");
+
+    fireEvent.click(screen.getByRole("button", { name: "Got it" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("puts the reader in the page arrived at, and not on the first paint", () => {
@@ -97,7 +119,7 @@ describe("Site", () => {
 
   it("leaves a modified click to the browser, so a page still opens in a new tab", () => {
     mount("/?page=overview");
-    const link = screen.getByRole("link", { name: "ViewSpec reference" });
+    const link = screen.getByRole("link", { name: "ViewSpec Reference" });
 
     expect(fireEvent.click(link, { ctrlKey: true })).toBe(true);
     expect(fireEvent.click(link, { metaKey: true })).toBe(true);

@@ -116,5 +116,5 @@ function docPage(title: string, markdown: string): ViewSpec {
 /** Typed by the page list, so a page added there fails here until it has a document. */
 export const DOC_PAGES: Readonly<Record<DocPageId, ViewSpec>> = {
   overview: docPage("Overview", readme),
-  reference: docPage("ViewSpec reference", viewspec),
+  reference: docPage("ViewSpec Reference", viewspec),
 };

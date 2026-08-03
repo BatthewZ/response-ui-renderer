@@ -205,6 +205,18 @@ published site is how most people will meet the package.
 - **Links between the repository's documents are rewritten to page URLs.** The site deploys the
   rendering, not the file, so `[VIEWSPEC.md](VIEWSPEC.md)` would otherwise be a 404. A parsed
   markdown link is an ordinary anchor and never the `navigate` action.
+- **The reference page says who it is addressed to.** It opens on a wall of generated tables
+  with nothing explaining who wrote them or why they read as they do, and the answer is that the
+  reader is not the addressee: the page is a prompt payload, meant to be handed to a model whole.
+  A "What is a ViewSpec?" control in the bar says so, alongside what the format buys, that the
+  page is generated from the live library rather than kept by hand, and the two ends that close
+  the loop — `validateViewSpec` and `viewSpecJsonSchema()`. The label names the subject rather
+  than the page, because that is the question someone actually arrives holding.
+- **A page declares its header controls instead of the frame branching on it.** One map from page
+  to component, so the second page to want a control cost the frame nothing and the third will
+  cost it nothing. The two dialogs share a shell as well: the same affordance on two pages has to
+  be the same object, and the heading id is generated rather than fixed so two of them mounted at
+  once cannot take each other's accessible name.
 - **Three pieces of chrome are gone, each because it stated something it did not mean.** The
   theme picker offered `events` / `grimdark` / `tech`, which reads as the set of themes the
   design system ships — it defines one, `default`, and the rest are opt-in worked examples. The
