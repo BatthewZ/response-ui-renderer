@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Fixed
+
+- **A render error no longer outlives the fix.** A node whose props made it throw kept its
+  diagnostic after the document was corrected, because the boundary only retried when the node's
+  *slot* changed — and editing a prop changes neither the component name nor the position. Values
+  arriving through `$ref` never changed the slot at all, so a good value replacing a bad one was
+  equally stuck. A boundary now retries whenever it is handed children again, so what it shows
+  always describes the current render.
+
 ### Peer range
 
 - Peer now `@batthewz/response-ui-react-components@^0.15.0`, which adds `DialogHeader` and

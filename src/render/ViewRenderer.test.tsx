@@ -770,6 +770,90 @@ describe("document identity", () => {
     expect(container.textContent).not.toContain("SET");
   });
 
+  it("retries a node whose failing prop was corrected", () => {
+    // A live editor's whole loop: a bad value throws, the author fixes it, and
+    // the fix has to be visible. The node keeps its slot and its component name
+    // throughout, so nothing about its position says "try again".
+    const build = (variant: string) =>
+      spec({ root: { component: "Text", props: { variant }, children: ["fixed text"] } });
+
+    const { container, rerender } = render(<ViewRenderer spec={build("body")} />);
+    expect(container.textContent).toContain("Render error");
+
+    rerender(<ViewRenderer spec={build("body-2")} />);
+    expect(container.textContent).not.toContain("Render error");
+    expect(container.textContent).toContain("fixed text");
+  });
+
+  it("retries a $cond branch when the condition flips away from the one that threw", async () => {
+    // Same document throughout: only the resolved branch changes, and the
+    // position renders `$cond` either way, so nothing about the slot moved.
+    const user = userEvent.setup();
+    const document = spec({
+      state: { broken: true },
+      root: {
+        component: "Stack",
+        children: [
+          {
+            component: "Button",
+            props: { onClick: { action: "setState", payload: { key: "broken", value: false } } },
+            children: ["flip"],
+          },
+          {
+            $cond: "state.broken",
+            then: { component: "Text", props: { variant: "no-such-variant" }, children: ["boom"] },
+            else: { component: "Text", children: ["recovered"] },
+          },
+        ],
+      },
+    });
+
+    const { container } = render(<ViewRenderer spec={document} />);
+    expect(container.textContent).toContain("Render error");
+
+    await user.click(screen.getByRole("button", { name: "flip" }));
+    expect(container.textContent).not.toContain("Render error");
+    expect(container.textContent).toContain("recovered");
+  });
+
+  it("retries a $each row when the item that threw is replaced", async () => {
+    const user = userEvent.setup();
+    const document = spec({
+      state: { rows: [{ variant: "no-such-variant" }] },
+      root: {
+        component: "Stack",
+        children: [
+          {
+            component: "Button",
+            props: {
+              onClick: {
+                action: "setState",
+                payload: { key: "rows", value: [{ variant: "body-2" }] },
+              },
+            },
+            children: ["reload"],
+          },
+          {
+            $each: "state.rows",
+            as: "row",
+            node: {
+              component: "Text",
+              props: { variant: { $ref: "row.variant" } },
+              children: ["row text"],
+            },
+          },
+        ],
+      },
+    });
+
+    const { container } = render(<ViewRenderer spec={document} />);
+    expect(container.textContent).toContain("Render error");
+
+    await user.click(screen.getByRole("button", { name: "reload" }));
+    expect(container.textContent).not.toContain("Render error");
+    expect(container.textContent).toContain("row text");
+  });
+
   it("re-initialises form values when the spec is replaced", () => {
     const build = (initial: string) =>
       spec({

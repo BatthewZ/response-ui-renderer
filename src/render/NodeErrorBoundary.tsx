@@ -28,8 +28,17 @@ export class NodeErrorBoundary extends Component<Props, State> {
   }
 
   componentDidUpdate(prev: Props) {
-    // A new node in this slot deserves a fresh attempt.
-    if (prev.label !== this.props.label && this.state.message !== null) {
+    if (this.state.message === null) return;
+    // Anything handed down again is a fresh attempt, so the message describes the
+    // render it came from and never a previous one. Keying this on the node, or
+    // on the label, holds a stale error over the fix: a document that corrects
+    // the prop that threw leaves the component name and the slot exactly as they
+    // were, and a value arriving from data changes neither.
+    //
+    // Retrying costs one throw per render of a node that is still broken, and
+    // cannot loop: `children` is a new element only when something above
+    // re-rendered, which this boundary's own state cannot cause.
+    if (prev.children !== this.props.children || prev.label !== this.props.label) {
       this.setState({ message: null });
     }
   }

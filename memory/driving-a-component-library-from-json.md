@@ -74,3 +74,18 @@ resolved anywhere, including inside array and object props. Implicit coercions c
 handler object shaped like `{ action }` and an icon-name string on an `icon`-shaped key both
 collide with ordinary data. Keep implicit rules at the top level of `props`, require nested
 ones to be unambiguous, and let documents reach the rest through an explicit marker.
+
+## A per-node error boundary must not remember
+
+The diagnostic a boundary shows has to describe the render it is showing, not one that
+happened earlier. Resetting on the slot's identity — the label, the node object — reads as
+correct and is not: the whole point of a live editor is that the author fixes the node that
+threw *in place*, so its component name, its position and often the node object itself are
+exactly what they were. The same holds for a bad value arriving through `$ref`, where the
+document never changes at all. Both leave a stale error sitting over a view that now renders
+perfectly, and the author is left disbelieving the only feedback the tool gives them.
+
+Treat every render as a fresh attempt: retry when new children arrive, which is whenever
+something above re-rendered. That cannot loop, because the boundary's own state change does
+not produce new children. A node that is still broken throws once per render, which is the
+honest cost of never lying about the current state.
