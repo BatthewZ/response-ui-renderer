@@ -1,41 +1,30 @@
-import { Select } from "@batthewz/response-ui-react-components";
 import type { ReactNode } from "react";
 
-import type { ThemeMode } from "../src/index";
 import { pageHref, type PageId, SITE_PAGES } from "./site";
-import { SITE_THEMES } from "./site-theme";
 
 interface SiteHeaderProps {
   page: PageId;
-  theme: string;
-  onThemeChange: (theme: string) => void;
-  themeMode: ThemeMode;
-  onThemeModeChange: (mode: ThemeMode) => void;
-  /** Controls belonging to one page, placed ahead of the theme pickers. */
+  /** Controls belonging to one page. The bar has none of its own. */
   children?: ReactNode;
 }
 
 /**
- * The site frame: brand, pages, and the theme controls every page is subject to.
- *
- * The pickers live here rather than on the playground because the prose pages
- * are rendered documents too — picking a theme reskins the reference you are
- * reading, which is the claim the package makes stated in the one form that
- * cannot be exaggerated.
+ * The site frame: brand, pages, and whatever the page below contributes.
  *
  * Mounted once, by `Site`, and never by a page: a bar a page renders is a bar
  * that is thrown away and rebuilt every time you follow a link in it, which
  * shows as a flash and loses whatever state its controls were holding. A page
  * with controls of its own passes them as children.
+ *
+ * It carried a theme picker over the example themes, and the scope control that
+ * went with it. Both are gone. The picker put `events` / `grimdark` / `tech`
+ * in a dropdown beside the brand, which reads as the set of themes the design
+ * system ships — and it defines exactly one, `default`. The documents make the
+ * theming claim better anyway, in the form a consumer would actually write it:
+ * every exemplar carries its own `themeOverrides`, visible in the JSON next to
+ * the view it repaints.
  */
-export function SiteHeader({
-  page,
-  theme,
-  onThemeChange,
-  themeMode,
-  onThemeModeChange,
-  children,
-}: SiteHeaderProps) {
+export function SiteHeader({ page, children }: SiteHeaderProps) {
   return (
     <header className="pg-topbar">
       <div className="pg-brand">
@@ -57,42 +46,7 @@ export function SiteHeader({
         ))}
       </nav>
 
-      <div className="pg-topbar-controls">
-        {children}
-
-        <div className="pg-control">
-          <label className="pg-control-label" htmlFor="pg-theme">
-            Theme
-          </label>
-          <Select
-            id="pg-theme"
-            className="py-r6"
-            value={theme}
-            onChange={(e) => onThemeChange(e.target.value)}
-          >
-            {SITE_THEMES.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        <div className="pg-control">
-          <label className="pg-control-label" htmlFor="pg-mode">
-            Scope
-          </label>
-          <Select
-            id="pg-mode"
-            className="py-r6"
-            value={themeMode}
-            onChange={(e) => onThemeModeChange(e.target.value as ThemeMode)}
-          >
-            <option value="root">page (root)</option>
-            <option value="scoped">view (scoped)</option>
-          </Select>
-        </div>
-      </div>
+      <div className="pg-topbar-controls">{children}</div>
     </header>
   );
 }

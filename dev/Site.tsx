@@ -4,7 +4,6 @@ import { DocsPage } from "./DocsPage";
 import { Playground } from "./Playground";
 import { PlaygroundHeaderControls } from "./PlaygroundHeaderControls";
 import { type PageId, pageOf, PLAYGROUND_PAGE, requestedPage } from "./site";
-import { useSiteTheme } from "./site-theme";
 import { SiteHeader } from "./SiteHeader";
 
 /** Where the current URL points, as the frame needs it. */
@@ -16,8 +15,8 @@ function routeOf(): { page: PageId; hash: string } {
  * The frame the pages are rendered inside, and the only thing that navigates.
  *
  * A page swap replaces what is below the bar and leaves the bar itself mounted:
- * the header does not flash, the theme is not re-read from storage on every
- * link, and the active link is the only thing in the chrome that changes.
+ * the header does not flash, and the active link is the only thing in the chrome
+ * that changes.
  *
  * The click is caught here rather than in the header because the header is not
  * the only thing that links to a page: prose links naming a repository document
@@ -35,7 +34,6 @@ function routeOf(): { page: PageId; hash: string } {
  */
 export function Site() {
   const [{ page, hash }, setRoute] = useState(routeOf);
-  const { theme, setTheme, themeMode, setThemeMode } = useSiteTheme();
   const region = useRef<HTMLElement>(null);
   const arrived = useRef(false);
 
@@ -97,21 +95,9 @@ export function Site() {
 
   return (
     <div className="pg-root">
-      <SiteHeader
-        page={page}
-        theme={theme}
-        onThemeChange={setTheme}
-        themeMode={themeMode}
-        onThemeModeChange={setThemeMode}
-      >
-        {playground && <PlaygroundHeaderControls />}
-      </SiteHeader>
+      <SiteHeader page={page}>{playground && <PlaygroundHeaderControls />}</SiteHeader>
 
-      {playground ? (
-        <Playground ref={region} theme={theme} themeMode={themeMode} />
-      ) : (
-        <DocsPage ref={region} page={page} theme={theme} themeMode={themeMode} />
-      )}
+      {playground ? <Playground ref={region} /> : <DocsPage ref={region} page={page} />}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { type Ref, useCallback, useEffect, useMemo, useState } from "react";
 
 import { exampleSpecs } from "../src/examples";
-import type { ThemeMode } from "../src/index";
 import type { ViewSpec } from "../src/spec";
 import { DocumentPane } from "./DocumentPane";
 import { EDITOR_HANDOFF_KEY, EDITOR_VIEW } from "./full-page";
@@ -16,14 +15,11 @@ const serialize = (name: string) =>
   JSON.stringify(exampleSpecs[name as keyof typeof exampleSpecs], null, 2);
 
 interface PlaygroundProps {
-  /** The theme is the frame's, not this page's — see `SiteHeader`. */
-  theme: string;
-  themeMode: ThemeMode;
   /** The frame focuses this on arrival — see `Site`. */
   ref?: Ref<HTMLElement>;
 }
 
-export function Playground({ theme, themeMode, ref }: PlaygroundProps) {
+export function Playground({ ref }: PlaygroundProps) {
   const [selected, setSelected] = useState(FIRST_EXAMPLE);
   const [text, setText] = useState(() => serialize(FIRST_EXAMPLE));
   const [documentOpen, setDocumentOpen] = useState(true);
@@ -67,7 +63,10 @@ export function Playground({ theme, themeMode, ref }: PlaygroundProps) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [format]);
 
-  const fullPageHref = `?view=${EDITOR_VIEW}&theme=${encodeURIComponent(theme)}&mode=${themeMode}`;
+  // `?theme=` and `?mode=` are still read by the full-page route — that is how a
+  // document is checked against a theme it has never seen — but nothing on this
+  // page picks one, so the link carries neither and the document decides.
+  const fullPageHref = `?view=${EDITOR_VIEW}`;
 
   return (
     <main className="pg-main" ref={ref} tabIndex={-1}>
@@ -98,8 +97,6 @@ export function Playground({ theme, themeMode, ref }: PlaygroundProps) {
         spec={state.spec}
         state={state}
         specKey={selected}
-        theme={theme}
-        themeMode={themeMode}
         fullPageHref={fullPageHref}
         onOpenFullPage={() => localStorage.setItem(EDITOR_HANDOFF_KEY, text)}
         onShowIssues={showIssues}

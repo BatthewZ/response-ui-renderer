@@ -1,9 +1,4 @@
-import {
-  CopyButton,
-  formatBytes,
-  IconButton,
-  Tooltip,
-} from "@batthewz/response-ui-react-components";
+import { CopyButton, IconButton, Tooltip } from "@batthewz/response-ui-react-components";
 import { RotateCcw, WandSparkles } from "lucide-react";
 import { useRef } from "react";
 
@@ -61,9 +56,14 @@ export function DocumentPane({
     <section className="pg-doc-inner" aria-label="ViewSpec document">
       <header className="pg-pane-head">
         <h2 className="pg-eyebrow">Document</h2>
+        {/* Lines, and not a byte count beside them. The document in this editor
+            is pretty-printed, so its size is mostly indentation — around a 48%
+            surcharge, measured — and quoting it next to a package that claims a
+            document is smaller than the markup misstates the claim in the one
+            place a reader would take it literally. Line count says how much
+            there is to read, which is what an editor is asked. */}
         <span className="pg-meta">
-          {lines} {lines === 1 ? "line" : "lines"} ·{" "}
-          {formatBytes(new TextEncoder().encode(text).length)}
+          {lines} {lines === 1 ? "line" : "lines"}
           {edited && " · edited"}
         </span>
         <div className="pg-pane-actions">

@@ -1,4 +1,4 @@
-import { Badge, Button, Tooltip } from "@batthewz/response-ui-react-components";
+import { Button } from "@batthewz/response-ui-react-components";
 import { CircleHelp } from "lucide-react";
 import { useState } from "react";
 
@@ -15,16 +15,18 @@ const COMPONENT_COUNT = listComponentNames(defaultRegistry).length;
  * it instead of drawing one of its own. The dialog is here with the button that
  * opens it: it is `<dialog>`, so it paints in the top layer and cares nothing
  * for the flex row it is declared in.
+ *
+ * A "{n} components" badge sat here and has been removed. The number is the size
+ * of the registry, but a badge beside a rendered view reads as a count of what is
+ * in that view, and nothing about its placement corrected the first reading. The
+ * count is still made — the dialog states it in a sentence that says what it
+ * counts, which is the only place it means anything.
  */
 export function PlaygroundHeaderControls() {
   const [aboutOpen, setAboutOpen] = useState(false);
 
   return (
     <>
-      <Tooltip content="Every name a document can use, compound parts included. Read from the component library at runtime, never listed by hand.">
-        <Badge className="pg-topbar-badge">{COMPONENT_COUNT} components</Badge>
-      </Tooltip>
-
       <Button
         type="button"
         variant="ghost"

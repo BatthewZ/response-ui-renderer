@@ -11,8 +11,10 @@
 @import "@batthewz/response-ui-react-components/styles";
 @import "../src/styles.css";
 
-/* Opt-in worked examples, so the theme picker has something to pick. No entry
-   imports them — a consumer authors their own theme instead. */
+/* Opt-in worked examples. Nothing on the site picks one — the documents theme
+   themselves — but `?view=<doc>&theme=<name>` still renders one against a theme it
+   has never seen, which is how that claim is checked. No entry point imports
+   these; a consumer authors their own theme instead. */
 @import "@batthewz/response-ui-css/examples/themes/events";
 @import "@batthewz/response-ui-css/examples/themes/grimdark";
 @import "@batthewz/response-ui-css/examples/themes/tech";
@@ -117,68 +119,26 @@ body {
   box-shadow: inset 0 -2px 0 0 var(--C-ACCENT);
 }
 
-/* Below the breakpoint the controls take their own row rather than shrinking the
-   selects into chevrons. */
 .pg-topbar-controls {
   display: flex;
-  flex: 1 1 100%;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
+  margin-left: auto;
   gap: 0.625rem;
 }
 
-.pg-control {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.pg-control select {
-  min-width: 8rem;
-}
-
-.pg-topbar-badge,
+/* The button keeps its icon at every width and drops to icon-only where the nav
+   needs the room; `aria-label` is what names it either way. */
 .pg-help-label {
   display: none;
 }
 
-/* Hidden from the eye, not from the accessibility tree — it is the select's
-   only accessible name. */
-.pg-control-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-}
-
 @media (min-width: 48rem) {
-  .pg-topbar-controls {
-    flex: 0 1 auto;
-    justify-content: flex-end;
-    margin-left: auto;
-  }
-
-  .pg-topbar-badge {
-    display: inline-flex;
-  }
-
   .pg-help-label {
     display: inline;
   }
-
-  .pg-control-label {
-    position: static;
-    width: auto;
-    height: auto;
-    margin: 0;
-    overflow: visible;
-    clip-path: none;
-  }
 }
 
-.pg-control-label,
 .pg-eyebrow,
 .pg-meta {
   font-family: var(--DEFAULT-MONO-FONT);

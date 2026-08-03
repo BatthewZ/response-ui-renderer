@@ -17,6 +17,16 @@ export function AboutDialog({ open, onClose, componentCount }: AboutDialogProps)
       </h2>
 
       <dl className="pg-about-list">
+        <dt>What this is</dt>
+        <dd>
+          A JSON renderer for{" "}
+          <code>@batthewz/response-ui-react-components</code> — the component library is what
+          you are looking at, and this package is only the layer that lets a document address
+          it. Both sit on <code>@batthewz/response-ui-css</code>, which is where the theming
+          and the responsive scales come from: a view is themed and reflows because the
+          components are, not because anything here draws a pixel of its own.
+        </dd>
+
         <dt>A document, not code</dt>
         <dd>
           The left panel is a ViewSpec: plain JSON. Edit it and the view rerenders. Nothing on
@@ -39,13 +49,11 @@ export function AboutDialog({ open, onClose, componentCount }: AboutDialogProps)
           a toast instead of moving you anywhere. A real host points them at its own router.
         </dd>
 
-        <dt>Theme mode is the one real trade-off</dt>
+        <dt>The theme is the document's</dt>
         <dd>
-          <strong>root</strong> writes <code>data-theme</code> to <code>&lt;html&gt;</code>, so
-          the theme reaches a document written against <code>:root[data-theme]</code> — and
-          repaints this shell with it. <strong>scoped</strong> writes it to the view wrapper
-          alone, which contains the theme but only works for themes authored with a bare{" "}
-          <code>[data-theme]</code> selector.
+          Every example here sets its own <code>themeOverrides</code> — the block near the top
+          of the JSON. They are CSS custom properties written onto the view's wrapper, so a
+          document reskins itself and nothing outside it. Edit one and watch the view follow.
         </dd>
 
         <dt>Keyboard</dt>

@@ -10,7 +10,7 @@ import {
 import { ExternalLink, FileJson, FileWarning } from "lucide-react";
 
 import { lucideIcons } from "../src/icons";
-import { type ThemeMode, ViewRenderer } from "../src/index";
+import { ViewRenderer } from "../src/index";
 import type { ViewSpec } from "../src/spec";
 import { useDemoAdapters } from "./adapters";
 import { type SpecState, verdictDetail, verdictSummary } from "./spec-state";
@@ -20,8 +20,6 @@ interface PreviewPaneProps {
   state: SpecState;
   /** Identifies the document, so switching example remounts and resets its form state. */
   specKey: string;
-  theme: string;
-  themeMode: ThemeMode;
   fullPageHref: string;
   /** Hands the editor's exact text to the tab about to open. */
   onOpenFullPage: () => void;
@@ -32,8 +30,6 @@ export function PreviewPane({
   spec,
   state,
   specKey,
-  theme,
-  themeMode,
   fullPageHref,
   onOpenFullPage,
   onShowIssues,
@@ -72,8 +68,6 @@ export function PreviewPane({
           <ViewRenderer
             key={specKey}
             spec={spec}
-            theme={theme}
-            themeMode={themeMode}
             icons={lucideIcons}
             adapters={adapters}
           />

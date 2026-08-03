@@ -190,8 +190,7 @@ published site is how most people will meet the package.
 - **Pages route on `?page=`, alongside the existing `?view=`.** Links are `href`s and every page
   is a real URL, so static hosting still needs no SPA fallback. The playground remains what a
   bare URL serves, and `?view=` still wins — it is the chrome-free route the corpus is verified
-  through. Theme and scope persist across a navigation, and are stored as well, so a theme that
-  survived only the page you picked it on no longer reads as a toy.
+  through.
 - **A frame holds the site, so the top bar outlives the page.** A plain left-click on a link
   naming a page is intercepted and pushed rather than followed: the URLs are untouched and
   every one of them still cold-loads, but the bar is mounted once instead of being rebuilt —
@@ -206,6 +205,22 @@ published site is how most people will meet the package.
 - **Links between the repository's documents are rewritten to page URLs.** The site deploys the
   rendering, not the file, so `[VIEWSPEC.md](VIEWSPEC.md)` would otherwise be a 404. A parsed
   markdown link is an ordinary anchor and never the `navigate` action.
+- **Three pieces of chrome are gone, each because it stated something it did not mean.** The
+  theme picker offered `events` / `grimdark` / `tech`, which reads as the set of themes the
+  design system ships — it defines one, `default`, and the rest are opt-in worked examples. The
+  scope control went with it: `themeMode` had nothing left to act on, because every exemplar
+  themes itself with `themeOverrides` and none declares a `theme`. A "173 components" badge sat
+  above the rendered view, where it reads as a count of that view no matter what its tooltip
+  says. And the document's size in KB sat beside its line count, quoting the weight of a
+  pretty-printed document — mostly indentation — in a package whose claim is that a document is
+  smaller than the equivalent markup. The theming claim is now made where it is strongest, by
+  the documents' own `themeOverrides`, and the component count where a sentence can say what it
+  counts. `?view=<doc>&theme=<name>&mode=<mode>` is untouched: it is how a document is checked
+  against a theme it has never seen.
+- **"How this works" says what the package is.** A JSON renderer for
+  `@batthewz/response-ui-react-components`, with both sitting on `@batthewz/response-ui-css` —
+  which is where the theming and the responsive scales come from. It is the first thing the
+  dialog says, because it was the one thing the page never did.
 
 ### README
 

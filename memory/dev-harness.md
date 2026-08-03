@@ -50,14 +50,34 @@ the pages, each of which would owe it and one of which would forget.
 
 Every colour, radius, shadow and duration in the harness is a token, and its controls
 are the library's own components. That is not tidiness: in `root` theme mode a document's
-theme is written to `<html>`, so the shell repaints along with the render, and the
-difference between the two theme modes becomes something you can see rather than read
-about. A raw hex anywhere in the harness breaks that demonstration silently — the shell
-simply stops following the theme, and nothing fails.
+theme is written to `<html>`, so the shell repaints along with the render. A raw hex
+anywhere in the harness breaks that silently — the shell simply stops following the
+theme, and nothing fails.
 
-The same reason forbids naming an example theme in harness code. Its picker reads the
-list the library exports for exactly this purpose; a hardcoded name would give the
-shipped examples a privilege a consumer's theme cannot have.
+Never name an example theme in harness code. Read the list the library exports for
+exactly that purpose, or invent a name; hardcoding a shipped example gives it a privilege
+a consumer's theme cannot have.
+
+## A control the site does not need is a claim it makes by accident
+
+The bar carried a theme picker over the example themes, and a scope control for
+`themeMode`. Both are gone, and what they cost was not screen space. A dropdown offering
+`events` / `grimdark` / `tech` beside the brand states that those are the themes the
+design system ships, when it defines exactly one; and `themeMode` had nothing to act on
+once no page chose a theme, because every document themes itself with `themeOverrides` —
+a control that visibly does nothing is worse than no control.
+
+The same reading applies to a label. A component count in a badge above a rendered view
+is read as a count of that view, whatever the tooltip says, and a byte figure beside a
+pretty-printed document is read as the payload — when most of it is indentation, in a
+package whose claim is that a document is *smaller* than the markup. Both were removed
+and both facts survive where a sentence can frame them. Before putting a number in the
+chrome, read it the way someone who has been here four seconds will.
+
+What replaces the picker is what should always have carried the claim: the documents
+theme themselves, in JSON, next to the view they repaint. The `?view=<doc>&theme=<name>`
+route still takes a theme name, and that is where a document is checked against a theme
+it has never seen.
 
 ## A width-constrained preview cannot show a narrow-viewport render
 

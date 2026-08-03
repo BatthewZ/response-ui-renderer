@@ -1,15 +1,13 @@
 import type { Ref } from "react";
 
 import { lucideIcons } from "../src/icons";
-import { type ThemeMode, ViewRenderer } from "../src/index";
+import { ViewRenderer } from "../src/index";
 import { useDemoAdapters } from "./adapters";
 import { DOC_PAGES } from "./pages";
 import type { DocPageId } from "./site";
 
 interface DocsPageProps {
   page: DocPageId;
-  theme: string;
-  themeMode: ThemeMode;
   /** The frame scrolls and focuses this on arrival — see `Site`. */
   ref?: Ref<HTMLElement>;
 }
@@ -26,19 +24,13 @@ interface DocsPageProps {
  * something a parsed link becomes. Links to another of the repository's
  * documents are therefore rewritten to page URLs before parsing; see `./pages`.
  */
-export function DocsPage({ page, theme, themeMode, ref }: DocsPageProps) {
+export function DocsPage({ page, ref }: DocsPageProps) {
   const adapters = useDemoAdapters();
 
   return (
     // `position: relative` is not decoration — see `.pg-page` in app.css.
     <main className="pg-page" ref={ref} tabIndex={-1}>
-      <ViewRenderer
-        spec={DOC_PAGES[page]}
-        theme={theme}
-        themeMode={themeMode}
-        icons={lucideIcons}
-        adapters={adapters}
-      />
+      <ViewRenderer spec={DOC_PAGES[page]} icons={lucideIcons} adapters={adapters} />
     </main>
   );
 }
