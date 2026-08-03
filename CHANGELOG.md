@@ -13,6 +13,17 @@
 
 ### Peer range
 
+- Peer now `@batthewz/response-ui-react-components@^0.16.0`, which animates `Wizard`'s step panel
+  — the outgoing step fades out before the incoming one mounts — and exports a
+  `usePanelTransition` hook. The hook is host code and stays unaddressable, and the animation adds
+  no ViewSpec surface: it is internal to a component documents already address, so no registry or
+  schema change follows.
+
+  It does change *when* a step's content mounts, which is a real difference for a host driving a
+  `Wizard` document. A step change now swaps the panel one exit-animation later, so anything
+  reading the rendered step immediately after writing the index reads the outgoing one. The
+  renderer's own `Wizard` coverage renders an initial step rather than moving between steps, so
+  nothing here needed changing.
 - Peer now `@batthewz/response-ui-react-components@^0.15.0`, which adds `DialogHeader` and
   `DialogBody`, `lightDismiss` on `Dialog`, and a `useLightDismiss` hook. The hook is host code and
   stays unaddressable; the other three arrive in documents — see below.
