@@ -6,7 +6,7 @@
       "name": "@batthewz/response-ui-renderer",
       "devDependencies": {
         "@batthewz/response-ui-css": "^0.13.0",
-        "@batthewz/response-ui-react-components": "^0.14.1",
+        "@batthewz/response-ui-react-components": "^0.15.0",
         "@eslint/js": "^10.0.1",
         "@floating-ui/react": "^0.27.19",
         "@tailwindcss/vite": "^4.3.3",
@@ -34,7 +34,7 @@
         "zod": "^4.4.3",
       },
       "peerDependencies": {
-        "@batthewz/response-ui-react-components": "^0.14.1",
+        "@batthewz/response-ui-react-components": "^0.15.0",
         "@floating-ui/react": "^0.27.0",
         "lucide-react": "^0.500.0",
         "react": "^19.0.0",
@@ -71,7 +71,7 @@
 
     "@batthewz/response-ui-css": ["@batthewz/response-ui-css@0.13.0", "", { "peerDependencies": { "tailwindcss": "^4" }, "optionalPeers": ["tailwindcss"] }, "sha512-U0G0RDY5yt8bHVw2QnFlS8y5L8FBCdsPXkvz7BlKGZEaWpsYfw0UUdvX5dQcLqYqtnctxqxxXAViYnXvtI9zyg=="],
 
-    "@batthewz/response-ui-react-components": ["@batthewz/response-ui-react-components@0.14.1", "", { "dependencies": { "@batthewz/response-ui-css": "^0.13.0", "@batthewz/response-ui-tw-merge": "^0.1.3", "clsx": "^2.1.1", "tailwind-merge": "^3.6.0" }, "peerDependencies": { "@floating-ui/react": "^0.27.0", "lucide-react": "^0.500.0", "react": "^19.0.0", "react-dom": "^19.0.0" } }, "sha512-VlwcWjBtTGc+GWVgEddDNSmBe+VRQ4SNNA/6JaOkXaX4NnCJQ2E+RlawFe6TORvYIYxdNEKE6c85ymh/p9V4eg=="],
+    "@batthewz/response-ui-react-components": ["@batthewz/response-ui-react-components@0.15.0", "", { "dependencies": { "@batthewz/response-ui-css": "^0.13.0", "@batthewz/response-ui-tw-merge": "^0.1.3", "clsx": "^2.1.1", "tailwind-merge": "^3.6.0" }, "peerDependencies": { "@floating-ui/react": "^0.27.0", "lucide-react": "^0.500.0", "react": "^19.0.0", "react-dom": "^19.0.0" } }, "sha512-tCscjdNzsvGwsAtPqJCc3wkmZhxa/eu8deGxuOanX61wXTZY0kxLLRTyjDWqyHry5YKmnPwBlrdpn+S5u8w7pg=="],
 
     "@batthewz/response-ui-tw-merge": ["@batthewz/response-ui-tw-merge@0.1.3", "", { "peerDependencies": { "clsx": "^2.1.0", "tailwind-merge": "^3.5.0" } }, "sha512-I3ij+xsv9tPx6pstBEp+jrLfTbS6yn2tULrrGSmPwu6yMtqmbmheceZe59S2/MC2yPxcmRkBpxjDOoanTJ2XjA=="],
 
