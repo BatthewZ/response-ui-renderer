@@ -43,11 +43,12 @@ export function ReferenceDialog({ open, onClose }: ReferenceDialogProps) {
         It is generated, so it cannot describe a library that is not there
       </dt>
       <dd>
-        Nothing here is a hand-kept list. The names come from the component
-        library's own barrel and the types from its shipped declarations,
-        regenerated on every upgrade, and a test fails if the committed page and
-        a fresh generation disagree. A reference that drifts teaches a model to
-        write documents that no longer render.
+        Nothing here is a hand-kept list. The names come from the barrel of{" "}
+        <code>@batthewz/response-ui-react-components</code> — the component
+        library this package renders — and the types from that package's
+        shipped declarations, regenerated on every upgrade, and a test fails if
+        the committed page and a fresh generation disagree. A reference that
+        drifts teaches a model to write documents that no longer render.
       </dd>
 
       <dt>The loop is closed at both ends</dt>

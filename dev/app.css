@@ -702,6 +702,41 @@ body {
   max-width: 40rem;
 }
 
+/* A column so the panel can be taller than its content is allowed to be: the
+   title and the close stay put, and only the prose between them scrolls. Left
+   as one block it is the whole panel that scrolls, which puts both the heading
+   saying what you are reading and every way out of it off screen at once.
+
+   `[open]` is load-bearing, not decoration. A closed `<dialog>` is hidden by
+   `dialog:not([open]) { display: none }` in the user-agent sheet, and an author
+   `display` beats the user agent at any specificity — so declaring this
+   unconditionally leaves the panel on the page permanently, in flow, with no
+   backdrop and no top layer. Set `display` on a dialog only while it is open. */
+.pg-about[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The rule is what makes the prose read as passing behind the title rather than
+   as clipped by it: text disappearing under a heading with nothing between them
+   looks like a bug at a glance, and the glance is all a reader gives it. */
+.pg-about-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid var(--C-BORDER-DEFAULT);
+}
+
+/* `min-height: 0` is what lets it shrink below its content and scroll — a flex
+   item's floor is its content otherwise, and the panel would grow instead. */
+.pg-about-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .pg-about-list {
   display: grid;
   gap: 0.875rem;

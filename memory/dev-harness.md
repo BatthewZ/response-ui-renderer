@@ -79,6 +79,31 @@ theme themselves, in JSON, next to the view they repaint. The `?view=<doc>&theme
 route still takes a theme name, and that is where a document is checked against a theme
 it has never seen.
 
+## A help panel taller than the viewport has to be a column, not a block
+
+A modal built on the platform's `<dialog>` gets Escape for nothing and light dismiss not at
+all — a backdrop click still targets the dialog element, so only the click's coordinates
+tell the two apart, and the check has to let the panel's own padding count as inside.
+
+Left as one scrolling block, a panel longer than the screen also puts every way out of it
+off screen: the title that says what you are reading scrolls away, and so does the button
+that dismisses it. Opening focus makes it worse rather than better, because it lands on the
+first focusable control — so whichever control that is decides where the panel opens, and a
+dismissal placed at the end of the prose opens the panel at the end of the prose. A column
+with the title and the close pinned, the body scrolling between them, fixes the lot: the
+close is reachable at every scroll position, and it is first in the DOM, so opening lands
+at the top. This is a phone-first failure that a desktop window never shows you.
+
+**Set `display` on a dialog only while it is open.** What hides a closed one is
+`dialog:not([open]) { display: none }` in the user-agent sheet, and an author declaration
+beats the user agent whatever the specificity says — so a bare `.panel { display: flex }`
+leaves the thing on the page permanently, in flow, no backdrop, no top layer, sitting over
+half the app. Bound it with `[open]`. The general form of the trap: styling a component's
+own root element from the call site can defeat rules the component never wrote and cannot
+defend, and a dialog's rules live in the browser. The lesson for verifying, which is the
+part that actually failed here: after changing anything about a thing that opens, look at
+it **closed** as well. Every check ran against the open panel, where the bug is invisible.
+
 ## A width-constrained preview cannot show a narrow-viewport render
 
 Rendering the view inside a fixed-width box looks like a device preview and is not one:
