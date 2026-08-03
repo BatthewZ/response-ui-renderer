@@ -348,8 +348,22 @@ body {
   opacity: 0.5;
 }
 
+/* The one control on a seam that is otherwise deliberately quiet, and the only
+   way back to the document once it is hidden — so it is the one place in the
+   chrome that spends accent ink. Ink and not a fill: filled, it reads as the
+   page's main action, which is the document and the render either side of it,
+   never the handle between them. The glyph alone is enough to break the grey.
+   Accent rather than a status colour, because the gate below owns those. */
 .pg-rail-control {
   position: relative;
+  color: var(--C-ACCENT);
+}
+
+/* The surface underneath is the library's own hover and press; only the ink is
+   ours to darken with it. */
+.pg-rail-control:hover,
+.pg-rail-control:active {
+  color: var(--C-ACCENT-HOVER);
 }
 
 .pg-rail-gate {
