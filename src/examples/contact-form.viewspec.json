@@ -157,10 +157,9 @@
                         "component": "Row",
                         "props": { "gap": "r5", "align": "start" },
                         "children": [
-                          { "component": "Icon", "props": { "name": "leaf", "size": 18, "className": "text-accent shrink-0" } },
                           {
                             "component": "Text",
-                            "props": { "variant": "body-3", "color": "secondary" },
+                            "props": { "variant": "body-2", "color": "secondary", "className": "bg-surface-2 p-r5 rounded-lg" },
                             "children": ["Every piece is made to order in our east London workshop — most commissions ship in three to five weeks."]
                           }
                         ]

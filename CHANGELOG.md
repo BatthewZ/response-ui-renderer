@@ -4,6 +4,9 @@
 
 ### Peer range
 
+- Peer now `@batthewz/response-ui-react-components@^0.15.0`, which adds `DialogHeader` and
+  `DialogBody`, `lightDismiss` on `Dialog`, and a `useLightDismiss` hook. The hook is host code and
+  stays unaddressable; the other three arrive in documents — see below.
 - Peer now `@batthewz/response-ui-react-components@^0.14.0`, which adds `Markdown` — see below —
   and a `glyph` slot on `Stepper.Step`.
 - Peer bumped to `@batthewz/response-ui-react-components@^0.12.0` (dev dep on
@@ -13,6 +16,30 @@
   new versions looks different by design: cards, dialogs and panels are the lightest surface and
   the page behind them is a step darker. `Card`, `StatCard` and `Timeline.Card` are the visible
   cases.
+
+### Tracking react-components 0.15.0
+
+- **`DialogHeader` and `DialogBody` are addressable and exercised.** A panel whose middle scrolls
+  while its title and actions stay put is the one piece of dialog structure a document could not
+  assemble from outside the component, because a panel of bare children distributes a shortfall
+  across all of them and clips rather than scrolls. The coverage corpus now builds its sharing
+  panel out of all three parts, and a render test opens it — the corpus alone could not, since a
+  closed dialog never mounts its children, so it proved the names resolved and nothing more.
+- **`DialogHeader` gives a document its first reachable close control.** Wire its `onClose` to a
+  `closeDialog` action and name it with `closeLabel`; omit `onClose` and the row is just a row,
+  which is the right answer for a destructive confirmation. The corpus models both — the sharing
+  panel offers a way out, the delete confirmation withholds one. This does **not** close the
+  long-standing gap around the `onClose` the renderer injects on the panel itself: the header's
+  control invokes its own callback, not the panel's, and that path still needs a native dismiss
+  jsdom cannot raise.
+- **`Dialog`'s authoring note was wrong as of this release.** It told authors the panel has no
+  close button, which was true when nothing could supply one. It now points at `DialogHeader`, and
+  at `aria-labelledby` for the accessible name it still does not provide.
+- **The panel is a flex column while open, and no gate can see what that breaks.** Children of an
+  open panel are flex items rather than blocks, and a bare `display` utility in `className` no
+  longer outranks the panel's own. Swept the corpus by hand: the two dialogs and the drawer carry
+  no display utility and nothing relying on block layout, and `Drawer` is a separate element that
+  does not take the change.
 
 ### Tracking react-components 0.12.0
 

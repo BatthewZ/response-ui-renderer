@@ -12,7 +12,7 @@ import { ViewRenderer } from "@batthewz/response-ui-renderer";
 
 **[Try it in the playground →](https://batthewz.github.io/response-ui-renderer/)** — edit a document, watch it render, retheme it from its own JSON. Nothing to install.
 
-- **Every component the library exports is addressable, and proven to render.** 99 components and 73 compound parts, derived from the library's own barrel at runtime — not a hand-copied list — and a coverage corpus renders every one of them. 7 need host code; they are named, with the reason, in [VIEWSPEC.md](VIEWSPEC.md).
+- **Every component the library exports is addressable, and proven to render.** 101 components and 73 compound parts, derived from the library's own barrel at runtime — not a hand-copied list — and a coverage corpus renders every one of them. 7 need host code; they are named, with the reason, in [VIEWSPEC.md](VIEWSPEC.md).
 - **Zero runtime dependencies.** React and response-ui are peers; nothing else ships.
 - **Host-agnostic.** No router, no server routes, no auth model. Navigation, network and toasts are injected.
 - **Hardened for machine-generated input.** Per-node error boundaries, prototype-safe lookups, forbidden-prop stripping, URL-scheme filtering, depth limits.

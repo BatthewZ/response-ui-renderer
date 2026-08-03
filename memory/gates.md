@@ -54,6 +54,15 @@ it — silence is what let this sit. And assert the shipped artifact, not the pi
 test that would have caught it reads VIEWSPEC.md and checks every categorised component
 appears there. "Has a category" and "reaches the doc" are different claims.
 
+The same asymmetry sets an ordering trap on a peer bump, and the doc gate's advice walks you
+straight into it. A component the curated notes do not name is dropped from the doc rather
+than rejected, so regenerating *before* categorising the new arrivals produces a doc that is
+internally consistent and silently short — the staleness gate goes green while the
+categorisation gate stays red, and the reassuring half is the one that just stopped meaning
+anything. Categorise first, regenerate second. More generally, when a bump fires several
+gates at once, fix the one naming the missing decision before the one naming the stale
+artifact; regeneration is what launders an unmade decision into a passing check.
+
 ## A covariant type will not catch a list that shrinks
 
 Zod's `ZodType` is covariant in its output, so a schema whose union is a strict *subset*

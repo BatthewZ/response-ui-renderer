@@ -152,9 +152,9 @@ describe("controlled-only dialogs", () => {
   //
   // It does NOT cover the `onClose` prop NodeRenderer injects — verified by
   // breaking that wiring, which leaves this test green. That path needs a native
-  // dismiss, and jsdom's <dialog> is a stub, so Escape does nothing; the
-  // component ships no close control to click either. Untestable here, not
-  // untested by oversight.
+  // dismiss, and jsdom's <dialog> is a stub, so Escape does nothing. `DialogHeader`
+  // ships a close control as of 0.15.0, but clicking it calls that component's own
+  // `onClose`, not the panel's, so it does not close this gap either.
   it("closes again through closeDialog", async () => {
     const user = userEvent.setup();
     render(
@@ -189,6 +189,60 @@ describe("controlled-only dialogs", () => {
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  // The coverage corpus names both of these, but a corpus render mounts no
+  // closed dialog's children, so it proves the names resolve and nothing more.
+  // Opening one is the only way to see them render — and the header's close
+  // control is the first close affordance in the library a document can reach,
+  // so it is asserted on the button the component actually ships rather than on
+  // one the fixture supplies.
+  it("renders DialogHeader and DialogBody in an open panel, and closes from the header", async () => {
+    const user = userEvent.setup();
+    render(
+      <ViewRenderer
+        spec={spec({
+          root: {
+            component: "Stack",
+            children: [
+              {
+                component: "Button",
+                props: { onClick: { action: "openDialog", payload: { dialogId: "d" } } },
+                children: ["Open"],
+              },
+              {
+                component: "Dialog",
+                props: { id: "d", "aria-labelledby": "panel-title" },
+                children: [
+                  {
+                    component: "DialogHeader",
+                    props: {
+                      onClose: { action: "closeDialog", payload: { dialogId: "d" } },
+                      closeLabel: "Close the panel",
+                    },
+                    children: [
+                      { component: "Text", props: { variant: "h3", id: "panel-title" }, children: ["Share"] },
+                    ],
+                  },
+                  { component: "DialogBody", children: [{ component: "Text", children: ["Body copy"] }] },
+                ],
+              },
+            ],
+          },
+        })}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Open" }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    // Both parts really mounted: a component that failed to resolve renders a
+    // diagnostic in place, and an empty one would still satisfy findByRole.
+    expect(screen.getByText("Share")).toBeInTheDocument();
+    expect(screen.getByText("Body copy")).toBeInTheDocument();
+    expect(findRenderDiagnostics(document.body)).toEqual([]);
+
+    await user.click(screen.getByRole("button", { name: "Close the panel" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 });

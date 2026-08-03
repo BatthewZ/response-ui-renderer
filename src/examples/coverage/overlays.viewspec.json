@@ -632,51 +632,74 @@
                 "props": { "id": "share-document", "aria-labelledby": "share-document-title" },
                 "children": [
                   {
-                    "component": "Stack",
-                    "props": { "gap": "r3" },
+                    "component": "DialogHeader",
+                    "props": {
+                      "onClose": {
+                        "action": "closeDialog",
+                        "payload": { "dialogId": "share-document" }
+                      },
+                      "closeLabel": "Close sharing options"
+                    },
                     "children": [
                       {
                         "component": "Text",
                         "props": { "variant": "h3", "id": "share-document-title" },
                         "children": ["Share this draft"]
-                      },
+                      }
+                    ]
+                  },
+                  {
+                    "component": "DialogBody",
+                    "children": [
                       {
-                        "component": "Text",
-                        "props": { "variant": "body-2", "color": "secondary" },
-                        "children": [
-                          "Anyone on the finance team can comment. Editing stays with ",
-                          { "$ref": "data.document.owner" },
-                          "."
-                        ]
-                      },
-                      { "component": "Divider" },
-                      {
-                        "component": "Row",
-                        "props": { "gap": "r5", "justify": "end" },
+                        "component": "Stack",
+                        "props": { "gap": "r3" },
                         "children": [
                           {
-                            "component": "Button",
-                            "props": {
-                              "variant": "ghost",
-                              "onClick": {
-                                "action": "closeDialog",
-                                "payload": { "dialogId": "share-document" }
-                              }
-                            },
-                            "children": ["Cancel"]
+                            "component": "Text",
+                            "props": { "variant": "body-2", "color": "secondary" },
+                            "children": [
+                              "Anyone on the finance team can comment. Editing stays with ",
+                              { "$ref": "data.document.owner" },
+                              "."
+                            ]
                           },
+                          { "component": "Divider" },
                           {
-                            "component": "Button",
-                            "props": {
-                              "variant": "primary",
-                              "onClick": {
-                                "action": "closeDialog",
-                                "payload": { "dialogId": "share-document" }
-                              }
-                            },
-                            "children": ["Copy share link"]
+                            "component": "Text",
+                            "props": { "variant": "body-2", "color": "secondary" },
+                            "children": [
+                              "Comments are kept with the revision they were left on, so a link you share today still resolves after the next edit."
+                            ]
                           }
                         ]
+                      }
+                    ]
+                  },
+                  {
+                    "component": "FormActions",
+                    "children": [
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "ghost",
+                          "onClick": {
+                            "action": "closeDialog",
+                            "payload": { "dialogId": "share-document" }
+                          }
+                        },
+                        "children": ["Cancel"]
+                      },
+                      {
+                        "component": "Button",
+                        "props": {
+                          "variant": "primary",
+                          "onClick": {
+                            "action": "closeDialog",
+                            "payload": { "dialogId": "share-document" }
+                          }
+                        },
+                        "children": ["Copy share link"]
                       }
                     ]
                   }

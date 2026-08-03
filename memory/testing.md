@@ -20,9 +20,15 @@ pass `animate: false` so the content is really asserted rather than merely prese
 The same gap has a second half worth knowing before you go looking: a dialog can be opened
 and closed through the `openDialog`/`closeDialog` actions, but the `onClose` prop the
 renderer injects cannot be reached at all. Firing it needs a native dismiss, and the stub
-does not raise one on Escape; the component ships no close control to click instead. A test
-that closes via the action passes whether or not that wiring exists — confirmed by breaking
-it — so do not read one as covering the other.
+does not raise one on Escape. A test that closes via the action passes whether or not that
+wiring exists — confirmed by breaking it — so do not read one as covering the other.
+
+A close control on a header part does not close that gap either, and it is the tempting
+misreading once the library grows one: the control invokes its own `onClose` callback, which
+a document wires to a `closeDialog` action, so it exercises the same path the action test
+already covers and never the panel's injected prop. A close affordance being clickable at
+last is not evidence that the thing you could not reach became reachable — check which
+callback it actually calls before retiring a known gap.
 
 ## Checks that cannot fail
 
