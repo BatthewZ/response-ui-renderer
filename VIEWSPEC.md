@@ -472,10 +472,11 @@ All colors are OKLCH — write overrides in OKLCH. The Utility column is the cla
 | `--C-BORDER-FOCUS` | `ring-border-focus` | Focus ring color |
 | `--C-STATUS-ERROR` / `-SUCCESS` / `-WARNING` / `-INFO` | `text-status-error` … | Status foregrounds |
 | `--C-STATUS-ERROR-BG` / `-SUCCESS-BG` / `-WARNING-BG` / `-INFO-BG` | `bg-status-error-bg` … | Their tinted backgrounds |
+| `--C-SELECTION` / `--C-TEXT-ON-SELECTION` | — (a global `::selection` rule) | The text-selection highlight and its ink. Default to the accent pair, so overriding `--C-ACCENT` alone carries them |
 
 **Surfaces.** The scale runs **raised → recessed**, and the lightness direction never flips: `--C-SURFACE-0` is the lightest of the four in a light theme *and* in a dark one. `--C-CANVAS` is not the end of the scale — it sits **between rungs 1 and 2**, with 0–1 raised above the page and 2–3 recessed into it. When overriding: keep that order, do not let the canvas collide with a rung, and do not pin the canvas at pure white or pure black (the recessed rungs then have nowhere to go). A rung is not an elevation — a dialog and a card both sit on rung 0 and are supposed to look alike; separate same-rung things with `--SHADOW-*` or `--C-BORDER-DEFAULT`, never by borrowing a neighbouring rung. Adjacent rungs are a deliberately **weak** cue — never hang meaning on a single step being visible.
 
-**Pairs move together.** `--C-TEXT-ON-PRIMARY` is chosen to read on `--C-PRIMARY`, `--C-TEXT-ON-ACCENT` on `--C-ACCENT`, and each status foreground on its `-BG`. Re-tint one half of a pair and you must re-tint the other. The pairing guarantees legibility only against its own fill — a fill placed on a surface or over an image is your own contrast problem to check.
+**Pairs move together.** `--C-TEXT-ON-PRIMARY` is chosen to read on `--C-PRIMARY`, `--C-TEXT-ON-ACCENT` on `--C-ACCENT`, `--C-TEXT-ON-SELECTION` on `--C-SELECTION`, and each status foreground on its `-BG`. Re-tint one half of a pair and you must re-tint the other. The pairing guarantees legibility only against its own fill — a fill placed on a surface or over an image is your own contrast problem to check.
 
 ### Other tokens
 

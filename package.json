@@ -68,7 +68,7 @@
     }
   },
   "devDependencies": {
-    "@batthewz/response-ui-css": "^0.13.0",
+    "@batthewz/response-ui-css": "^0.14.0",
     "@batthewz/response-ui-react-components": "^0.17.0",
     "@eslint/js": "^10.0.1",
     "@floating-ui/react": "^0.27.19",
