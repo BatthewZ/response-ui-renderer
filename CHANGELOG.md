@@ -13,7 +13,17 @@
 
 ### Peer range
 
-- Peer now `@batthewz/response-ui-react-components@^0.16.0`, which animates `Wizard`'s step panel
+- Peer now `@batthewz/response-ui-react-components@^0.17.0`, which makes every scrollport in that
+  package a containing block (`.table-wrapper`, `Carousel.Track`, `.app-shell-main`,
+  `CommandPalette`'s listbox, `CodeBlock`'s `<pre>`). It fixes a real defect for documents that
+  render a table with a status column — the page grew by the scroller's full scroll range once
+  scrolled — so nothing about ViewSpec changes and no registry or schema change follows. **It is
+  not invisible to a host, though:** those five elements now resolve `position: absolute`
+  descendants against themselves, they clip such content, that content scrolls with them, and they
+  paint above an earlier-in-tree positioned element that has no `z-index`. A document whose spec
+  absolutely positions content inside a table cell, a palette row or the app-shell main region is
+  the case to check. See that package's 0.17.0 entry for the measured before/after.
+- Peer was `@batthewz/response-ui-react-components@^0.16.0`, which animates `Wizard`'s step panel
   — the outgoing step fades out before the incoming one mounts — and exports a
   `usePanelTransition` hook. The hook is host code and stays unaddressable, and the animation adds
   no ViewSpec surface: it is internal to a component documents already address, so no registry or
