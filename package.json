@@ -7,7 +7,6 @@
   "files": [
     "dist",
     "src",
-    "AGENTS.md",
     "VIEWSPEC.md",
     "CHANGELOG.md",
     "README.md",
@@ -55,9 +54,9 @@
     "docs:viewspec": "node scripts/gen-viewspec-doc.mjs"
   },
   "peerDependencies": {
-    "@batthewz/response-ui-react-components": "^0.17.0",
+    "@batthewz/response-ui-react-components": "^0.17.1",
     "@floating-ui/react": "^0.27.0",
-    "lucide-react": "^0.500.0",
+    "lucide-react": ">=0.500.0 <2.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zod": "^4.0.0"
@@ -69,7 +68,7 @@
   },
   "devDependencies": {
     "@batthewz/response-ui-css": "^0.14.0",
-    "@batthewz/response-ui-react-components": "^0.17.0",
+    "@batthewz/response-ui-react-components": "^0.17.1",
     "@eslint/js": "^10.0.1",
     "@floating-ui/react": "^0.27.19",
     "@tailwindcss/vite": "^4.3.3",

@@ -478,6 +478,32 @@ describe("props JSON cannot type", () => {
     expect(screen.getByText("Grace Hopper")).toBeInTheDocument();
   });
 
+  // Every coercion below is keyed on the prop's NAME but switches on the value's
+  // SHAPE, and a `$ref` is an object until it is resolved. Testing only the
+  // literal spelling left each of these passing the unresolved marker through:
+  // `rowKey` and the date props reached the library as `{$ref: …}` and threw.
+  it("builds a key accessor from a $ref-resolved column name", () => {
+    render(
+      <ViewRenderer
+        spec={spec({
+          data: {
+            orders: { type: "static", value: orders },
+            keyField: { type: "static", value: "ref" },
+          },
+          root: {
+            component: "DataTable",
+            props: {
+              data: { $ref: "data.orders" },
+              rowKey: { $ref: "data.keyField" },
+              columns: [{ key: "customer", header: "Customer" }],
+            },
+          },
+        })}
+      />,
+    );
+    expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+  });
+
   it("renders a $node cell template once per row", () => {
     render(
       <ViewRenderer
@@ -522,6 +548,21 @@ describe("props JSON cannot type", () => {
       />,
     );
     // `aria-selected` belongs on the gridcell: ARIA does not allow it on a button.
+    expect(screen.getByRole("gridcell", { selected: true })).toHaveTextContent("14");
+  });
+
+  it("seeds a Calendar from a $ref-resolved ISO date string", () => {
+    render(
+      <ViewRenderer
+        spec={spec({
+          data: { day: { type: "static", value: "2026-06-14" } },
+          root: {
+            component: "Calendar",
+            props: { defaultValue: { $ref: "data.day" }, defaultMonth: { $ref: "data.day" } },
+          },
+        })}
+      />,
+    );
     expect(screen.getByRole("gridcell", { selected: true })).toHaveTextContent("14");
   });
 

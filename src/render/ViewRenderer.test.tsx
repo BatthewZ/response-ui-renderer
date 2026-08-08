@@ -563,6 +563,38 @@ describe("icons", () => {
     expect(screen.getByTestId("icon-check")).toBeInTheDocument();
   });
 
+  // The coercion is keyed on the prop NAME but switches on the value's SHAPE,
+  // and a `$ref` is an object until it is resolved. Testing only the literal
+  // spelling left the icon name arriving at the slot as a plain string, which
+  // every ReactNode-typed slot renders verbatim: a timeline of rows carrying an
+  // `icon` field showed "trending-up" as body text where the glyph belonged.
+  it("coerces an icon name that arrives through a $ref inside $each", () => {
+    const { container } = render(
+      <ViewRenderer
+        icons={{ Check: IconStub }}
+        spec={spec({
+          data: { events: { type: "static", value: [{ id: "e1", icon: "check" }] } },
+          root: {
+            component: "Timeline",
+            children: [
+              {
+                $each: "data.events",
+                as: "event",
+                node: {
+                  component: "Timeline.Item",
+                  props: { icon: { $ref: "event.icon" } },
+                  children: ["Done"],
+                },
+              },
+            ],
+          },
+        })}
+      />,
+    );
+    expect(screen.getByTestId("icon-check")).toBeInTheDocument();
+    expect(container.textContent).not.toContain("check");
+  });
+
   it("passes a component, not an element, to LucideIcon-typed slots", () => {
     // AppShell.SidebarLink types `icon` as LucideIcon and invokes it as <Icon />.
     // Handing it an element makes React try to call an object as a component.

@@ -1,8 +1,59 @@
 # Changelog
 
-## Unreleased
+All notable changes to `@batthewz/response-ui-renderer` will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0.0, breaking changes will bump the **minor** version.
+
+## [0.1.0] — 2026-08-08
+
+Initial release. JSON (ViewSpec) → `@batthewz/response-ui-react-components`.
+
+- **Derived registry.** Every component and compound part the library exports is addressable
+  from JSON, read from its barrel at runtime rather than hand-listed — 101 components, 73
+  compound parts, no drift by construction.
+- **Zero runtime dependencies.** React and response-ui are peers. `zod` is an optional peer
+  used only by the `/zod` subpath; `lucide-react` only by `/icons`.
+- **Host-agnostic.** Navigation, toasts, network and named data sources arrive through
+  `RendererAdapters`. No router import, no server route, no auth model in the wire format.
+- **`Icon`.** The library exports none, but its components take `ReactNode` icon props that
+  JSON cannot express. Resolved from an injected icon set; the full lucide map is a separate
+  entry point.
+- **Theming.** `themeOverrides` as inline custom properties (always scoped), plus a
+  `themeMode` prop that makes the `:root[data-theme]` scoping constraint explicit instead of
+  silently no-op.
+- **Hardened for machine-generated input.** Per-node error boundaries, prototype-safe
+  registry and `$ref` lookups, forbidden-prop stripping, URL-scheme filtering, node-depth and
+  handler-recursion caps, same-origin request gate.
+- **Two validators, one contract.** A dependency-free `validateViewSpec` plus an optional Zod
+  schema and `viewSpecJsonSchema()` for constraining LLM generation, held in step by a
+  cross-check suite.
+- **Parity is a contract, not a claim.** A coverage corpus renders 168 of the 175 addressable
+  names with no unknown components, no render errors and nothing raised by the validator. The
+  remaining 7 need host code and are named, with the reason, in VIEWSPEC.md.
+- **Requires `@batthewz/response-ui-react-components@^0.17.1`.** The dev dependencies track the
+  same pair a consumer installs, so `build`, `typecheck` and `test` run against it. 0.17.1 is
+  the floor rather than 0.17.0 because that release widened its own `lucide-react` peer range;
+  against 0.17.0 a current lucide-react cannot be installed at all.
+
+## Pre-release development
+
+> Nothing below was ever published. These notes record how 0.1.0 reached its shape — the
+> upstream releases tracked along the way, the parity work, and the wire-format decisions taken
+> while they were still reversible. Someone installing 0.1.0 needs only the section above; this
+> is kept because it explains why the design is what it is.
 
 ### Fixed
+
+- **A prop coercion no longer misses the `$ref` spelling of its own value.** The implicit,
+  key-shaped coercions — icon names, `Date` props, `DataTable`'s `rowKey` — switched on the
+  literal written in the document, and a `$ref` is an object until it is resolved. Every
+  indirect spelling therefore passed straight through: an icon name reached a `ReactNode` slot
+  as a plain string and rendered as body text where the glyph belonged, and `rowKey` and the
+  date props reached the library as `{$ref: …}` and threw. They now read the resolved value,
+  which is the side the URL-scheme filter was already on for the same reason. The blast radius
+  is unchanged — still top-level `props` only, so a data row carrying an `icon` column is
+  untouched — and `columns` still coerces first, because its `$node` cell templates must
+  become functions rather than elements.
 
 - **A render error no longer outlives the fix.** A node whose props made it throw kept its
   diagnostic after the document was corrected, because the boundary only retried when the node's
@@ -216,8 +267,9 @@ fire when the document is actually relying on the inference.
 
 ### Parity is now a contract, not a claim
 
-- A coverage corpus under `src/examples/coverage/` renders every addressable name — 165 of them —
-  with zero unknown components and zero render errors, and with the validator raising nothing.
+- A coverage corpus under `src/examples/coverage/` renders every addressable name that does not
+  need host code — 168 of them — with zero unknown components and zero render errors, and with
+  the validator raising nothing.
 - A test enumerates the live registry and fails on any name that is neither exercised there nor
   listed in `not-addressable.json` **with a reason**. A component added upstream fails the suite
   until someone decides which side it is on.
@@ -307,8 +359,6 @@ published site is how most people will meet the package.
   contributed nothing — and `--check` still passed, because it compares a generation against
   itself. `Calendar`, `RangeCalendar` and `Markdown` were missing all of their keys, 41 in total.
   The alias is now resolved at either position.
-- `AGENTS.md` said to test with `bun test`, which runs Bun's own runner against a vitest suite
-  and fails about sixty of them. It is `bun run test`.
 - The `ApiBinding` docblock named an `adapters.fetchData` that does not exist; the adapter is
   `adapters.fetch`.
 - `test-setup.ts` now stubs `Element.scrollIntoView` and the `<dialog>` methods, which jsdom
@@ -334,34 +384,3 @@ published site is how most people will meet the package.
   `@batthewz/response-ui-css` moves to `^0.11.0` for the same reason: `examples/themes/*` is
   where those files live from 0.11.0 onward (0.10.1 still exported `./themes/*`). The peer range on
   `@batthewz/response-ui-react-components` is unchanged at `^0.9.0`.
-
-## 0.1.0
-
-Initial release. JSON (ViewSpec) → `@batthewz/response-ui-react-components`.
-
-- **Derived registry.** Every component and compound part the library exports is addressable
-  from JSON, read from its barrel at runtime rather than hand-listed — 97 components, 60
-  compound parts, no drift by construction.
-- **Zero runtime dependencies.** React and response-ui are peers. `zod` is an optional peer
-  used only by the `/zod` subpath; `lucide-react` only by `/icons`.
-- **Host-agnostic.** Navigation, toasts, network and named data sources arrive through
-  `RendererAdapters`. No router import, no server route, no auth model in the wire format.
-- **`Icon`.** The library exports none, but its components take `ReactNode` icon props that
-  JSON cannot express. Resolved from an injected icon set; the full lucide map is a separate
-  entry point.
-- **Theming.** `themeOverrides` as inline custom properties (always scoped), plus a
-  `themeMode` prop that makes the `:root[data-theme]` scoping constraint explicit instead of
-  silently no-op.
-- **Hardened for machine-generated input.** Per-node error boundaries, prototype-safe
-  registry and `$ref` lookups, forbidden-prop stripping, URL-scheme filtering, node-depth and
-  handler-recursion caps, same-origin request gate.
-- **Two validators, one contract.** A dependency-free `validateViewSpec` plus an optional Zod
-  schema and `viewSpecJsonSchema()` for constraining LLM generation, held in step by a
-  cross-check suite.
-- **Targets `@batthewz/response-ui-react-components` 0.9.0.** The peer range is `^0.9.0`, up
-  from `^0.8.2`; the dev dependencies on the components package and on
-  `@batthewz/response-ui-css` move to `^0.9.0` alongside it, so `build`, `typecheck` and
-  `test` run against the same pair a consumer installs. Under npm's 0.x caret rule `^0.8.2`
-  resolves `>=0.8.2 <0.9.0`, so 0.9.0 does not satisfy the old range — this release does not
-  work against components 0.8.x, and that components release carries a breaking change of its
-  own (buttons now default to `type="button"`).

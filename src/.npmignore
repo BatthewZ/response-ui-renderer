@@ -1,0 +1,7 @@
+# Excluded from the published src/. The tarball ships source so declaration maps
+# resolve to real files; the suite that verified it is not part of that contract.
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__

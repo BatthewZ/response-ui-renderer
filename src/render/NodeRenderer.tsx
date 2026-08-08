@@ -358,32 +358,11 @@ export function NodeRenderer({
       continue;
     }
 
-    // Icon-name strings are coerced by key shape, so — unlike the `$` markers —
-    // this stays at the top level: a data row with an `icon` column must not
-    // silently become an element. Nested slots use `$node` instead.
-    if (isIconProp(key) && typeof value === "string") {
-      // Most slots are typed ReactNode and want an element; a few are typed
-      // LucideIcon and are invoked as a component. Handing over the wrong one
-      // throws inside the library rather than degrading.
-      props[key] = wantsIconComponent(node.component, key)
-        ? () => <Icon name={value} />
-        : <Icon name={value} />;
-      continue;
-    }
-
     const coercion = propCoercion(node.component, key);
-    if (coercion === "isoDate") {
-      props[key] = parseIsoDate(value);
-      continue;
-    }
-    if (coercion === "isoDateRange") {
-      props[key] = parseIsoDateRange(value);
-      continue;
-    }
-    if (coercion === "keyAccessor") {
-      props[key] = toKeyAccessor(value);
-      continue;
-    }
+
+    // The one coercion that must run BEFORE resolution: a column's `render` is a
+    // `$node` template, and `coerceNested` would render it to an element where
+    // the column def needs the function that wraps it.
     if (coercion === "columnDefs" && Array.isArray(value)) {
       props[key] = value.map((column) => coerceColumnDef(column));
       continue;
@@ -391,12 +370,43 @@ export function NodeRenderer({
 
     const resolved = coerceNested(value, key, 0);
 
-    // Checked AFTER resolution, not before: a `$ref` is an object until it is
-    // resolved, so testing the literal passes every indirect spelling straight
-    // through. `data` can be an api binding, which makes a remote response able
-    // to put a `data:text/html` URL in an href. React blocks `javascript:`
-    // itself, which masked this — `vbscript:` and `data:` have no such backstop.
+    // Everything below reads the RESOLVED value, not the literal: a `$ref` is an
+    // object until it is resolved, so a rule that tests the literal silently
+    // passes every indirect spelling straight through. Not a per-rule choice — a
+    // document may write `{"$ref": …}` in any prop position, so any check that is
+    // selected by the key but decides by the value's *shape* belongs on this side.
+    //
+    // For the URL filter that is a security property: `data` can be an api
+    // binding, which makes a remote response able to put a `data:text/html` URL
+    // in an href. React blocks `javascript:` itself, which masked this —
+    // `vbscript:` and `data:` have no such backstop.
     if (isUrlProp(key) && isDangerousUrl(resolved)) continue;
+
+    // Icon-name strings are coerced by key shape, so — unlike the `$` markers —
+    // this stays at the top level: a data row with an `icon` column must not
+    // silently become an element. Nested slots use `$node` instead.
+    if (isIconProp(key) && typeof resolved === "string") {
+      // Most slots are typed ReactNode and want an element; a few are typed
+      // LucideIcon and are invoked as a component. Handing over the wrong one
+      // throws inside the library rather than degrading.
+      props[key] = wantsIconComponent(node.component, key)
+        ? () => <Icon name={resolved} />
+        : <Icon name={resolved} />;
+      continue;
+    }
+
+    if (coercion === "isoDate") {
+      props[key] = parseIsoDate(resolved);
+      continue;
+    }
+    if (coercion === "isoDateRange") {
+      props[key] = parseIsoDateRange(resolved);
+      continue;
+    }
+    if (coercion === "keyAccessor") {
+      props[key] = toKeyAccessor(resolved);
+      continue;
+    }
 
     props[key] = resolved;
   }

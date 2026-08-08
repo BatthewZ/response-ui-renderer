@@ -75,6 +75,26 @@ handler object shaped like `{ action }` and an icon-name string on an `icon`-sha
 collide with ordinary data. Keep implicit rules at the top level of `props`, require nested
 ones to be unambiguous, and let documents reach the rest through an explicit marker.
 
+## A coercion keyed on a prop's name must switch on the prop's resolved value
+
+Blast radius is *where* a rule applies; this is *when*. A document may write `{"$ref": …}` in
+any prop position, so a rule that is selected by the key but decides by the value's shape —
+"is this a string?", "is this an array?" — has to run on the resolved side of the reference.
+Run it against the literal and every indirect spelling silently opts out, while the direct one
+in front of you keeps working: the tests pass, the corpus renders, and the failure only appears
+in the shape real generators actually emit, which is `$each` over a data array with the value
+pulled out by `$ref`. It cost an icon name rendered as body text and two components that threw
+on an unresolved marker.
+
+The tell is a test suite that only ever writes the literal. When a rule is keyed on a name,
+test the indirect spelling too — it is a different code path, not the same one in disguise.
+
+The exception is a coercion whose input legitimately *contains* markers, like a column def
+holding a `$node` cell template: resolution would turn the template into an element before the
+coercion could wrap it in the function the library wants. Those must run first. So the ordering
+is a real decision per rule — does this coercion consume a marker, or a value? — and not a
+default to apply blindly in either direction.
+
 ## A per-node error boundary must not remember
 
 The diagnostic a boundary shows has to describe the render it is showing, not one that
