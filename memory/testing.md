@@ -30,6 +30,17 @@ already covers and never the panel's injected prop. A close affordance being cli
 last is not evidence that the thing you could not reach became reachable — check which
 callback it actually calls before retiring a known gap.
 
+A third half, once you can open one: a `<dialog>`'s children stay in the DOM whether or not it
+is open, so `findByText` inside a panel passes on a dialog that never opened. Assert `open`.
+
+## The installed version is not the supported range
+
+React's generated id has been spelled `«r0»` and `_r_0_` across the `^19.0.0` peer range, and
+only the latter is usable in a CSS selector. A rendered assertion agrees with whatever React is
+installed, so it cannot see a guarantee that is supposed to hold across the range — and it goes
+green while the code that provides the guarantee is deleted. Where the claim is about the range
+rather than the install, test the pure function with the other spellings as inputs.
+
 ## Checks that cannot fail
 
 Two got written here and both had to be caught by re-reading, not by a failure:
@@ -75,14 +86,20 @@ works. Anything reached through an overlay needs a render test that opens it.
 
 ## The corpus is the reference
 
-`src/examples/coverage/` is authored and must model the advice the package gives — it is
-what an agent reads to learn the format. `src/examples/*.viewspec.json` is real generator
-output kept byte-identical; do not tidy it.
+Both corpora are **authored**, and both must model the advice the package gives — they are
+what an agent reads to learn the format. `src/examples/coverage/` is one document per
+component family, together naming everything addressable. `src/examples/*.viewspec.json` are
+product-shaped pages, each visually verified, and they are the regression corpus.
 
-Migrating one is not tidying, and is sometimes required: when a peer release makes a value
-inert, a specimen that no longer renders has stopped being evidence of anything. Make the
-smallest edit that restores the behaviour, leave everything else exactly as the generator
-wrote it, and record what changed in the changelog. `product-landing` carried
-`"gap": "var(--spacing-r4)"` — a real generator reaching for a CSS length because the prop
-was typed `string` — and 0.12.0 made that a no-op. That specimen is why the validator now
-knows which props take a fixed set of values.
+They were once verbatim generator output, and the redesign that made them hand-authored did
+not reach every place that said so. If you find a file still describing them as generator
+output, it is stale — check `git log` on the corpus before believing a claim about where it
+came from. Two such sentences survived in files the redesign never opened.
+
+That history still pays rent, and this is the part to keep: `product-landing` once carried
+`"gap": "var(--spacing-r4)"` — a real generator reaching for a CSS length because the prop was
+typed `string` — and 0.12.0 made it a no-op that rendered and did nothing. That specimen is
+why the validator now knows which props take a fixed set of values. The lesson outlives the
+provenance: a value that goes inert is invisible in the DOM, so prefer props whose wrong value
+is loud, and when a peer release makes one inert, fix the specimen and say so in the changelog
+rather than letting it sit there proving nothing.

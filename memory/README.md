@@ -7,6 +7,7 @@ traps only: no TODOs, no line numbers, no file-by-file inventory.
 | --- | --- |
 | [driving-a-component-library-from-json.md](driving-a-component-library-from-json.md) | The recurring shapes that defeat a JSON renderer, which of them can be fixed at all, why a coercion keyed on a prop's name must run on the resolved side of a reference, and why a per-node error boundary must never remember |
 | [authoring-documents.md](authoring-documents.md) | Making a document look like a product: scoped theme overrides need the document to paint its own canvas, component defaults that fight polish, and how to verify visually |
+| [composing-several-documents.md](composing-several-documents.md) | What breaks only when a page mounts more than one renderer, why the DOM id namespace cannot be fixed from the host side, how to choose the direction of a default when a rule keys on an overloaded prop name, and what a scoped namespace still cannot reach |
 | [testing.md](testing.md) | How to run the suite, what jsdom lacks, and how to avoid writing a check that cannot fail |
 | [invariants.md](invariants.md) | Which rules are enforced by tests rather than remembered, why the two validators agree only on conformance, and why the design system's `cn()` rule must not be applied here |
 | [gates.md](gates.md) | Every hand-maintained list in this package and the test that keeps it honest, plus the source-hygiene gates and what upgrading the peer library actually requires |

@@ -14,9 +14,25 @@ What is gated today: the components whose open state the renderer owns; the pare
 clone or identity-check their children (checked by reading the library for `cloneElement` and
 `child.type ===`); the components whose `children` is a function, and the argument names they
 hand it; every coerced prop, asserted to still be declared upstream; the icon slots
-typed as a component rather than a node; that the reference doc matches a fresh generation;
-that every live component has a category and is either exercised by the corpus or excused
-with a reason; and that the counts quoted in the README are the counts the registry has.
+typed as a component rather than a node; which components' `name` prop is a DOM form-control
+name rather than the component's own vocabulary; that the reference doc matches a fresh
+generation; that every live component has a category and is either exercised by the corpus or
+excused with a reason; and that the counts quoted in the README are the counts the registry has.
+
+## A filter inside a gate is an allowance, and nobody reviews it
+
+The `name` classification gate reads the library for components declaring their own `name`,
+and decided that with `name\?:` — requiring the optional marker. Nothing stated that choice
+and nothing questioned it, but it inverted the gate: a `name` that is merely passed through to
+a form element is optional, while one the component *depends* on tends to be **required**. The
+filter removed exactly the population the gate existed to catch, and two components with a
+semantic `name` sat unclassified while the suite stayed green — one of them rendered by the
+corpus, its value silently rewritten.
+
+A skip list is visible and gets argued over. A predicate that quietly narrows the input is an
+allowance nobody can see, and it is worth more suspicion than the table it guards. When a gate
+passes on the first run, make it print what it matched and read that list against the library
+yourself — "it found no violations" and "it found nothing" print identically.
 
 Two of these caught real drift the moment they were written — a generated cross-product named
 three date props that do not exist, and the doc gate caught a stale table. That is the point.
@@ -79,6 +95,14 @@ makes "did anything go wrong?" a DOM question. A gate matching particular *sente
 any diagnostic that renders no text — a missing icon is an empty span. Query the
 diagnostic classes, and keep those class names in one module so a new diagnostic cannot
 be rendered without joining the set the query looks for.
+
+## The RSC gate reads tokens, not meaning
+
+The `"use client"` check matches `useState`, `useId` and friends as bare words anywhere in a
+shipped file — **including a comment**. A pure module that merely *describes* a React hook is
+told it needs the directive, and adding one would drag it across the boundary for nothing.
+Reword the prose. Widening the gate to parse around comments would cost it the property that
+makes it trustworthy: it cannot miss a real use.
 
 ## Source files must stay text
 

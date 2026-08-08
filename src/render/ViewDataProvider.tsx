@@ -26,6 +26,8 @@ export type ViewContext = {
   dialogStates: Record<string, boolean>;
   dataErrors: string[];
   dataLoading: boolean;
+  /** Prefix for author-supplied DOM ids; `""` when the host wants none. */
+  idScope: string;
 };
 
 const EMPTY_CONTEXT: ViewContext = {
@@ -35,6 +37,7 @@ const EMPTY_CONTEXT: ViewContext = {
   dialogStates: {},
   dataErrors: [],
   dataLoading: false,
+  idScope: "",
 };
 
 const ViewDataContext = createContext<ViewContext>(EMPTY_CONTEXT);
@@ -49,6 +52,8 @@ type ViewDataProviderProps = {
   forms: Record<string, FormState>;
   viewState: Record<string, unknown>;
   dialogStates: Record<string, boolean>;
+  /** Already normalized by `ViewRenderer`; `""` disables scoping. */
+  idScope?: string;
   children: ReactNode;
 };
 
@@ -119,6 +124,7 @@ export function ViewDataProvider({
   forms,
   viewState,
   dialogStates,
+  idScope = "",
   children,
 }: ViewDataProviderProps) {
   const staticData = useMemo(() => {
@@ -186,8 +192,9 @@ export function ViewDataProvider({
       dialogStates,
       dataErrors,
       dataLoading: pendingKeys.size > 0,
+      idScope,
     }),
-    [data, forms, viewState, dialogStates, dataErrors, pendingKeys],
+    [data, forms, viewState, dialogStates, dataErrors, pendingKeys, idScope],
   );
 
   return <ViewDataContext.Provider value={context}>{children}</ViewDataContext.Provider>;

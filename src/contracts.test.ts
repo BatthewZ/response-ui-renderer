@@ -19,6 +19,7 @@ import { defaultRegistry, listComponentNames } from "./registry/registry";
 import { TEXT_CHILDREN } from "./registry/text-children";
 import { lookupComponent } from "./registry/types";
 import { RENDER_DIAGNOSTIC_CLASSES, RENDER_DIAGNOSTIC_SELECTOR } from "./render/diagnostics";
+import { NAME_PROP_MEANING } from "./render/id-scope";
 import { DIALOG_COMPONENTS } from "./spec/validate";
 
 /**
@@ -304,6 +305,72 @@ describe("hand-maintained coercion tables", () => {
       .sort();
 
     expect(inspecting).toEqual([...CHILD_INSPECTING_MODULES].sort());
+  });
+});
+
+describe("`name` classification stays in step with the library", () => {
+  it.each(Object.keys(NAME_PROP_MEANING))("%s still exists upstream", (name) => {
+    expect(lookupComponent(defaultRegistry, name)).toBeTruthy();
+  });
+
+  it("classifies every component whose `name` could be a DOM name", () => {
+    // `name` is scoped as a DOM form-control name unless this table says
+    // otherwise, and getting that wrong is silent in both directions: an
+    // unclassified semantic `name` is corrupted (an icon vanishes, initials go
+    // wrong), and a `name` wrongly called semantic leaves radio groups merged.
+    //
+    // Read from the shipped declarations rather than the library's working
+    // tree — those are the contract for the installed peer range.
+    const declarations = globSync("dist/**/*.d.ts", { cwd: libraryRoot, absolute: true });
+
+    const declaring: string[] = [];
+    const unclassified: string[] = [];
+    const unresolved: string[] = [];
+
+    for (const file of declarations) {
+      const source = read(file);
+      // Brace-matched rather than line-terminated: these types close with
+      // `} & ComponentPropsWithRef<"input">;`, so a `^};?$` terminator matches
+      // nothing at all — which is how this gate first shipped seeing zero of
+      // them and passing.
+      // A generic parameter may itself carry a default (`<T = Fallback>`), so
+      // the head is matched loosely and anchored on the brace that opens the
+      // body — AvatarUpload declares exactly that and a tighter guard drops it.
+      // `interface` counts too: the library uses both spellings, and a props
+      // type this cannot see is a `name` nobody classified.
+      for (const match of source.matchAll(
+        /^(?:export )?(?:type (\w+?)(?:Own)?Props(?:<.*>)? = |interface (\w+?)(?:Own)?Props(?:<.*>)? )\{$/gm,
+      )) {
+        let depth = 1;
+        let i = match.index + match[0].length;
+        for (; i < source.length && depth > 0; i++) {
+          if (source[i] === "{") depth++;
+          else if (source[i] === "}") depth--;
+        }
+        const body = source.slice(match.index + match[0].length, i);
+        // `name\??:`, not `name\?:`. Requiring the optional marker filtered out
+        // exactly the population this exists to catch: a pass-through DOM name
+        // is optional, a load-bearing semantic one tends to be required. That
+        // one character let `ViewTransition` and `Repeater` through while the
+        // gate stayed green.
+        if (!/^\s+name\??\s*:/m.test(body)) continue;
+
+        const component = match[1] ?? match[2];
+        declaring.push(component);
+        if (lookupComponent(defaultRegistry, component)) {
+          if (!Object.hasOwn(NAME_PROP_MEANING, component)) unclassified.push(component);
+          continue;
+        }
+        // Named rather than skipped: a props type this cannot attribute to an
+        // addressable component is a `name` nobody has looked at, which is the
+        // exact hole the gate exists to close.
+        unresolved.push(`${component}Props in ${path.relative(libraryRoot, file)}`);
+      }
+    }
+
+    // The scan finding nothing would satisfy every check above it.
+    expect(declaring.length).toBeGreaterThan(0);
+    expect({ unclassified, unresolved }).toEqual({ unclassified: [], unresolved: [] });
   });
 });
 

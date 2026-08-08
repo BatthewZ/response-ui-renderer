@@ -4,6 +4,53 @@ All notable changes to `@batthewz/response-ui-renderer` will be documented in th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0.0, breaking changes will bump the **minor** version.
 
+## Unreleased
+
+### Added
+
+- **`idScope`** — namespaces the DOM ids a document supplies, so several documents can share
+  a page. Mounting one `ViewRenderer` per document put them all in one id namespace: radio
+  groups with the same `name` merged into one group across documents, and `htmlFor` resolved
+  to the first matching id on the page rather than the one in its own view. Both were silent.
+  Omitted, ids pass through exactly as before; `true` derives a prefix per instance, and a
+  string sets one explicitly.
+
+  It rewrites `id`, `htmlFor`, `name`, `list`, `form` and the ARIA id references on the
+  **resolved** value, which is why it belongs here and not in a host pre-pass: a document may
+  write `{"$ref": …}` in any prop position, and an `api` binding has no value anywhere until
+  the view mounts. It leaves `$field` paths, `spec.forms` names, `$ref` / `state` keys and
+  `openDialog`'s `dialogId` alone — a `Dialog`'s DOM id and its entry in `dialogStates` are
+  now separate, so actions go on naming the id the document wrote.
+
+  `name` is rewritten **only** where it is a DOM form-control name, from an explicit list of
+  the library's form controls. Everything else keeps it verbatim — an icon's identity, a
+  person's display name, a `Field` / `FieldError` form path, a `Repeater`'s field-array path,
+  a `ViewTransition`'s CSS `view-transition-name` — as does any component the renderer does
+  not classify, including one a host registers through `extendRegistry`. The two directions
+  are not symmetric: missing a DOM name leaves that component's radios merging, which is the
+  pre-existing bug, while scoping a name that meant something else silently corrupts a value
+  the author wrote. `contracts.test.ts` fails when the library grows a `name` this does not
+  classify.
+
+  Known limits, all documented in the README: references pointing *out* of the document
+  (a host `<form>`, an `aria-labelledby` into page chrome) are rewritten and will dangle;
+  `href="#id"` fragments are not scoped; `$each` over a literal `id` still duplicates within
+  one document; and `true` is unique per instance within one render pass, so a host that
+  server-renders each document separately should pass a string.
+
+### Changed
+
+- `composeProp` now reads its ARIA id-list set from the same module the scoping rules use, so
+  the two cannot drift. `aria-flowto` joins the set — it is an id-reference list in ARIA 1.2
+  and was missing. No parent injects it today, so nothing observable changes.
+- `ViewContext` gains a required `idScope: string`. The type is exported, so a host
+  constructing one by hand — a test double, most likely — must add the field. Nothing in the
+  package constructs one outside the provider.
+- `ViewRenderer` now calls React's id hook unconditionally, which consumes one id from the
+  shared counter. Author-supplied ids are untouched with `idScope` omitted, but every
+  library-generated id in the tree shifts by one, so a host that server-renders on 0.1.0 and
+  hydrates on this version will see an id mismatch.
+
 ## [0.1.0] — 2026-08-08
 
 Initial release. JSON (ViewSpec) → `@batthewz/response-ui-react-components`.

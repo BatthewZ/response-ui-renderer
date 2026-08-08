@@ -22,6 +22,8 @@
  * either without being named here.
  */
 
+import { ARIA_IDREF_LIST_PROPS } from "../render/id-scope";
+
 /** Parents whose injected props the renderer can forward. `"asChild"` = only on request. */
 export const CHILD_INSPECTING_PARENTS: ReadonlyMap<string, "always" | "asChild"> = new Map([
   ["Tooltip", "always"],
@@ -70,18 +72,6 @@ export function inspectsChildren(
 }
 
 /**
- * ARIA attributes whose value is a space-separated IDREF *list*. A parent
- * appends its own id to whatever the child already carried; through the renderer
- * it cannot see the document's value, so the merge has to happen here.
- */
-const IDREF_LIST_PROPS: ReadonlySet<string> = new Set([
-  "aria-describedby",
-  "aria-labelledby",
-  "aria-controls",
-  "aria-owns",
-]);
-
-/**
  * Merges a prop a cloning parent injected with one the document already set.
  *
  * Two handlers on one key both need to run — the parent's is what opens the
@@ -103,7 +93,9 @@ export function composeProp(key: string, existing: unknown, injected: unknown): 
     };
   }
 
-  if (IDREF_LIST_PROPS.has(key) && typeof existing === "string" && typeof injected === "string") {
+  // A parent appending its own id to a list the document already wrote: through
+  // the renderer it cannot see the document's value, so the merge happens here.
+  if (ARIA_IDREF_LIST_PROPS.has(key) && typeof existing === "string" && typeof injected === "string") {
     return existing.split(/\s+/).includes(injected) ? existing : `${existing} ${injected}`;
   }
 

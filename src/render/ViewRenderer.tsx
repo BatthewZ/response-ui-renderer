@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useId, useMemo, useState } from "react";
 
 import type { RendererAdapters } from "../adapters/types";
 import { type IconSet,IconSetProvider } from "../registry/Icon";
@@ -9,6 +9,7 @@ import type { ComponentRegistry } from "../registry/types";
 import type { FormDef, ViewSpec } from "../spec/types";
 import type { EventHandlerContext } from "./event-handler";
 import { EMPTY_FORMS, useFormsState } from "./form-state";
+import { normalizeIdScope } from "./id-scope";
 import { NodeErrorBoundary } from "./NodeErrorBoundary";
 import { NodeRenderer } from "./NodeRenderer";
 import type { RefContext } from "./resolve-ref";
@@ -33,6 +34,20 @@ export type ViewRendererProps = {
   className?: string;
   /** Hides the built-in loading bar and data-error banner. */
   hideDiagnostics?: boolean;
+  /**
+   * Namespaces the DOM ids a document supplies, so several documents can share
+   * a page without their radio groups merging or their labels retargeting.
+   *
+   * `true` derives a unique prefix per instance — enough for a host composing a
+   * list of documents. Pass a string when an id has to be constructible from
+   * outside: a deep link, a test, an `aria-labelledby` pointing into the view.
+   *
+   * Omitted, ids pass through verbatim, which is what a single mounted document
+   * wants. It scopes `id`, `htmlFor`, `name`, `list`, `form` and the ARIA id
+   * references — never `$field` paths, form names, `$ref`/`state` keys, or the
+   * `dialogId` an `openDialog` action names.
+   */
+  idScope?: boolean | string;
 };
 
 function DataDiagnostics({ children }: { children: ReactNode }) {
@@ -112,7 +127,11 @@ export function ViewRenderer({
   themeMode = "root",
   className,
   hideDiagnostics = false,
+  idScope,
 }: ViewRendererProps) {
+  const generatedIdScope = useId();
+  const resolvedIdScope = normalizeIdScope(idScope, generatedIdScope);
+
   const formDefs = spec.forms ?? EMPTY_FORMS;
   const formStates = useFormsState(formDefs);
 
@@ -154,6 +173,7 @@ export function ViewRenderer({
           forms={formStates}
           viewState={viewState}
           dialogStates={dialogStates}
+          idScope={resolvedIdScope}
         >
           <NodeErrorBoundary label={spec.title}>
             <ViewBody

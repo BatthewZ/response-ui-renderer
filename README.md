@@ -264,6 +264,42 @@ A view that declares no theme makes no claim at all, so it never strips the host
 
 ---
 
+## Several documents on one page
+
+A page that mounts one `ViewRenderer` per document — a transcript rendering a view per turn, say — puts every document into one DOM id namespace. Author-supplied ids pass through verbatim, which is what lets a document wire its own `Label` to its own control, so two documents naming a control the same thing collide silently:
+
+- **Radio groups merge.** `name` is how the browser groups radios, and that grouping is per page. Two documents each rendering a `name: "confidence"` group become *one* group, and choosing in the second clears the first.
+- **Labels retarget.** `htmlFor` resolves to the **first** matching id on the page, so clicking the second document's label activates the first document's control.
+
+`idScope` namespaces them:
+
+```tsx
+{turns.map((turn) => (
+  <ViewRenderer key={turn.id} spec={turn.view} idScope />
+))}
+```
+
+| `idScope` | Prefix | For |
+| --- | --- | --- |
+| omitted *(default)* | none — ids pass through | a single document on the page |
+| `true` | derived, unique per instance | a host composing a list |
+| `"turn-7"` | exactly that | an id you must construct from outside — a deep link, a test, an `aria-labelledby` pointing in |
+
+It rewrites `id`, `htmlFor`, `list`, `form`, the ARIA id references and `DateRangePicker`'s `startInputId` / `endInputId`, on the **resolved** value — so an id that arrives through a `$ref`, or out of an `api` binding that had not loaded yet, is scoped like any other. Strings and numbers both, because a row id pulled out of data is usually a number.
+
+`name` is rewritten only where it is a **DOM form-control name** — `Input`, `Radio`, `Checkbox`, `Select`, `Textarea` and the rest of the form controls. Components that spend `name` on something else keep it verbatim: an `Icon`'s identity, an `Avatar`'s display name, a `Field` / `FieldError` form path, a `Repeater`'s field-array path, a `ViewTransition`'s CSS `view-transition-name`. A component the renderer does not know about — including one you register yourself through `extendRegistry` — is left alone, so a custom component's `name` is never rewritten behind your back.
+
+It never touches `$field` paths, the names in `spec.forms`, `$ref` / `state` keys, or the `dialogId` an `openDialog` action names: those are already scoped to the renderer instance, so a document's actions go on naming the ids the document wrote. Components build their own internal ARIA wiring with React's per-instance id hook, which is unique already.
+
+**What it cannot do for you:**
+
+- **References that point out of the document.** Scoping rewrites every id a document writes, so `aria-labelledby` naming a heading in your page chrome, or `form` naming a host `<form>`, will point at nothing. Use the string form and prefix those ids yourself, or keep the reference inside the document.
+- **Fragment links.** `href="#section"` is not scoped — `href` goes through the URL filter — so an in-page anchor to a scoped `id` will not resolve. Give the link an explicit scoped target.
+- **`$each` over a literal `id`.** Repeating a node that carries a literal `id` duplicates ids *within* one document; there is one scope per renderer, so this cannot separate them. Derive the id from the row instead.
+- **Separate render passes.** `true` is unique per component instance within a render pass. If you server-render each document in its own pass, every one derives the same prefix — pass a string you control instead.
+
+---
+
 ## Icons
 
 response-ui exports no `Icon` component, but many of its components take `icon` props typed `ReactNode` — which JSON cannot express. This package adds an `Icon` node and coerces string-valued icon props, given an icon set:

@@ -39,6 +39,7 @@ import { childrenToText } from "./children-text";
 import { RENDER_DIAGNOSTIC_CLASSES } from "./diagnostics";
 import { createEventCallback, type EventHandlerContext } from "./event-handler";
 import type { FormState } from "./form-state";
+import { isIdScopedProp, scopeIdValue } from "./id-scope";
 import { NodeErrorBoundary } from "./NodeErrorBoundary";
 import { readReportedValue } from "./reported-value";
 import { type RefContext, refToText, resolveRef } from "./resolve-ref";
@@ -382,6 +383,14 @@ export function NodeRenderer({
     // `vbscript:` and `data:` have no such backstop.
     if (isUrlProp(key) && isDangerousUrl(resolved)) continue;
 
+    // The same shape again: several documents on one page share a DOM id
+    // namespace, and only the resolved value can be prefixed — a host walking
+    // the spec first sees `{"$ref": …}`, and an `api` binding has no value yet.
+    if (view.idScope && isIdScopedProp(node.component, key)) {
+      props[key] = scopeIdValue(resolved, view.idScope);
+      continue;
+    }
+
     // Icon-name strings are coerced by key shape, so — unlike the `$` markers —
     // this stays at the top level: a data row with an `icon` column must not
     // silently become an element. Nested slots use `$node` instead.
@@ -419,6 +428,11 @@ export function NodeRenderer({
   // Dialog visibility is owned by the renderer so openDialog/closeDialog work.
   // Without an explicit id the dialog is still controllable by its own onClose,
   // but no action can target it — useId keeps that fallback stable across renders.
+  //
+  // The state key is the document's LITERAL id, deliberately not the scoped one
+  // that reached the DOM: `dialogStates` is already per-ViewRenderer, so it needs
+  // no namespacing, and keeping the two separate is what lets an `openDialog`
+  // payload go on naming the id the document wrote.
   if (DIALOG_COMPONENTS.has(node.component)) {
     const dialogId = typeof node.props?.id === "string" ? node.props.id : autoDialogId;
     props.open = view.dialogStates[dialogId] ?? node.props?.open === true;

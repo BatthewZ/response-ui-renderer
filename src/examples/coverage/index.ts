@@ -15,8 +15,9 @@ import overlays from "./overlays.viewspec.json";
  * are written to be idiomatic rather than minimal, because they double as the
  * worked examples behind the ViewSpec reference.
  *
- * Separate from `examples/index.ts`, which holds real generator output kept
- * verbatim — these are authored, and must not be mistaken for specimens.
+ * Separate from `examples/index.ts`, which holds product-shaped pages exercising
+ * the format the way a document really composes it. Both are authored; these are
+ * organised by component family, those by what a page is for.
  */
 export const coverageSpecs = {
   layout,
