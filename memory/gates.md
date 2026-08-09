@@ -193,12 +193,39 @@ column in the reference. Components that live in a sibling's file — `AvatarGro
 `EmptyState*` — were invisible for the same reason, because lookup was by file basename.
 Resolve declarations by type name, not by filename.
 
+Spell that list of naming conventions once. The component table kept its own narrower copy
+and so disagreed with the pass that harvests value sets from the very same declarations: a
+component declaring `XOwnProps` had its enumerated values in `prop-enums.json` and an empty
+Props column in the reference at the same time. Every gate stayed green — the row existed,
+it was simply blank — until a test related the two derived artifacts to each other. When one
+generator writes two artifacts from one source, cross-check them; each alone only proves the
+generator agrees with itself.
+
 That throw only covers a `classNames` the generator *found*. Matching the declaration's
 shape literally is the other half, and it failed silently: a component that names its slot
 union through a local alias (`classNames?: Slots`) matched nothing, so three components lost
 all of their keys with `--check` still green. Resolve an alias at every position a type can
 appear, and treat "this component has no slots" as a claim worth doubting whenever the
 library's own source shows a `classNames` prop.
+
+## What a declaration cannot say goes in the curated note
+
+A prop's type carries its shape and nothing else. Ranges, defaults and clamping are invisible
+to it — `value: number` says nothing about the bar it drives being bounded by `max`, nor that
+`max` is `100` when omitted — and a document author working from the table has no source to
+learn it from. Those facts belong in the curated note, which is the one field a human writes
+and which ships to consumers as `COMPONENT_NOTES` as well as into the reference.
+
+State the mechanism, not a number a reader will overgeneralise: a range is `0`–`max`, and
+what happens outside it is clamping, not an error. Writing "0–100" turns a default into a
+rule and quietly deletes the rescaled case the library supports. Prefer, in order: a fact the
+declarations can be made to carry upstream, then the note; never a hand-kept table that
+restates something already derivable.
+
+Typing the sentence straight into VIEWSPEC.md does not count as recording it. Everything
+between the GENERATED markers is rewritten wholesale by the next `docs:viewspec`, so a hand
+edit there survives exactly until the next peer bump and then vanishes with no gate saying
+so — the doc's staleness check compares a regeneration against the file it just overwrote.
 
 ## Theming
 

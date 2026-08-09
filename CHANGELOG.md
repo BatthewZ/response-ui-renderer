@@ -4,6 +4,27 @@ All notable changes to `@batthewz/response-ui-renderer` will be documented in th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0.0, breaking changes will bump the **minor** version.
 
+## [Unreleased]
+
+### Fixed
+
+- **`ProgressBar` was listed in `VIEWSPEC.md` with no props at all.** Its declarations name the
+  props type `ProgressBarOwnProps` — the root type is inlined into its `forwardRef` union — and
+  the component table looked only for `…Props` / `…RootProps`, where the pass that harvests
+  value sets from the same declarations also tried `…OwnProps`. So `variant`, `color` and `size`
+  reached `src/spec/prop-enums.json` and the validator while the reference an author reads
+  showed `—`, `value` and `max` included. Both now share one list of naming conventions, and a
+  test relates the two generated artifacts to each other: a component whose values the doc
+  enumerates may not have an empty Props column. `ProgressBar` was the only one affected.
+
+### Changed
+
+- `COMPONENT_NOTES` states the value range of `ProgressBar` and `ProgressRing`: `value` is
+  clamped to `0`–`max`, `max` defaults to `100`, and for `ProgressBar` a `max` of `0` or less
+  renders an indeterminate bar. A prop's type cannot carry this — `value: number` is true of a
+  rescaled `max={5}` bar too — so a document could set `value: 500` and get a silently full bar
+  with nothing in the reference to say why. `VIEWSPEC.md` regenerates with the same wording.
+
 ## [0.2.0] — 2026-08-09
 
 ### Added

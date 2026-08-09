@@ -20,7 +20,7 @@ import { TEXT_CHILDREN } from "./registry/text-children";
 import { lookupComponent } from "./registry/types";
 import { RENDER_DIAGNOSTIC_CLASSES, RENDER_DIAGNOSTIC_SELECTOR } from "./render/diagnostics";
 import { NAME_PROP_MEANING } from "./render/id-scope";
-import { DIALOG_COMPONENTS } from "./spec/validate";
+import { DIALOG_COMPONENTS, PROP_ENUMS } from "./spec/validate";
 
 /**
  * Contracts this package commits to, enforced rather than documented.
@@ -39,6 +39,21 @@ const shippedFiles = sourceFiles.filter((file) => !/\.test\.tsx?$/.test(file));
 
 const read = (file: string) => readFileSync(file, "utf8");
 const rel = (file: string) => path.relative(root, file);
+
+/**
+ * The Props cell of a component's row in the reference's four-column tables.
+ *
+ * A component name also heads rows in the narrower slot and text-children
+ * tables, so the row is chosen by shape, and cells are split on unescaped pipes
+ * only — a union of literals carries `\|` inside one cell.
+ */
+function propsCellOf(doc: string, name: string): string | undefined {
+  for (const row of doc.matchAll(new RegExp(`^\\| \`${name}\` \\|.*$`, "gm"))) {
+    const cells = row[0].split(/(?<!\\)\|/).map((cell) => cell.trim());
+    if (cells.length === 6) return cells[3];
+  }
+  return undefined;
+}
 
 /** Module specifiers only — prose in a comment is not a dependency. */
 function importedModules(source: string): string[] {
@@ -495,6 +510,24 @@ describe("VIEWSPEC.md curation", () => {
     const documented = new Set([...doc.matchAll(/^\| `([A-Za-z0-9]+)` \|/gm)].map((m) => m[1]));
     const missing = Object.keys(COMPONENT_NOTES).filter((name) => !documented.has(name));
     expect(missing).toEqual([]);
+  });
+
+  it("shows the props of every component whose values it enumerates", () => {
+    // Being in the doc is not the same as being described in it. The enum pass
+    // and the component table read the same declarations, but the table once
+    // spelled its own narrower list of props-type names: `ProgressBar` declares
+    // `ProgressBarOwnProps`, so its `variant`, `color` and `size` reached
+    // prop-enums.json while its Props column read "—". `--check` agreed, and so
+    // did every gate above — the row was there, it was simply empty.
+    const doc = read(path.join(root, "VIEWSPEC.md"));
+    const owners = new Set(
+      Object.keys(PROP_ENUMS)
+        .filter((key) => key.split(".").length === 2)
+        .map((key) => key.split(".")[0]),
+    );
+    expect(owners.size).toBeGreaterThan(0);
+    const undescribed = [...owners].filter((name) => propsCellOf(doc, name) === "—");
+    expect(undescribed).toEqual([]);
   });
 
   it("categorises nothing that does not exist", () => {

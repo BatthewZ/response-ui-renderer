@@ -245,11 +245,11 @@
   },
   "ProgressBar": {
     "category": "Feedback",
-    "note": "Takes no children: `.Label` and `.Value` are **siblings** of the bar. Needs `value` and a name."
+    "note": "Takes no children: `.Label` and `.Value` are **siblings** of the bar. Needs `value` and a name. `value` is clamped to 0–`max`; `max` defaults to `100`, and a `max` of `0` or less renders indeterminate."
   },
   "ProgressRing": {
     "category": "Feedback",
-    "note": "No default accessible name \u2014 pass `aria-label`. The centre slot is decorative."
+    "note": "No default accessible name \u2014 pass `aria-label`. The centre slot is decorative. `value` is clamped to 0\u2013`max`; `max` defaults to `100`."
   },
   "Radio": {
     "category": "Form",

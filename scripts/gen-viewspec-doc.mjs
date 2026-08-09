@@ -250,11 +250,15 @@ function literalUnion(type) {
  * library's own and already load-bearing here, so a miss is reported rather than
  * skipped: see `describeInternals`.
  */
+const propsTypeForms = (base) => [`${base}Props`, `${base}RootProps`, `${base}OwnProps`];
+
 function propsTypeNames(name, parts) {
-  const forms = (base) => [`${base}Props`, `${base}RootProps`, `${base}OwnProps`];
   return [
-    [name, forms(name)],
-    ...parts.map((part) => [`${name}.${part}`, [...forms(`${name}${part}`), `${part}Props`]]),
+    [name, propsTypeForms(name)],
+    ...parts.map((part) => [
+      `${name}.${part}`,
+      [...propsTypeForms(`${name}${part}`), `${part}Props`],
+    ]),
   ];
 }
 
@@ -386,7 +390,11 @@ function render(components, notes, notAddressable) {
     lines.push("| --- | --- | --- | --- |");
     for (const row of rows.sort((a, b) => a.name.localeCompare(b.name))) {
       const source = sourceFor(row.name);
-      const props = formatProps(propsOf(source, [`${row.name}Props`, `${row.name}RootProps`]));
+      // The same forms the slot and enum passes accept. Spelling a subset here
+      // left `ProgressBar` — whose props are declared as `ProgressBarOwnProps`,
+      // the root type being inlined into its `forwardRef` union — with an empty
+      // Props column, while its enums came through the other path regardless.
+      const props = formatProps(propsOf(source, propsTypeForms(row.name)));
       const parts = row.parts.length ? row.parts.map((p) => `\`.${p}\``).join(" ") : "—";
       lines.push(`| \`${row.name}\` | ${parts} | ${props} | ${row.note ?? ""} |`);
     }
