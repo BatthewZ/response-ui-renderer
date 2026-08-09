@@ -4,7 +4,7 @@ All notable changes to `@batthewz/response-ui-renderer` will be documented in th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0.0, breaking changes will bump the **minor** version.
 
-## [Unreleased]
+## [0.3.0] — 2026-08-09
 
 ### Added
 
@@ -142,13 +142,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The reference's function-children table is ordered by component name rather than by the order
   of a JSON file. The two rows swapped.
 
-
-- `COMPONENT_NOTES` states the value range of `ProgressBar` and `ProgressRing`: `value` is
-  clamped to `0`–`max`, `max` defaults to `100`, and for `ProgressBar` a `max` of `0` or less
-  renders an indeterminate bar. A prop's type cannot carry this — `value: number` is true of a
-  rescaled `max={5}` bar too — so a document could set `value: 500` and get a silently full bar
-  with nothing in the reference to say why. `VIEWSPEC.md` regenerates with the same wording.
-
 ### Fixed
 
 - **A prop key that names a member of `Object.prototype` resolved to it.** The per-component
@@ -181,6 +174,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   position and are now checked there too. Only the reserved `$node` marker is followed, so
   ordinary data in a prop stays data.
 
+## [0.2.1] — 2026-08-09
+
+### Changed
+
+- `COMPONENT_NOTES` states the value range of `ProgressBar` and `ProgressRing`: `value` is
+  clamped to `0`–`max`, `max` defaults to `100`, and for `ProgressBar` a `max` of `0` or less
+  renders an indeterminate bar. A prop's type cannot carry this — `value: number` is true of a
+  rescaled `max={5}` bar too — so a document could set `value: 500` and get a silently full bar
+  with nothing in the reference to say why. `VIEWSPEC.md` regenerates with the same wording.
+
+### Fixed
 
 - **`ProgressBar` was listed in `VIEWSPEC.md` with no props at all.** Its declarations name the
   props type `ProgressBarOwnProps` — the root type is inlined into its `forwardRef` union — and
