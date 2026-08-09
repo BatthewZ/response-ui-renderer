@@ -6,7 +6,12 @@ import { globSync } from "glob";
 import { describe, expect, it } from "vitest";
 
 import { NOT_ADDRESSABLE } from "./examples/not-addressable";
-import { defaultReferenceContracts, renderComponentReference } from "./reference";
+import * as rootBarrel from "./index";
+import {
+  defaultReferenceContracts,
+  renderComponentReference,
+  renderViewSpecReference,
+} from "./reference";
 import {
   CHILD_INSPECTING_MODULES,
   CHILD_INSPECTING_PARENTS,
@@ -564,6 +569,59 @@ describe("the shipped reference renderer produces the shipped reference", () => 
     ).exec(doc);
     expect(found, `VIEWSPEC.md has no GENERATED:${marker} region`).not.toBeNull();
     expect(found?.[1]).toBe(body);
+  });
+
+  it("returns the committed document unchanged when nothing is scoped", () => {
+    // Read this narrowly. The prose comes from the same file it is compared
+    // against, so for the ~24kB outside the regions this is `f(x) === x` and
+    // cannot fail — it does NOT check that the prose is correct or complete,
+    // and no test here does. What it does establish is that splicing the four
+    // regions disturbs nothing around them and that the unscoped call is the
+    // committed artifact, which is the baseline a scoped profile differs from.
+    // The check that the regions are really rewritten lives in
+    // `reference/scope.test.ts`, where a scope makes the output differ.
+    expect(renderViewSpecReference()).toBe(read(path.join(root, "VIEWSPEC.md")));
+  });
+
+  it("the tables a prompt builder reads are reachable from the package root", () => {
+    // Each of these is a fact a document author needs and cannot derive: which
+    // props are bounded, which components call their children, which parse them
+    // as text, which icon slot wants a component rather than a node, and the
+    // curated notes. Every other test imports them by module path, so deleting
+    // a line from the barrel changed nothing anywhere — and the barrel is the
+    // only spelling a consumer has, since `exports` carries no wildcard.
+    expect(Object.keys(rootBarrel)).toEqual(
+      expect.arrayContaining([
+        "PROP_ENUMS",
+        "COMPONENT_NOTES",
+        "FUNCTION_CHILDREN",
+        "PROP_COERCIONS",
+        "TEXT_CHILDREN",
+        "COMPONENT_TYPED_ICON_SLOTS",
+      ]),
+    );
+    // Reached through the barrel, not by module path: the same objects the
+    // renderer binds, not a second copy a consumer would have to trust.
+    expect(rootBarrel.TEXT_CHILDREN).toBe(TEXT_CHILDREN);
+    expect(rootBarrel.COMPONENT_TYPED_ICON_SLOTS.has("AppShell.SidebarLink.icon")).toBe(true);
+  });
+
+  it("names in the not-addressable table are the ones the corpus excuses", () => {
+    // Two committed artifacts related to each other. The shipped renderer does
+    // not touch this region — it is curated advice carried with the prose — so
+    // without this, editing `not-addressable.json` and forgetting to regenerate
+    // leaves the reference telling an author to reach for something the parity
+    // gate has already given up on.
+    const doc = read(path.join(root, "VIEWSPEC.md"));
+    const rows = /<!-- GENERATED:not-addressable -->\n([\s\S]*?)\n<!-- \/GENERATED:not-addressable -->/
+      .exec(doc)?.[1]
+      .split("\n")
+      .slice(2);
+    expect(rows).toEqual(
+      Object.entries(NOT_ADDRESSABLE)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([name, reason]) => `| \`${name}\` | ${reason} |`),
+    );
   });
 
   it("documents every component the registry can address", () => {

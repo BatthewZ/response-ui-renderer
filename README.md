@@ -477,7 +477,7 @@ import {
 
 const { components, slots } = renderComponentReference(
   extendContracts(defaultReferenceContracts, contracts),
-  [...DEFAULT_CATEGORIES, { name: "Charts", blurb: "Rendered from live data." }],
+  { categories: [...DEFAULT_CATEGORIES, { name: "Charts", blurb: "Rendered from live data." }] },
 );
 ```
 
@@ -489,15 +489,43 @@ Categories are yours to name, and a component categorised under a heading you di
 
 Prose is not generated: this returns the table regions, and the words around them stay yours.
 
+### A reference scoped to what you actually author
+
+Most producers use a fraction of the library. A tutoring app that emits a lesson as a document might author 17 component names, over and over — and pay ~12k tokens per request to find them among the 96 the reference documents. Narrow the contracts and the reference narrows with them:
+
+```ts
+import { renderViewSpecReference } from "@batthewz/response-ui-renderer/reference";
+
+const reference = renderViewSpecReference({
+  include: NAMES_MY_APP_AUTHORS,
+  propLimit: false,
+});
+```
+
+`renderViewSpecReference` returns `VIEWSPEC.md` as a string — prose and all. With no options it *is* the shipped file, byte for byte; given a scope it is the same document describing only those components. For the 17-name vocabulary above: **47,848 → 25,662 bytes, a 46.4% saving** on every request that carries it. Generate it once at startup and cache the string.
+
+Pass `contracts: extendContracts(defaultReferenceContracts, yours)` to have components you registered documented alongside the library's, or compose `scopeContracts` yourself when you want the same narrowed set for something else — feeding `validateViewSpec` a registry of exactly the names your prompt describes, for instance.
+
+**`propLimit: false` is about accuracy, not size.** The full reference caps each row at seven props because 96 components have to fit one readable file — a cap that hides props on 20 of those rows. A hidden prop is one an author invents instead, and nothing catches that: value checking cannot fire on a prop name that was never declared. A narrow scope has no size problem, so it can carry the complete list. For the 17 names above it happens to change nothing — none of them is truncated — and it is worth passing anyway, because which of your components sits near the cap is not a thing you should have to track.
+
+Three things the scope deliberately leaves alone, and one honest limit.
+
+- A compound part **travels with its root in both directions**, so `Stepper` brings `Stepper.Step`, and `AppShell.Navbar` brings `AppShell` *and its seven other parts* — a part cannot render anywhere else, and a root advertising some of its parts is a subtler lie than one advertising none.
+- The **prose and the worked examples stay whole**. A rule may still name a component you dropped, and an example may still author one: after scoping to those 17 names, 8 of the document's 11 example component names are outside it. Tagging prose by component set would silently delete advice whenever a tag was wrong, which is the worse failure — so instead, a generated table a scope leaves empty says so in place of showing a bare header.
+- The **not-addressable table stays whole** (1,813 bytes of the 25,662), because it is advice about absence — filtering it would remove the line that stops an author reaching for `FileUpload` in the one document where nothing else mentions it. Scoping it too would land at ~23,850 bytes, a 50% saving; that is the trade.
+- The tables describe the component library **as of this package's release**, not as of the copy in your `node_modules` — they are derived at build time from its declarations. Regenerating cannot drift past this package; within one `^` range, it can lag its peer.
+
+A name no contract holds **throws**, with the nearest match. That is the point of generating rather than keeping a hand-copied subset: when the library moves, the scope tells you.
+
 ---
 
 ## API
 
-`ViewRenderer` · `NodeRenderer` · `NodeErrorBoundary` · `ViewThemeScope` · `ViewDataProvider` · `ViewContextExtender` · `useViewData` · `defaultRegistry` · `extendRegistry` · `createRegistryFromModule` · `lookupComponent` · `listComponentNames` · `defaultContracts` · `extendContracts` · `contractFor` · `componentNamesOf` · `Icon` · `IconSetProvider` · `useIconSet` · `useFormsState` · `createEventCallback` · `validateField` · `validateForm` · `resolveRef` · `resolveDeep` · `validateViewSpec` · `isViewSpec` · `PROP_ENUMS` / `enumeratedValues` · `FUNCTION_CHILDREN` — plus every type.
+`ViewRenderer` · `NodeRenderer` · `NodeErrorBoundary` · `ViewThemeScope` · `ViewDataProvider` · `ViewContextExtender` · `useViewData` · `defaultRegistry` · `extendRegistry` · `createRegistryFromModule` · `lookupComponent` · `listComponentNames` · `defaultContracts` · `extendContracts` · `contractFor` · `componentNamesOf` · `Icon` · `IconSetProvider` · `useIconSet` · `useFormsState` · `createEventCallback` · `validateField` · `validateForm` · `resolveRef` · `resolveDeep` · `validateViewSpec` · `isViewSpec` · `PROP_ENUMS` / `enumeratedValues` · `FUNCTION_CHILDREN` · `TEXT_CHILDREN` · `COMPONENT_TYPED_ICON_SLOTS` · `COMPONENT_NOTES` · `PROP_COERCIONS` — plus every type.
 
-The last three are there for prompt and schema building: the accepted values of every bounded prop, and the components whose `children` is a function of their own data.
+That last group is there for prompt and schema building: the accepted values of every bounded prop, the components whose `children` is a function of their own data, and the ones whose `children` is source text they parse. `COMPONENT_TYPED_ICON_SLOTS` is the odd one — *most* icon slots take a name (see [VIEWSPEC.md](VIEWSPEC.md)); this is the exception that wants a component type rather than an element, invisible from a document and useful to a schema builder.
 
-Subpaths: `/spec` (types + validator + contracts, no React) · `/reference` (reference generation) · `/icons` (lucide set) · `/zod` (schemas) · `/styles` (CSS).
+Subpaths: `/spec` (types + validator + contracts, no React) · `/reference` (reference generation and scoping) · `/icons` (lucide set) · `/zod` (schemas) · `/styles` (CSS).
 
 ## License
 

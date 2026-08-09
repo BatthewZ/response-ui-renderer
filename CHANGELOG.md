@@ -50,6 +50,59 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   would promise support for conventions this package cannot keep. Contracts are declared; the
   reference is rendered from what was declared.
 
+- **A reference scoped to the components a producer actually authors.**
+  `scopeContracts(contracts, { include })` (or `{ exclude }`) narrows the contracts, and
+  `renderViewSpecReference(contracts?, options?)` returns `VIEWSPEC.md` as a string — prose and
+  all. Called with no arguments it reproduces the committed file byte for byte, which is
+  asserted; handed a scope it is the same document describing only those components.
+
+  For the vocabulary that prompted this — 17 root names plus one compound part, out of the 96
+  components the reference documents, measured across 23 turns of an LLM-authored tutoring app —
+  the reference goes from 47,848 to 25,662 bytes, a **46.4% saving on every request that carries
+  it**. The issue that asked for this measured a hand-built profile at 23,746 bytes (50%); the
+  1,813-byte difference is the not-addressable table, kept whole on purpose and explained below.
+  A hand-kept subset would match that number and become a second source of truth for prop names.
+  A name no contract holds throws, with the nearest match, so a rename upstream surfaces on
+  upgrade instead of leaving a hole where a component used to be documented — on the exclude
+  path too, where a stale name silently re-admits something the caller removed.
+
+  A compound part travels with its root **in both directions**, and a root brings *all* its
+  parts: a part cannot render outside its parent, and a root advertising one part of eight is a
+  subtler version of the empty Parts column the rule exists to prevent.
+
+  Three things a scope does not reach. The prose and worked examples are carried whole, so a
+  scoped document can demonstrate a component its own tables no longer list — tagging prose by
+  component set would silently delete advice whenever a tag was wrong, so instead a generated
+  table a scope empties now *says* it is empty rather than showing a bare header under prose
+  that promises rows. The not-addressable table is neither re-rendered nor scoped: it is advice
+  about absence, and no input can change it, so the generator owns it against
+  `not-addressable.json` rather than the shipped renderer writing back what was already there.
+  And the tables describe the peer library as of *this* package's release — derived at build
+  time from its declarations — so regenerating cannot drift past this package, though within one
+  `^` range it can lag its peer.
+
+- **`propLimit`** on `renderComponentReference` and `renderViewSpecReference`. The reference caps
+  each row at seven props because 96 components have to fit one readable file — a cap that
+  fires on 20 of those rows. A prop hidden behind `+N more` is one an author invents instead, and
+  nothing catches that: `PROP_ENUMS` checks a value, never that the prop name exists. A scoped
+  reference has no size problem, so `propLimit: false` hands over the complete list. It is an
+  accuracy option, not a size one: for the 17-name vocabulary above it changes zero bytes,
+  because none of those components is truncated. The default is unchanged, and a limit that is
+  not a positive integer now throws rather than printing a props cell that names no props.
+
+- **`replaceGeneratedRegion(doc, id, body)`** — how a generated table gets into a hand-written
+  reference, which is what a host keeping its own document with the same markers needs. Throws
+  on a marker the document does not carry, because the alternative is a reference that silently
+  stops being regenerated while every check still passes.
+
+- **`TEXT_CHILDREN` and `COMPONENT_TYPED_ICON_SLOTS` are exported** from the package root,
+  alongside `PROP_ENUMS`, `COMPONENT_NOTES`, `FUNCTION_CHILDREN` and `PROP_COERCIONS`, and a test
+  now fails if any of the six leaves the barrel. `TEXT_CHILDREN` names the components whose
+  children are parsed as source text — a fact a document author needs.
+  `COMPONENT_TYPED_ICON_SLOTS` is not the set of slots that take an icon name; *most* slots do.
+  It is the one exception that wants a component type rather than an element, which a document
+  cannot observe and a schema builder can.
+
 - `referenceContracts(docs)` composes the reference tier from a fresh derivation, so the doc
   generator and the shipped `defaultReferenceContracts` cannot compose it differently.
 

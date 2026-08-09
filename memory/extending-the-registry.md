@@ -102,3 +102,84 @@ renderer to drift. It also buys a strong check on any refactor of the formatting
 doc must regenerate byte for byte — and a gate that reads the two committed artifacts and relates
 them, which the generator's own `--check` cannot do because it rewrites both sides from one
 derivation.
+
+## When the template is the artifact, only what varies can be proven
+
+Producing the document from a template that *is* the committed document has a trap with no
+outward sign. Every generated region already holds the right content before the renderer runs,
+so a region the renderer forgets to write comes out looking correct — and the byte-for-byte
+comparison, the generator's `--check` and any test asserting "reproduces the shipped file" all
+pass a renderer that returned its input untouched. Both directions are self-agreeing at once.
+
+The only input that separates them is one that makes the output legitimately differ, which for a
+reference means a narrowed scope: assert each region equals what the region renderer says *and*
+differs from the unscoped document. Choose the narrowing so every region actually moves — a scope
+that happens to keep the only component in a table leaves that table identical and proves
+nothing about it.
+
+That test is impossible to write for a region no input can change, and the conclusion is not to
+write a weaker one. A constant spliced into a document that already contains it is dead code
+wearing a load-bearing costume: delete the splice, let the value travel with the prose, and gate
+it where it can actually fail — against the data file it is curated in, by a test relating those
+two committed artifacts. Distrust any region whose rendering takes no argument.
+
+## A fixture that cannot see the guard it is named after
+
+Two checks written for this passed with their subject deleted, and both failed the same way:
+the fixture could not express the condition. A prototype-safety test ran against contracts built
+by `extendContracts`, which returns a null-prototype object — so `"constructor" in contracts` was
+already false and the own-property guard was decoration. A clipping test asserted the output
+contained an ellipsis, against a category blurb the test itself had set to `"…"`.
+
+The general rule: after writing an assertion, ask which *input* makes it fail, and check that the
+fixture actually supplies it. A guard against prototype pollution needs a plain object literal —
+which is how a host writes contracts, so it is the realistic input anyway. An assertion about a
+transformation needs a fixture that does not already contain the transformation's output. Both
+were caught by mutation, not by reading, and neither would ever have failed on its own.
+
+## A generated table a scope empties is not a cosmetic problem
+
+Filtering the tables can leave one with no rows, and the hand-written prose above it goes on
+describing contents that are no longer there — "These two **call** theirs", followed by a header
+and nothing. The prose is deliberately never filtered, so the correction has to come from the
+generated side: emit a sentence saying the table is empty, in place of the header. That also
+gives somewhere to warn that a worked example below is describing a component the scope dropped.
+Whenever generated content sits under prose that characterises it, the empty case is a claim the
+document makes and cannot keep.
+
+## Scoping a reference: the part and the root are one decision
+
+A producer authors a fraction of the catalogue, and a reference narrowed to that fraction is
+worth roughly half its bytes on every request. Two rules make the narrowing safe.
+
+A **compound part travels with its root in both directions**. A part cannot render anywhere but
+inside its parent, so including one must carry the other; and the Parts column is derived from
+which names survive, so a root whose parts were filtered away silently advertises an empty column
+while the parts stay renderable. Excluding is the asymmetric half: dropping a root drops its
+parts, dropping a part says nothing about the root.
+
+A name the caller lists and no contract holds must **throw** — and a root brings *all* its parts,
+not just itself. Adding the root without its siblings produces a component advertising one part
+of eight, which is the same lie as advertising none in a font small enough to miss.
+
+Skipping an unknown name is tempting and wrong:
+the entire argument for generating a scope rather than keeping a hand-copied subset is that the
+artifact tracks the installed version, and a name silently skipped is a component renamed
+upstream that has quietly vanished from the reference an author writes against — which is the
+hand-copy's failure, reintroduced by the thing built to avoid it. Reuse the validator's
+near-miss suggester rather than writing a second one; both surfaces are answering "that name is
+not one of ours", and two answers to one question is the drift this package keeps eliminating.
+
+Filtering stops at the tables. Hand-written words — the prose, and a surviving component's
+curated note — are carried whole, so both may still name something the scope dropped. Tagging
+advice by component set deletes advice whenever a tag is wrong, which is a worse failure than a
+paragraph the reader skips.
+
+## A limit that exists for breadth becomes a lie at narrow scope
+
+The props column truncates because 175 components have to fit one readable file. Every such
+concession is worth re-reading once the thing it protected against is gone: at seventeen
+components there is no size problem, and the props hidden behind `+N more` are exactly the ones
+an author invents instead — which nothing catches, because value checking cannot fire on a prop
+name that was never declared. Make the concession an option rather than a constant, and keep its
+default, so the artifact it was calibrated for is unchanged.

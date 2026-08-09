@@ -1,21 +1,30 @@
+import viewSpecDocument from "../../VIEWSPEC.md?raw";
 import componentDocs from "../registry/component-docs.json";
 import { COMPONENT_NOTES } from "../registry/component-notes";
 import { defaultContracts } from "../registry/default-contracts";
-import { type ComponentContracts, extendContracts, type PropDoc } from "../spec/contracts";
+import {
+  closestName,
+  type ComponentContracts,
+  extendContracts,
+  type PropDoc,
+} from "../spec/contracts";
 
-export { extendContracts };
+export { type ComponentContracts, extendContracts };
 
 /**
- * The reference tables, rendered from contracts.
+ * Reference generation.
  *
- * `VIEWSPEC.md` is produced by calling this — the generator's job is to *derive*
- * the facts from the library's shipped declarations, not to format them. So a
- * host documenting its own components gets the identical tables from the
- * identical code, rather than a second renderer that drifts. There is nothing
- * here a built-in component gets and a registered one does not.
+ * `VIEWSPEC.md` is produced by calling `renderViewSpecReference` — the
+ * generator's job is to *derive* the facts from the library's shipped
+ * declarations, not to format them. So a host documenting its own components
+ * gets the identical tables from the identical code, rather than a second
+ * renderer that drifts. There is nothing here a built-in component gets and a
+ * registered one does not.
  *
- * Prose is not generated and never will be: this returns the table regions, and
- * the words around them stay hand-written by whoever owns the document.
+ * **Prose is never generated.** `renderComponentReference` returns the table
+ * regions and nothing else; `renderViewSpecReference` *carries* this package's
+ * own hand-written words around them, unfiltered. A host documenting its own
+ * registry writes its own.
  */
 
 /**
@@ -101,11 +110,12 @@ function tidyType(type: string): string {
 }
 
 /** Required props first, then optional, then a count of what did not fit. */
-function formatProps(props: readonly PropDoc[] | undefined, limit = 7): string {
+function formatProps(props: readonly PropDoc[] | undefined, limit: number | false): string {
   if (!props || props.length === 0) return "—";
   const required = props.filter((prop) => !prop.optional);
   const optional = props.filter((prop) => prop.optional);
-  const shown = [...required, ...optional].slice(0, limit);
+  const ordered = [...required, ...optional];
+  const shown = limit === false ? ordered : ordered.slice(0, limit);
   const rendered = shown
     .map((prop) => `\`${prop.key}${prop.optional ? "?" : ""}\`: ${tidyType(prop.type)}`)
     .join(" · ");
@@ -115,6 +125,12 @@ function formatProps(props: readonly PropDoc[] | undefined, limit = 7): string {
 
 const byName = (a: string, b: string) => a.localeCompare(b);
 
+/** Every addressable name under `name` — `"Table"` → `["Table.Body", …]`. */
+function partKeys(contracts: ComponentContracts, name: string): string[] {
+  const prefix = `${name}.`;
+  return Object.keys(contracts).filter((key) => key.startsWith(prefix));
+}
+
 /**
  * `"Table"` → `["Body", "Row"]`, read off the addressable names themselves.
  *
@@ -123,15 +139,15 @@ const byName = (a: string, b: string) => a.localeCompare(b);
  * declares its parts in, which reads better than alphabetical.
  */
 function partsOf(contracts: ComponentContracts, name: string): string[] {
-  const prefix = `${name}.`;
-  return Object.keys(contracts)
-    .filter((key) => key.startsWith(prefix) && !key.slice(prefix.length).includes("."))
-    .map((key) => key.slice(prefix.length));
+  return partKeys(contracts, name)
+    .map((key) => key.slice(name.length + 1))
+    .filter((part) => !part.includes("."));
 }
 
 function renderComponents(
   contracts: ComponentContracts,
   categories: readonly ReferenceCategory[],
+  propLimit: number | false,
 ): string {
   const known = new Set(categories.map((category) => category.name));
   const rows = new Map<string, { name: string; line: string }[]>();
@@ -149,7 +165,7 @@ function renderComponents(
     const cells = [
       `\`${name}\``,
       parts.length ? parts.map((part) => `\`.${part}\``).join(" ") : "—",
-      formatProps(contract.props),
+      formatProps(contract.props, propLimit),
       contract.note ?? "",
     ];
     if (!rows.has(contract.category)) rows.set(contract.category, []);
@@ -166,14 +182,21 @@ function renderComponents(
     );
   }
 
-  // Reaching here with nothing to show means every contract lacked a category,
-  // which is what `extendContracts(defaultContracts, yours)` produces — the core
-  // contracts deliberately carry no category. Returning "" would be the silent
-  // drop this function throws to prevent, one level up.
+  // Reaching here with nothing to show has two causes and they need different
+  // advice. Returning "" would be the silent drop this function throws to
+  // prevent, one level up.
   if (rows.size === 0 && Object.keys(contracts).length > 0) {
+    const named = Object.keys(contracts);
     throw new Error(
-      "no contract carries a category, so the component table would be empty — " +
-        "generate a reference from `defaultReferenceContracts`, not `defaultContracts`.",
+      named.length <= 8
+        ? `no contract carries a category, so the component table would be empty — ${named
+            .map((name) => `\`${name}\``)
+            .join(", ")} ${
+            named.length === 1 ? "is not a documented component" : "are not documented components"
+          }. A component the reference deliberately leaves out (see the not-addressable table) ` +
+          "cannot be scoped to."
+        : "no contract carries a category, so the component table would be empty — " +
+          "generate a reference from `defaultReferenceContracts`, not `defaultContracts`.",
     );
   }
 
@@ -190,7 +213,21 @@ function renderComponents(
   return lines.join("\n").trimEnd();
 }
 
-function renderTable(header: readonly string[], rows: readonly string[]): string {
+/**
+ * A markdown table, or a sentence saying there is nothing in it.
+ *
+ * The empty case only arises under a scope, and it is not cosmetic. Each of
+ * these tables sits under hand-written prose that describes its contents —
+ * "These two **call** theirs", and the names below are in scope — and a header
+ * row with no body leaves that prose asserting rows a reader cannot see. The
+ * prose is not filtered, so the correction has to come from the generated side.
+ */
+function renderTable(
+  header: readonly string[],
+  rows: readonly string[],
+  empty: string,
+): string {
+  if (rows.length === 0) return `_${empty}_`;
   return [
     `| ${header.join(" | ")} |`,
     `| ${header.map(() => "---").join(" | ")} |`,
@@ -209,6 +246,24 @@ function rowsFor(
     .filter((line): line is string => line !== undefined);
 }
 
+export type ReferenceOptions = {
+  /** Sections, in reading order. Defaults to `DEFAULT_CATEGORIES`. */
+  categories?: readonly ReferenceCategory[];
+
+  /**
+   * Props listed per row before the rest become `+N more`; `false` for all of
+   * them. Defaults to 7.
+   *
+   * The cap is a concession to breadth, not a judgement about which props
+   * matter: 175 components have to fit one readable file, so the widest rows
+   * lose their tail. A **scoped** reference has no such problem, and the props
+   * it hides are the ones an author then invents — which nothing catches,
+   * because value checking cannot fire on a prop name that was never declared.
+   * Narrow the contracts and pass `false`.
+   */
+  propLimit?: number | false;
+};
+
 /**
  * The generated regions of a ViewSpec reference, for whatever these contracts
  * describe.
@@ -219,10 +274,18 @@ function rowsFor(
  */
 export function renderComponentReference(
   contracts: ComponentContracts,
-  categories: readonly ReferenceCategory[] = DEFAULT_CATEGORIES,
+  { categories = DEFAULT_CATEGORIES, propLimit = 7 }: ReferenceOptions = {},
 ): ReferenceRegions {
+  if (propLimit !== false && (!Number.isInteger(propLimit) || propLimit < 1)) {
+    // `0`, `-1` and `NaN` all reach `slice` and produce a props cell that names
+    // no props behind a dangling `· +N more`; a negative one silently drops the
+    // last prop of every row, which is the omission this option exists to end.
+    throw new Error(
+      `renderComponentReference: propLimit must be a positive integer or false, not ${String(propLimit)}.`,
+    );
+  }
   return {
-    components: renderComponents(contracts, categories),
+    components: renderComponents(contracts, categories, propLimit),
     slots: renderTable(
       ["Component", "`classNames` keys"],
       rowsFor(contracts, (name, contract) =>
@@ -230,6 +293,7 @@ export function renderComponentReference(
           ? `| \`${name}\` | ${contract.slots.map((key) => `\`${key}\``).join(" ")} |`
           : undefined,
       ),
+      "No component in this reference takes `classNames`.",
     ),
     functionChildren: renderTable(
       ["Component", "Called", "In scope inside `children`"],
@@ -240,6 +304,8 @@ export function renderComponentReference(
               .join(" · ")} |`
           : undefined,
       ),
+      "No component in this reference calls its `children` — place them as usual. " +
+        "Any example above naming one that does is describing a component this reference does not cover.",
     ),
     textChildren: renderTable(
       ["Component", "`children` is"],
@@ -248,6 +314,204 @@ export function renderComponentReference(
           ? undefined
           : `| \`${name}\` | ${contract.textChildren} |`,
       ),
+      "No component in this reference parses its `children` as text.",
     ),
   };
+}
+
+/**
+ * Component names, as a list or a set.
+ *
+ * Deliberately not `Iterable<string>`: a bare `string` satisfies that, so
+ * `include: "Card"` would typecheck and then scope to the letters C, a, r, d.
+ */
+export type ComponentNames = readonly string[] | ReadonlySet<string>;
+
+/** Pass exactly one. Two lists would have to agree, and could not be made to. */
+export type ContractScope =
+  | { readonly include: ComponentNames; readonly exclude?: undefined }
+  | { readonly exclude: ComponentNames; readonly include?: undefined };
+
+/**
+ * A name the caller believes is documented and is not.
+ *
+ * Reported rather than skipped: the whole point of a scoped reference is that
+ * it re-derives from the installed version, so a name that has been renamed
+ * upstream must surface on upgrade. On the `include` side, skipping produces a
+ * reference missing a component the author is about to use. On the `exclude`
+ * side the cost is quieter and still real — an exclusion that has stopped
+ * matching silently re-admits a component the caller deliberately removed — so
+ * both paths report rather than shrug.
+ */
+function refuseUnknown(contracts: ComponentContracts, names: readonly string[]): void {
+  const unknown = names.filter((name) => !Object.hasOwn(contracts, name));
+  if (unknown.length === 0) return;
+  const known = Object.keys(contracts);
+  const detail = unknown.map((name) => {
+    const nearest = closestName(name, known);
+    return nearest === undefined ? `"${name}"` : `"${name}" (did you mean "${nearest}"?)`;
+  });
+  throw new Error(`scopeContracts: no contract for ${detail.join(", ")}.`);
+}
+
+/**
+ * The contracts for a named set of components, and nothing else.
+ *
+ * The reference documents every addressable name because it cannot know which
+ * ones a given producer uses. A producer *does* know: an application that only
+ * ever authors a dozen component names is paying to describe the rest on every
+ * request. Narrow the contracts and the tables narrow with them — categories
+ * left with no rows drop out, and `renderViewSpecReference` returns the same
+ * document minus what nobody addresses.
+ *
+ * Scoped rather than hand-copied so it cannot drift: a subset kept downstream
+ * is a second source of truth for prop names, and a wrong prop name is exactly
+ * what the reference exists to prevent. This is derived from whatever version
+ * is installed, so it cannot describe a different one.
+ *
+ * A **compound part travels with its root, in both directions** — a part cannot
+ * render outside its parent, and a root whose parts were filtered away would
+ * advertise an empty Parts column while the parts stayed renderable. Naming
+ * `"Tabs.Panel"` therefore includes `Tabs` *and its other parts*: pulling in the
+ * root without them is the same lie in a smaller font. Excluding a root excludes
+ * its parts; excluding a part leaves the root, because dropping one part says
+ * nothing about the rest.
+ */
+export function scopeContracts(
+  contracts: ComponentContracts,
+  scope: ContractScope,
+): ComponentContracts {
+  const including = scope.include !== undefined;
+  if (including === (scope.exclude !== undefined)) {
+    throw new Error("scopeContracts: pass exactly one of `include` or `exclude`.");
+  }
+
+  const named = [...(scope.include ?? scope.exclude ?? [])];
+  if (named.length === 0) {
+    throw new Error(
+      `scopeContracts: \`${including ? "include" : "exclude"}\` is empty. ` +
+        "An empty include documents nothing and an empty exclude documents everything; " +
+        "neither is a scope, and both are likelier to be a list that failed to build.",
+    );
+  }
+  refuseUnknown(contracts, named);
+
+  const listed = new Set<string>();
+  const take = (name: string) => {
+    listed.add(name);
+    for (const part of partKeys(contracts, name)) listed.add(part);
+  };
+  for (const name of named) {
+    take(name);
+    // Only when including: a part names its root as a dependency — and the root
+    // brings the siblings, or its Parts column would advertise one of eight.
+    const dot = including ? name.lastIndexOf(".") : -1;
+    if (dot !== -1) take(name.slice(0, dot));
+  }
+
+  const next: Record<string, ComponentContracts[string]> = Object.create(null) as Record<
+    string,
+    ComponentContracts[string]
+  >;
+  // Key order is the library's own declaration order, which decides the order
+  // compound parts are listed in. Filtering must not reorder it.
+  for (const [name, contract] of Object.entries(contracts)) {
+    if (listed.has(name) === including) next[name] = contract;
+  }
+
+  if (Object.keys(next).length === 0) {
+    throw new Error(
+      "scopeContracts: the scope keeps no components, so there is nothing to document.",
+    );
+  }
+  return next;
+}
+
+/**
+ * Rewrites a `<!-- GENERATED:x -->…<!-- /GENERATED:x -->` region of a markdown
+ * document, leaving everything around it alone.
+ *
+ * How a generated table gets into a hand-written reference — this package's own
+ * and, for a host keeping its own document, theirs. Throws on a marker the
+ * document does not carry, because the alternative is a reference that silently
+ * stops being regenerated while every check still passes.
+ */
+export function replaceGeneratedRegion(doc: string, id: string, body: string): string {
+  // Escaped, because `id` is the caller's: an unescaped `.` in `"table.rows"`
+  // matches a *different* marker and rewrites the wrong region — the silent
+  // failure this function's own throw exists to prevent — and a `(` throws a
+  // SyntaxError from a regex the caller never wrote.
+  const marker = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`(<!-- GENERATED:${marker} -->)[\\s\\S]*?(<!-- /GENERATED:${marker} -->)`);
+  if (!pattern.test(doc)) throw new Error(`the document has no GENERATED:${id} region`);
+  // A function replacer, because a note is free to contain `$&` or "$`" and a
+  // string replacement would expand it into something the author never wrote.
+  return doc.replace(pattern, (_, open: string, close: string) => `${open}\n${body}\n${close}`);
+}
+
+export type ViewSpecReferenceOptions = ReferenceOptions &
+  (ContractScope | { readonly include?: undefined; readonly exclude?: undefined }) & {
+    /**
+     * Defaults to `defaultReferenceContracts`. Supply
+     * `extendContracts(defaultReferenceContracts, yours)` to have components you
+     * registered documented alongside the library's — extending, not replacing,
+     * because the prose this carries describes the library.
+     */
+    readonly contracts?: ComponentContracts;
+  };
+
+/**
+ * `VIEWSPEC.md` — the whole reference, as a string.
+ *
+ * **This document's prose is about `@batthewz/response-ui-react-components`.**
+ * It is the reference this package ships, re-rendered from the contracts it is
+ * handed, so `contracts` is for *adding* your components to it. A host
+ * documenting a registry of its own instead wants `renderComponentReference`
+ * and its own words around it.
+ *
+ * With no options it reproduces the committed file byte for byte. Given a scope
+ * it returns the same document describing only those components — the form a
+ * producer with a fixed component vocabulary should put in front of a model:
+ *
+ * ```ts
+ * renderViewSpecReference({ include: NAMES_MY_APP_AUTHORS, propLimit: false });
+ * ```
+ *
+ * What a scope deliberately does **not** reach, because the failure of getting
+ * it wrong is worse than the bytes:
+ *
+ * - **Hand-written words are carried, not filtered** — the prose between the
+ *   regions, a surviving component's curated note, and the worked examples.
+ *   Some of those examples author components a narrow scope drops, so a scoped
+ *   document can *demonstrate* a name its own tables do not document. Tagging
+ *   advice by component set would silently delete it whenever a tag was wrong,
+ *   which is the worse failure; instead, a generated table left empty by a scope
+ *   says so in place of showing a bare header.
+ * - **The not-addressable table travels with the prose**, so it is neither
+ *   re-rendered here nor scoped. It is advice about the *absence* of a
+ *   component, and absence is exactly what a scope produces: filtering it would
+ *   delete the sentence that stops an author reaching for `FileUpload` in the
+ *   one document where nothing else mentions it. Its three siblings are
+ *   re-rendered because contracts change them; this one no input can change,
+ *   and a splice that can only ever write back what is already there is not a
+ *   check on anything — the generator owns it, against `not-addressable.json`.
+ *
+ * The tables describe the peer library **as of this package's release**, not as
+ * of the copy resolved in your `node_modules`: they are derived at build time
+ * from the declarations, so a peer within the same `^` range that has since
+ * added a prop will not show it. Regenerating cannot drift past this package;
+ * it can lag its peer.
+ */
+export function renderViewSpecReference(options: ViewSpecReferenceOptions = {}): string {
+  const { contracts = defaultReferenceContracts, include, exclude, ...rest } = options;
+  const scoped =
+    include === undefined && exclude === undefined
+      ? contracts
+      : scopeContracts(contracts, (include === undefined ? { exclude } : { include }));
+
+  const regions = renderComponentReference(scoped, rest);
+  let doc = replaceGeneratedRegion(viewSpecDocument, "components", regions.components);
+  doc = replaceGeneratedRegion(doc, "slots", regions.slots);
+  doc = replaceGeneratedRegion(doc, "function-children", regions.functionChildren);
+  return replaceGeneratedRegion(doc, "text-children", regions.textChildren);
 }

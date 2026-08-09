@@ -167,6 +167,86 @@ export function componentNamesOf(
 }
 
 /**
+ * Optimal string alignment distance — Levenshtein, plus **transposition of two
+ * adjacent characters as a single edit**.
+ *
+ * Exists so an unknown name is *actionable*: "unknown component" alone leaves an
+ * author re-reading a 100-name catalogue to find the one they meant. The
+ * transposition case is not a refinement — `"Cadr"` for `"Card"` is two
+ * substitutions under plain Levenshtein, so the commonest typo of all would be
+ * the one shape that got no suggestion.
+ */
+function editDistance(a: string, b: string, limit: number): number {
+  if (Math.abs(a.length - b.length) > limit) return limit + 1;
+  let twoAgo: number[] = [];
+  let previous = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      let value = Math.min(current[j - 1] + 1, previous[j] + 1, previous[j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        value = Math.min(value, twoAgo[j - 2] + 1);
+      }
+      current[j] = value;
+    }
+    twoAgo = previous;
+    previous = current;
+  }
+  return previous[b.length];
+}
+
+/** How many leading characters two already-lower-cased names share. */
+function sharedPrefix(a: string, b: string): number {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i += 1;
+  return i;
+}
+
+/**
+ * The known name a misspelling most likely meant, if one is close enough.
+ *
+ * Lives here rather than beside its first caller because two exported surfaces
+ * now answer "that name is not one of ours": the validator, judging a document,
+ * and `scopeContracts`, judging the list a host asked to document. Two
+ * implementations would drift into disagreeing about the same typo.
+ */
+export function closestName(name: string, names: Iterable<string>): string | undefined {
+  const limit = name.length <= 4 ? 1 : 2;
+  // Compared lower-cased, so a wrong capital costs nothing. A generator that
+  // writes `"cadr"` has made one mistake, not two, and charging it for the case
+  // pushed the commonest pair of slips past every sane threshold at once.
+  const target = name.toLowerCase();
+
+  let best: string | undefined;
+  let bestDistance = limit + 1;
+  let bestRank = -1;
+  const dotted = name.includes(".");
+  for (const candidate of names) {
+    // Asymmetric on purpose. A root is no fix for a misspelled part — `"Card"`
+    // for `"Table.Rw"` sends an author to a component that cannot go where they
+    // put it. But a *part* is very often the fix for a dotless name: dropping
+    // the dot is the likeliest slip anyone carrying a PascalCase mental model
+    // makes, and `"AccordionItem"` is one edit from a real, renderable name.
+    if (dotted && !candidate.includes(".")) continue;
+    const lower = dotted ? candidate.toLowerCase() : candidate.toLowerCase().replace(/\./g, "");
+    const distance = editDistance(target, lower, limit);
+    if (distance > limit || distance > bestDistance) continue;
+    // A transposition and a substitution both cost 1, so ties are common and
+    // the first candidate seen is not the likelier word: `"Tabel"` tied `Label`
+    // with `Table` and, in registry order, sent the author to the wrong one.
+    // Prefer the longer shared opening, then the closer length.
+    const rank = sharedPrefix(target, lower) * 100 - Math.abs(target.length - lower.length);
+    if (distance < bestDistance || rank > bestRank) {
+      bestDistance = distance;
+      bestRank = rank;
+      best = candidate;
+    }
+  }
+  return best;
+}
+
+/**
  * A value out of a contract's per-prop record, own properties only.
  *
  * A contract is written as an object literal, by this package and by every

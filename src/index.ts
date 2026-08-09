@@ -22,12 +22,14 @@ export {
   normalizeIconName,
   useIconSet,
 } from "./registry/Icon";
+export { COMPONENT_TYPED_ICON_SLOTS } from "./registry/icon-slots";
 export {
   parseIsoDate,
   parseIsoDateRange,
   PROP_COERCIONS,
 } from "./registry/prop-coercions";
 export { defaultRegistry, listComponentNames } from "./registry/registry";
+export { TEXT_CHILDREN } from "./registry/text-children";
 export {
   type ComponentRegistry,
   createRegistryFromModule,

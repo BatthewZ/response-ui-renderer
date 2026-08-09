@@ -5,10 +5,11 @@
  *
  * This script **derives**; it does not format. The prop tables, slot keys and
  * children notes it produces go into `src/registry/component-docs.json`, and
- * `renderComponentReference` — which ships — turns those into the markdown
- * between VIEWSPEC.md's GENERATED markers. A host documenting its own registry
- * calls that same function, so there is exactly one renderer and a host's
- * components are described the way the library's are.
+ * `renderViewSpecReference` — which ships — splices those into VIEWSPEC.md's
+ * GENERATED regions and returns the whole document. A consumer generating a
+ * reference scoped to the components it actually authors calls that same
+ * function, so the committed document and a scoped one come out of one
+ * renderer and a host's components are described the way the library's are.
  *
  * Two derivation sources, neither of which can drift:
  *
@@ -35,10 +36,11 @@ import { fileURLToPath } from "node:url";
 import { globSync } from "glob";
 import * as ResponseUI from "@batthewz/response-ui-react-components";
 
+import { NOT_ADDRESSABLE } from "../src/examples/not-addressable.ts";
 import {
-  DEFAULT_CATEGORIES,
   referenceContracts,
-  renderComponentReference,
+  replaceGeneratedRegion,
+  renderViewSpecReference,
 } from "../src/reference/index.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -354,42 +356,42 @@ function describeInternals(components, notAddressable) {
   return { docs, enums };
 }
 
+/** Components a document cannot drive, and what to do instead. */
 function renderNotAddressable(notAddressable) {
   const lines = ["| Component | Why not, and what to do instead |", "| --- | --- |"];
-  for (const [name, reason] of Object.entries(notAddressable).sort()) {
+  for (const [name, reason] of Object.entries(notAddressable).sort(([a], [b]) =>
+    a.localeCompare(b),
+  )) {
     lines.push(`| \`${name}\` | ${reason} |`);
   }
   return lines.join("\n");
 }
 
-/** Replaces a `<!-- GENERATED:x -->…<!-- /GENERATED:x -->` region in place. */
-function replaceRegion(doc, id, body) {
-  const pattern = new RegExp(`(<!-- GENERATED:${id} -->)[\\s\\S]*?(<!-- /GENERATED:${id} -->)`);
-  if (!pattern.test(doc)) throw new Error(`VIEWSPEC.md has no GENERATED:${id} region`);
-  return doc.replace(pattern, `$1\n${body}\n$2`);
-}
-
 function main() {
-  // Which components a document must not reach for, and why. Curated here
+  // Which components a document must not reach for, and why. Curated as data
   // rather than in the contracts because it is advice about the *absence* of a
-  // component — there is nothing to attach it to.
-  const notAddressable = JSON.parse(
-    readFileSync(path.join(root, "src/examples/not-addressable.json"), "utf8"),
-  );
+  // component — there is nothing to attach it to. Read through the same module
+  // the shipped renderer reads, so the table it emits and the names withheld
+  // here cannot disagree.
+  const notAddressable = NOT_ADDRESSABLE;
 
   const components = liveComponents();
   const { docs, enums } = describeInternals(components, notAddressable);
 
   // The same composition the shipped `defaultReferenceContracts` uses, applied
-  // to this run's fresh derivation rather than the committed copy of it.
-  const regions = renderComponentReference(referenceContracts(docs), DEFAULT_CATEGORIES);
-
-  const original = readFileSync(docPath, "utf8");
-  let doc = replaceRegion(original, "components", regions.components);
-  doc = replaceRegion(doc, "slots", regions.slots);
-  doc = replaceRegion(doc, "function-children", regions.functionChildren);
-  doc = replaceRegion(doc, "text-children", regions.textChildren);
-  doc = replaceRegion(doc, "not-addressable", renderNotAddressable(notAddressable));
+  // to this run's fresh derivation rather than the committed copy of it — and
+  // then the shipped renderer, so the document a consumer generates for a scope
+  // of its own and the document committed here come out of one function.
+  //
+  // The not-addressable table is spliced here and not there because no input
+  // the shipped function takes can change it: it is curated advice keyed to
+  // this library, so it travels with the prose and this script is what keeps it
+  // honest against `not-addressable.json`.
+  const doc = replaceGeneratedRegion(
+    renderViewSpecReference({ contracts: referenceContracts(docs) }),
+    "not-addressable",
+    renderNotAddressable(notAddressable),
+  );
 
   // Both are read at runtime, not just rendered into prose: the value sets so a
   // document can be told a prop is outside its union before it renders into

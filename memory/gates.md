@@ -95,6 +95,30 @@ The same asymmetry applies to the reference. `--check` regenerates and diffs, so
 whether the *committed* derived data agrees with the *committed* doc — it rewrites both sides
 from one in-memory derivation. Read the two committed artifacts and relate them to each other.
 
+It has a third face, which is the one that survives even after you have written that test. The
+document is produced by splicing regions into a template, and the template is the committed
+document, so every region already holds the right bytes before anything runs: a region the
+renderer never writes is indistinguishable from one it writes correctly, and "reproduces the
+shipped file byte for byte" goes green on a function that returns its argument. Prove a splice
+by making its output legitimately differ — a scoped render — and check each region both ways,
+equal to what the region renderer says and unequal to the unscoped document. A region no input
+can vary cannot be proven at all, which is the signal to stop splicing it and gate it against
+the data file it is curated in instead. See `memory/extending-the-registry.md`.
+
+Two things that survive the fix and should be said plainly. The prose between the regions is
+still compared against itself: delete a paragraph from the reference and the whole suite, plus
+`--check`, stays green. Nothing here reads the prose, so no test covers whether it is correct or
+complete, and a test comment claiming otherwise is worse than no test — it tells the next reader
+the check exists. And `--check`'s *failure* direction is itself ungated: it is the only gate on
+the derived JSON artifacts, and a mutation that makes it always report success passes the suite.
+
+## A public constant needs a test that imports it the way a consumer does
+
+`exports` carries no wildcard, so the barrel is the only spelling a consumer has — and every
+internal test imports these tables by module path, which means deleting a line from the barrel
+changed nothing anywhere. A table is only public if a test reaches it through the barrel and
+asserts it is the same object the renderer binds.
+
 ## A covariant type will not catch a list that shrinks
 
 Zod's `ZodType` is covariant in its output, so a schema whose union is a strict *subset*

@@ -442,7 +442,7 @@ describe("renderComponentReference", () => {
   const categories = [{ name: "Charts", blurb: "Rendered from live data." }];
 
   it("documents a host's components the way the library's are documented", () => {
-    const { components } = renderComponentReference(contracts, categories);
+    const { components } = renderComponentReference(contracts, { categories });
     expect(components).toContain("### Charts");
     expect(components).toContain("Rendered from live data.");
     // Required props lead; the compound part is read off the addressable names.
@@ -454,7 +454,7 @@ describe("renderComponentReference", () => {
   });
 
   it("emits the slot, function-children and text-children tables", () => {
-    const regions = renderComponentReference(contracts, categories);
+    const regions = renderComponentReference(contracts, { categories });
     expect(regions.slots).toContain("| `BarChart` | `axis` `legend` |");
     expect(regions.slots).toContain("| `BarChart.Legend` | `swatch` |");
     expect(regions.functionChildren).toContain("| `BarChart` | Called **once per point**. | `point` |");
@@ -462,7 +462,7 @@ describe("renderComponentReference", () => {
   });
 
   it("refuses to silently drop a component whose category is not in the list", () => {
-    expect(() => renderComponentReference(contracts, DEFAULT_CATEGORIES)).toThrow(/Charts/);
+    expect(() => renderComponentReference(contracts, { categories: DEFAULT_CATEGORIES })).toThrow(/Charts/);
   });
 
   it("renders the built-in components and a host's from one call", () => {
@@ -470,7 +470,7 @@ describe("renderComponentReference", () => {
     // notes that put the library's own components in the table are reference
     // data, and the core contracts deliberately do not carry them.
     const merged = extendContracts(defaultReferenceContracts, contracts);
-    const { components } = renderComponentReference(merged, [...DEFAULT_CATEGORIES, ...categories]);
+    const { components } = renderComponentReference(merged, { categories: [...DEFAULT_CATEGORIES, ...categories] });
     expect(components).toContain("| `Card` |");
     expect(components).toContain("| `BarChart` |");
   });
