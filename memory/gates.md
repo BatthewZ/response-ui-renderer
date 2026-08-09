@@ -281,3 +281,22 @@ manual sweep of that section, the same way a peer bump requires sweeping the cor
 the changelog. The mirror also carries renderer-only caveats the css doc rightly does not:
 overrides are inline `--*` properties, so `color-scheme`, `@keyframes` and the 40rem
 media-query step-ups are all unreachable from a document.
+
+## The generated contracts describe the INSTALLED library, not the one next door
+
+`prop-enums.json`, `component-docs.json` and VIEWSPEC.md are generated from
+`node_modules/@batthewz/response-ui-react-components/dist/**/*.d.ts`. That directory is a real
+installed package, not a link to a sibling checkout — so a prop added upstream in the same
+working tree is invisible here until the new version is actually installed, and regenerating
+before then produces artifacts that silently omit it.
+
+Two consequences worth planning around rather than discovering:
+
+- **Release order is fixed.** Upstream publishes first; only then can this package install it,
+  regenerate, and have `docs:viewspec --check` mean anything. Bumping the peer range without
+  reinstalling leaves a range that claims a version the artifacts were never generated against.
+- **Green here is not proof the artifacts are current** if the installed copy was staged by
+  hand to test a change ahead of publication. `--check` compares a generation against the same
+  installed input, so it agrees with itself either way. The thing to verify after the real
+  install is that regeneration is byte-identical — that comparison, and not the local green,
+  is what says the two packages agree.
