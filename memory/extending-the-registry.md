@@ -187,6 +187,24 @@ curated note — are carried whole, so both may still name something the scope d
 advice by component set deletes advice whenever a tag is wrong, which is a worse failure than a
 paragraph the reader skips.
 
+### Two kinds of absence, and only one of them scopes
+
+The not-addressable table is **never scoped**, and the argument against that is good enough to
+be worth answering rather than ignoring: a scope makes a hundred and fifty components absent,
+so why does a table of seven survive it?
+
+Because they are different absences. A component a scope drops is absent *from this document*
+and renders perfectly well — the registry is not scoped, so nothing stops an author reaching for
+it. A component on that table is absent *from the format*: the renderer will refuse it however it
+is spelled. A reference can afford to stop describing the first kind. Deleting the second kind's
+warning removes the only thing standing between an author and a component that cannot work, and
+it does so precisely in the document where nothing else mentions it — a narrow profile of form
+controls is exactly where a model reaches for `FileUpload`.
+
+So the cost is accepted deliberately: ~1,800 bytes, a saving of roughly 45% rather than 50%. This
+was measured, argued both ways, and settled by the maintainer; it is not an oversight waiting to
+be tidied. Do not "fix" it to match a report that measured the table filtered away.
+
 ## A limit that exists for breadth becomes a lie at narrow scope
 
 The props column truncates because 175 components have to fit one readable file. Every such
