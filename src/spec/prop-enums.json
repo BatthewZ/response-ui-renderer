@@ -80,6 +80,11 @@
     "comfortable",
     "spacious"
   ],
+  "DataTable.chrome": [
+    "boxed",
+    "rules",
+    "plain"
+  ],
   "DescriptionList.layout": [
     "horizontal",
     "vertical"
@@ -270,6 +275,11 @@
     "comfortable",
     "spacious"
   ],
+  "Table.chrome": [
+    "boxed",
+    "rules",
+    "plain"
+  ],
   "Tabs.variant": [
     "underline",
     "pill",
@@ -325,6 +335,11 @@
     "dense",
     "comfortable",
     "spacious"
+  ],
+  "VirtualizedDataTable.chrome": [
+    "boxed",
+    "rules",
+    "plain"
   ],
   "Wizard.orientation": [
     "horizontal",

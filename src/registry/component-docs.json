@@ -877,6 +877,11 @@
         "type": "boolean"
       },
       {
+        "key": "chrome",
+        "optional": true,
+        "type": "\"boxed\"|\"rules\"|\"plain\""
+      },
+      {
         "key": "stickyHeader",
         "optional": true,
         "type": "boolean"
@@ -2534,6 +2539,11 @@
         "type": "boolean"
       },
       {
+        "key": "chrome",
+        "optional": true,
+        "type": "\"boxed\"|\"rules\"|\"plain\""
+      },
+      {
         "key": "stickyHeader",
         "optional": true,
         "type": "boolean"
@@ -2925,6 +2935,11 @@
         "key": "striped",
         "optional": true,
         "type": "boolean"
+      },
+      {
+        "key": "chrome",
+        "optional": true,
+        "type": "\"boxed\"|\"rules\"|\"plain\""
       },
       {
         "key": "stickyHeader",
