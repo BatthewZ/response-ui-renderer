@@ -321,7 +321,10 @@ describe("a generated table a scope empties", () => {
     expect(emptied).not.toContain("| Component |");
     expect(emptied).toContain("No component in this reference calls its `children`");
     // And it warns about the worked example still sitting underneath it.
-    expect(emptied).toContain("this reference does not cover");
+    // "in this section", not "above": the prose is above the table and the
+    // example below it, and the first wording named the wrong direction.
+    expect(emptied).toContain("The prose and example in this section");
+    expect(emptied).not.toContain("above naming");
     // The tables the scope does keep are still tables.
     expect(region(profile, "text-children")).toContain("| `Markdown` |");
   });

@@ -305,7 +305,8 @@ export function renderComponentReference(
           : undefined,
       ),
       "No component in this reference calls its `children` — place them as usual. " +
-        "Any example above naming one that does is describing a component this reference does not cover.",
+        "The prose and example in this section describe components this reference does not cover; " +
+        "do not author a component that has no row in the tables above.",
     ),
     textChildren: renderTable(
       ["Component", "`children` is"],
