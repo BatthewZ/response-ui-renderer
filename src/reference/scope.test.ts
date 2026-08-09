@@ -217,16 +217,32 @@ describe("scopeContracts", () => {
 describe("propLimit", () => {
   const wide = scopeContracts(defaultReferenceContracts, { include: ["DataTable"] });
 
+  /**
+   * `7` is this package's default and is asserted as the literal it is. How many
+   * props DataTable has is upstream's to change — a peer bump that adds one used
+   * to fail all three of these, so the tail is derived. VIEWSPEC.md commits the
+   * rendered count, and `docs:viewspec --check` is what gates it.
+   */
+  const DEFAULT_LIMIT = 7;
+  const declared = defaultReferenceContracts.DataTable.props ?? [];
+  const hidden = declared.length - DEFAULT_LIMIT;
+
+  it("is scoped to a component wide enough to truncate", () => {
+    // Every check below is vacuous if DataTable stops being the widest kind of
+    // row: `+N more` never renders, and the for-loop over `declared` asserts
+    // nothing at all. This is the one that fails first if that changes.
+    expect(declared.length).toBeGreaterThan(DEFAULT_LIMIT);
+  });
+
   it("truncates at seven by default, which is what the full reference does", () => {
     const { components } = renderReferenceRegions(wide);
-    expect(components).toContain("+21 more");
+    expect(components).toContain(`+${hidden} more`);
+    expect(components.match(/`\w+\??`:/g)).toHaveLength(DEFAULT_LIMIT);
   });
 
   it("lists every prop when the scope is narrow enough to afford them", () => {
     const { components } = renderReferenceRegions(wide, { propLimit: false });
     expect(components).not.toMatch(/\+\d+ more/);
-    const declared = defaultReferenceContracts.DataTable.props ?? [];
-    expect(declared.length).toBe(28);
     for (const prop of declared) expect(components).toContain(`\`${prop.key}`);
   });
 
@@ -236,8 +252,8 @@ describe("propLimit", () => {
     // test exercised.
     const capped = renderViewSpecReference({ include: ["DataTable"] });
     const complete = renderViewSpecReference({ include: ["DataTable"], propLimit: false });
-    expect(capped).toContain("+21 more");
-    expect(complete).not.toContain("+21 more");
+    expect(capped).toContain(`+${hidden} more`);
+    expect(complete).not.toContain(`+${hidden} more`);
     expect(complete.length).toBeGreaterThan(capped.length);
   });
 

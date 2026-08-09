@@ -180,6 +180,18 @@ reference doc most of all — has to be regenerated in the same change, because 
 a prop makes the committed copy stale by definition. That gate firing after a bump is it
 working, not a flake, and regenerating is the fix.
 
+Regeneration does not reach a count a *test* restates, though, and that is the bump failure
+with the most misleading shape: the artifacts are correct, every gate that reads them is
+green, and what fails is an assertion naming a number upstream just changed — one added prop
+moved a component's prop count and a truncated-tail count with it. It reads like the bump
+broke the renderer; nothing rendered differently. A count derived from the installed library
+belongs in neither a test nor prose, because the committed artifact already carries it and is
+already gated — restating it makes a second copy whose only behaviour is to fail on bumps.
+Derive the tail from the contracts and assert the literal that is genuinely this package's own
+decision, the cap. Keep the vacuity guard the literal was doing double duty as: an assertion
+that the fixture is still wide enough to truncate, or the checks it fronts quietly stop
+testing anything the day it is not.
+
 ## What no gate can see: a prop that was deleted upstream
 
 Every gate here asks "does what we name still exist?". None asks the reverse — whether a
