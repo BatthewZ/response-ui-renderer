@@ -297,8 +297,8 @@ Status, progress and loading.
 | `EmptyStateIcon` | — | — |  |
 | `EmptyStateTitle` | — | `as?`: T |  |
 | `Meter` | — | `value`: number · `min?`: number · `max?`: number · `segments?`: number · `warningAt?`: number · `criticalAt?`: number · `statusLabels?`: Partial<Record<MeterStatus, string>> · +1 more | Requires `value` and `aria-label`. Thresholds compare the raw value, not a fraction. |
-| `ProgressBar` | `.Label` `.Value` | — | Takes no children: `.Label` and `.Value` are **siblings** of the bar. Needs `value` and a name. |
-| `ProgressRing` | — | `value`: number · `max?`: number · `size?`: number · `thickness?`: number · `color?`: "accent"\|"success"\|"warning"\|"error" | No default accessible name — pass `aria-label`. The centre slot is decorative. |
+| `ProgressBar` | `.Label` `.Value` | — | Takes no children: `.Label` and `.Value` are **siblings** of the bar. Needs `value` and a name. Value is 0-100. |
+| `ProgressRing` | — | `value`: number · `max?`: number · `size?`: number · `thickness?`: number · `color?`: "accent"\|"success"\|"warning"\|"error" | No default accessible name — pass `aria-label`. The centre slot is decorative. Value is 0-100.|
 | `Skeleton` | — | `variant?`: "text"\|"circular"\|"rectangular"\|"rounded" | Sized by `className` on both axes (`w-[40%] h-3`); it has no `width`/`height` props. A `circular` one needs one axis only. |
 | `Spinner` | — | `size?`: "sm"\|"md"\|"lg" |  |
 | `Toast` | — | `variant?`: "success"\|"warning"\|"error"\|"info" · `title?`: string · `dismissing?`: boolean · `statusLabel?`: string · `statusIcon?`: ReactNode · `dismissLabel?`: string | Prefer the `showToast` action. Rendered by hand it needs `onDismiss` and its own `$cond` to unmount. |
