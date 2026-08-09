@@ -58,7 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
   For the vocabulary that prompted this — 17 root names plus one compound part, out of the 96
   components the reference documents, measured across 23 turns of an LLM-authored tutoring app —
-  the reference goes from 47,848 to 25,662 bytes, a **46.4% saving on every request that carries
+  the reference goes from 47,848 to 26,148 bytes, a **45.4% saving on every request that carries
   it**. The issue that asked for this measured a hand-built profile at 23,746 bytes (50%); the
   1,813-byte difference is the not-addressable table, kept whole on purpose and explained below.
   A hand-kept subset would match that number and become a second source of truth for prop names.
@@ -71,10 +71,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   subtler version of the empty Parts column the rule exists to prevent.
 
   Three things a scope does not reach. The prose and worked examples are carried whole, so a
-  scoped document can demonstrate a component its own tables no longer list — tagging prose by
-  component set would silently delete advice whenever a tag was wrong, so instead a generated
-  table a scope empties now *says* it is empty rather than showing a bare header under prose
-  that promises rows. The not-addressable table is neither re-rendered nor scoped: it is advice
+  scoped document can demonstrate a component its own tables no longer list. Tagging prose by
+  component set would silently delete advice whenever a tag was wrong, so the gap is stated
+  instead of closed: the components region opens with a generated line naming every component an
+  example authors that the scope no longer documents, and a table a scope empties says so rather
+  than showing a bare header under prose that promises rows. Neither line appears when nothing
+  is scoped, which is what keeps the committed document byte-identical. The not-addressable table is neither re-rendered nor scoped: it is advice
   about absence, and no input can change it, so the generator owns it against
   `not-addressable.json` rather than the shipped renderer writing back what was already there.
   And the tables describe the peer library as of *this* package's release — derived at build

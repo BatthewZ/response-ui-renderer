@@ -147,6 +147,18 @@ gives somewhere to warn that a worked example below is describing a component th
 Whenever generated content sits under prose that characterises it, the empty case is a claim the
 document makes and cannot keep.
 
+The same reasoning extends past the empty table. A scope leaves the worked examples alone, so a
+profile can *demonstrate* a component it no longer documents — and the component still renders,
+because the registry is not scoped, so the author sees no error and simply invents props. Scoping
+prose was the alternative and is worse, a mis-tag deleting advice in silence. State the gap
+instead: scan the hand-written half for names shown being authored, and emit the ones the
+contracts no longer cover. Note the asymmetry that makes this safe — the list is derived from the
+document, so it is empty when nothing is scoped, and the unscoped artifact stays byte-identical.
+
+**Do not write a direction into generated prose.** Three sentences drafted here said "the example
+above" or "the examples below"; the regions sit between their examples, and each was wrong. A
+generated string cannot see where it lands, so it must not claim to. Name the section, or nothing.
+
 ## Scoping a reference: the part and the root are one decision
 
 A producer authors a fraction of the catalogue, and a reference narrowed to that fraction is

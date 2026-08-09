@@ -334,6 +334,66 @@ describe("a generated table a scope empties", () => {
   });
 });
 
+describe("components an example authors but a scope stops documenting", () => {
+  /** Every name the hand-written prose shows being authored. */
+  const authoredInProse = (doc: string) => {
+    const prose = doc.replace(/<!-- GENERATED:[\s\S]*?<!-- \/GENERATED:[a-z-]+ -->/g, "");
+    return [...new Set([...prose.matchAll(/"component":\s*"([\w.]+)"/g)].map((m) => m[1]))];
+  };
+
+  it("names every one of them, so the gap is stated rather than silent", () => {
+    const profile = renderViewSpecReference({ include: AUTHORED });
+    const documentedHere = new Set(documented(region(profile, "components")));
+    const parts = new Set(AUTHORED);
+
+    // Derived from the document, not restated: whatever the examples author
+    // and the tables do not cover must appear in the warning, so an example
+    // added upstream is covered without editing this test.
+    const missing = authoredInProse(profile).filter(
+      (name) => !documentedHere.has(name) && !parts.has(name),
+    );
+    expect(missing).toEqual([
+      "MultiSelect",
+      "MultiSelect.Tag",
+      "MultiSelect.TagRemove",
+      "MultiSelect.Content",
+      "MultiSelect.Item",
+      "MultiSelect.ItemIndicator",
+      "MultiSelect.Empty",
+      "Pagination",
+    ]);
+
+    const warning = region(profile, "components").split("\n")[0];
+    expect(warning).toContain("This reference is scoped");
+    for (const name of missing) expect(warning, name).toContain(`\`${name}\``);
+    // And it says what goes wrong, not merely that something is absent: these
+    // components still render, which is why a missing prop table is dangerous.
+    expect(warning).toContain("not documented here");
+    expect(warning).toContain("renders it");
+    // No direction: the examples sit both above and below this region, and two
+    // drafts of this sentence — and of the empty-table one — named the wrong
+    // one. A claim about layout is a claim, and this document is generated.
+    expect(warning).not.toMatch(/examples? (above|below)/);
+  });
+
+  it("says nothing when the document documents everything it demonstrates", () => {
+    // The unscoped case, and the reason `VIEWSPEC.md` is unchanged by this.
+    const full = renderViewSpecReference();
+    expect(authoredInProse(full).filter((name) => !(name in defaultReferenceContracts))).toEqual([]);
+    expect(region(full, "components")).not.toContain("This reference is scoped");
+    expect(region(full, "components").startsWith("### Layout")).toBe(true);
+  });
+
+  it("counts a component the scope does cover as covered", () => {
+    // `Markdown`, `Card` and `Badge` are authored in examples and are in scope,
+    // so a warning naming them would be noise that teaches the model to skim.
+    const warning = region(renderViewSpecReference({ include: AUTHORED }), "components");
+    for (const inScope of ["`Card`,", "`Badge`,", "`Markdown`,"]) {
+      expect(warning.split("\n")[0]).not.toContain(inScope);
+    }
+  });
+});
+
 describe("renderViewSpecReference", () => {
   it("scopes the generated regions and leaves the prose whole", () => {
     const profile = renderViewSpecReference({ include: AUTHORED });
@@ -380,7 +440,6 @@ describe("renderViewSpecReference", () => {
     const regions = renderComponentReference(scoped);
 
     for (const [id, body] of [
-      ["components", regions.components],
       ["slots", regions.slots],
       ["function-children", regions.functionChildren],
       ["text-children", regions.textChildren],
@@ -388,6 +447,14 @@ describe("renderViewSpecReference", () => {
       expect(region(profile, id), id).toBe(body);
       expect(region(profile, id), id).not.toBe(region(full, id));
     }
+
+    // The components region carries one thing `renderComponentReference` cannot
+    // know about — the warning naming components the *prose* authors and these
+    // contracts no longer cover. The tables under it are still exactly what the
+    // region renderer produced.
+    expect(region(profile, "components")).not.toBe(region(full, "components"));
+    expect(region(profile, "components").endsWith(regions.components)).toBe(true);
+    expect(region(profile, "components")).toContain("This reference is scoped");
   });
 
   it("keeps the not-addressable table whole, because absence is what a scope makes", () => {

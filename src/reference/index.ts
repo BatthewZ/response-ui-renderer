@@ -503,6 +503,33 @@ export type ViewSpecReferenceOptions = ReferenceOptions &
  * added a prop will not show it. Regenerating cannot drift past this package;
  * it can lag its peer.
  */
+/** The document with its generated regions cut out — the hand-written half. */
+const viewSpecProse = viewSpecDocument.replace(
+  /<!-- GENERATED:[\s\S]*?<!-- \/GENERATED:[a-z-]+ -->/g,
+  "",
+);
+
+/**
+ * Components the prose *authors* that these contracts do not document.
+ *
+ * A scope narrows the tables and leaves the worked examples alone, so a profile
+ * can show a component being used and then not describe it — and the component
+ * still renders, because the registry is not scoped. The author gets no error,
+ * only a missing prop table, and invents props against it: the exact failure a
+ * reference exists to prevent, reintroduced by making the reference smaller.
+ *
+ * Scoped prose was the alternative and is worse — a mis-tagged block deletes
+ * advice silently. So the gap is stated instead of closed.
+ *
+ * Deliberately narrow: `"component": "X"` in an example, which is a name shown
+ * being authored, and not every name prose happens to mention in backticks.
+ * Rule 9 naming `Timeline` is a remark; a copy-me JSON block is an instruction.
+ */
+function undocumentedInProse(contracts: ComponentContracts): string[] {
+  const authored = [...viewSpecProse.matchAll(/"component":\s*"([\w.]+)"/g)].map((m) => m[1]);
+  return [...new Set(authored)].filter((name) => !Object.hasOwn(contracts, name));
+}
+
 export function renderViewSpecReference(options: ViewSpecReferenceOptions = {}): string {
   const { contracts = defaultReferenceContracts, include, exclude, ...rest } = options;
   const scoped =
@@ -511,7 +538,26 @@ export function renderViewSpecReference(options: ViewSpecReferenceOptions = {}):
       : scopeContracts(contracts, (include === undefined ? { exclude } : { include }));
 
   const regions = renderComponentReference(scoped, rest);
-  let doc = replaceGeneratedRegion(viewSpecDocument, "components", regions.components);
+
+  // Prepended to the components region rather than written into the prose: it
+  // is generated, so it round-trips through the markers, and it is empty for an
+  // unscoped document, which is what keeps that case byte-identical to the
+  // committed file. `renderComponentReference` does not do this — the claim is
+  // about *this* document's examples, not about anyone's contracts.
+  const undocumented = undocumentedInProse(scoped);
+  const components =
+    undocumented.length === 0
+      ? regions.components
+      : // No "above"/"below": the worked examples sit on both sides of this
+        // region, and two earlier drafts of this sentence named the wrong one.
+        `⚠️ **This reference is scoped**, and its worked examples were written against the ` +
+        `whole library. ${undocumented.map((name) => `\`${name}\``).join(", ")} ` +
+        `${undocumented.length === 1 ? "appears" : "appear"} in an example and ` +
+        `${undocumented.length === 1 ? "is" : "are"} **not documented here** — authoring ` +
+        `one renders it, with no prop list to author it against. Use only components with a row below.\n\n` +
+        regions.components;
+
+  let doc = replaceGeneratedRegion(viewSpecDocument, "components", components);
   doc = replaceGeneratedRegion(doc, "slots", regions.slots);
   doc = replaceGeneratedRegion(doc, "function-children", regions.functionChildren);
   return replaceGeneratedRegion(doc, "text-children", regions.textChildren);

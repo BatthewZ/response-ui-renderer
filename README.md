@@ -502,7 +502,7 @@ const reference = renderViewSpecReference({
 });
 ```
 
-`renderViewSpecReference` returns `VIEWSPEC.md` as a string — prose and all. With no options it *is* the shipped file, byte for byte; given a scope it is the same document describing only those components. For the 17-name vocabulary above: **47,848 → 25,662 bytes, a 46.4% saving** on every request that carries it. Generate it once at startup and cache the string.
+`renderViewSpecReference` returns `VIEWSPEC.md` as a string — prose and all. With no options it *is* the shipped file, byte for byte; given a scope it is the same document describing only those components. For the 17-name vocabulary above: **47,848 → 26,148 bytes, a 45.4% saving** on every request that carries it. Generate it once at startup and cache the string.
 
 Pass `contracts: extendContracts(defaultReferenceContracts, yours)` to have components you registered documented alongside the library's, or compose `scopeContracts` yourself when you want the same narrowed set for something else — feeding `validateViewSpec` a registry of exactly the names your prompt describes, for instance.
 
@@ -511,8 +511,8 @@ Pass `contracts: extendContracts(defaultReferenceContracts, yours)` to have comp
 Three things the scope deliberately leaves alone, and one honest limit.
 
 - A compound part **travels with its root in both directions**, so `Stepper` brings `Stepper.Step`, and `AppShell.Navbar` brings `AppShell` *and its seven other parts* — a part cannot render anywhere else, and a root advertising some of its parts is a subtler lie than one advertising none.
-- The **prose and the worked examples stay whole**. A rule may still name a component you dropped, and an example may still author one: after scoping to those 17 names, 8 of the document's 11 example component names are outside it. Tagging prose by component set would silently delete advice whenever a tag was wrong, which is the worse failure — so instead, a generated table a scope leaves empty says so in place of showing a bare header.
-- The **not-addressable table stays whole** (1,813 bytes of the 25,662), because it is advice about absence — filtering it would remove the line that stops an author reaching for `FileUpload` in the one document where nothing else mentions it. Scoping it too would land at ~23,850 bytes, a 50% saving; that is the trade.
+- The **prose and the worked examples stay whole**, and the scope *names what that costs*. After scoping to those 17 names, 8 of the document's 11 example component names sit outside it — the `MultiSelect` block and the `Pagination` one. Those components still render, so a model copying an example gets no error, just no prop table to author against. Rather than tag prose by component set (a mis-tag silently deletes advice, which is worse), the components region opens with a generated line naming every one of them, and a table a scope leaves empty says so instead of showing a bare header.
+- The **not-addressable table stays whole** (1,813 bytes of the 26,148), because it is advice about absence — filtering it would remove the line that stops an author reaching for `FileUpload` in the one document where nothing else mentions it. Scoping it too would land at ~24,300 bytes, a 49% saving; that is the trade.
 - The tables describe the component library **as of this package's release**, not as of the copy in your `node_modules` — they are derived at build time from its declarations. Regenerating cannot drift past this package; within one `^` range, it can lag its peer.
 
 A name no contract holds **throws**, with the nearest match. That is the point of generating rather than keeping a hand-copied subset: when the library moves, the scope tells you.
