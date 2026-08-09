@@ -6,6 +6,7 @@ import { globSync } from "glob";
 import { describe, expect, it } from "vitest";
 
 import { NOT_ADDRESSABLE } from "./examples/not-addressable";
+import { defaultReferenceContracts, renderComponentReference } from "./reference";
 import {
   CHILD_INSPECTING_MODULES,
   CHILD_INSPECTING_PARENTS,
@@ -20,7 +21,7 @@ import { TEXT_CHILDREN } from "./registry/text-children";
 import { lookupComponent } from "./registry/types";
 import { RENDER_DIAGNOSTIC_CLASSES, RENDER_DIAGNOSTIC_SELECTOR } from "./render/diagnostics";
 import { NAME_PROP_MEANING } from "./render/id-scope";
-import { DIALOG_COMPONENTS, PROP_ENUMS } from "./spec/validate";
+import { DIALOG_COMPONENTS, PROP_ENUMS, validateViewSpec, warningsOf } from "./spec/validate";
 
 /**
  * Contracts this package commits to, enforced rather than documented.
@@ -547,11 +548,44 @@ describe("VIEWSPEC.md curation", () => {
   });
 });
 
+describe("the shipped reference renderer produces the shipped reference", () => {
+  // `--check` below proves the doc matches a fresh *generation*. It cannot
+  // prove the committed `component-docs.json` — the artifact a host actually
+  // imports to document its own registry — says the same thing, because the
+  // generator would rewrite both sides from the same in-memory derivation.
+  // This reads the two committed files and relates them to each other.
+  const regions = renderComponentReference(defaultReferenceContracts);
+
+  it.each(Object.entries(regions))("renders VIEWSPEC.md's %s region byte for byte", (id, body) => {
+    const marker = id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+    const doc = read(path.join(root, "VIEWSPEC.md"));
+    const found = new RegExp(
+      `<!-- GENERATED:${marker} -->\\n([\\s\\S]*?)\\n<!-- /GENERATED:${marker} -->`,
+    ).exec(doc);
+    expect(found, `VIEWSPEC.md has no GENERATED:${marker} region`).not.toBeNull();
+    expect(found?.[1]).toBe(body);
+  });
+
+  it("documents every component the registry can address", () => {
+    // The docs artifact is what a host extends. A component missing from it
+    // has no props, no slots and no compound parts in any reference generated
+    // downstream, while VIEWSPEC.md itself may still look complete.
+    const excused = new Set(Object.keys(NOT_ADDRESSABLE));
+    const missing = listComponentNames(defaultRegistry).filter(
+      (name) =>
+        !Object.hasOwn(defaultReferenceContracts, name) &&
+        !excused.has(name) &&
+        !excused.has(name.split(".")[0]),
+    );
+    expect(missing).toEqual([]);
+  });
+});
+
 describe("VIEWSPEC.md stays in step with the library", () => {
   it("is byte-identical to a fresh generation", () => {
     // Mirrors the library's own verify-docs script: the doc is generated, so a
     // stale one is a lie an agent would author against.
-    const result = spawnSync("node", ["scripts/gen-viewspec-doc.mjs", "--check"], {
+    const result = spawnSync("bun", ["scripts/gen-viewspec-doc.mjs", "--check"], {
       cwd: root,
       encoding: "utf8",
     });
@@ -561,6 +595,20 @@ describe("VIEWSPEC.md stays in step with the library", () => {
 });
 
 describe("README claims", () => {
+  it("reports a typo exactly as the validation section shows it", () => {
+    // A message quoted in prose is a claim, and this one is the whole promise
+    // of passing a registry — a reader will compare their output against it.
+    const readme = read(path.join(root, "README.md"));
+    const quoted = /^unknown component "Cadr".*$/m.exec(readme)?.[0];
+    expect(quoted, "README no longer shows an unknown-component message").toBeTruthy();
+
+    const result = validateViewSpec(
+      { version: 1, title: "t", root: { component: "Cadr" } },
+      { registry: defaultRegistry },
+    );
+    expect(warningsOf(result.issues).map((issue) => issue.message)).toContain(quoted);
+  });
+
   it("states the component counts the registry actually has", () => {
     // A number in prose is a claim; this makes it fail rather than drift.
     const all = listComponentNames(defaultRegistry);

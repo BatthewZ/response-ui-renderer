@@ -26,7 +26,6 @@ export {
   parseIsoDate,
   parseIsoDateRange,
   PROP_COERCIONS,
-  type PropCoercion,
 } from "./registry/prop-coercions";
 export { defaultRegistry, listComponentNames } from "./registry/registry";
 export {

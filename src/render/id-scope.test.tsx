@@ -5,6 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { exampleSpecs } from "../examples";
 import { lucideIcons } from "../icons";
+import { defaultContracts } from "../registry/default-contracts";
+import { contractFor } from "../spec/contracts";
 import type { ViewSpec } from "../spec/types";
 import { findRenderDiagnostics } from "./diagnostics";
 import { ID_REF_PROPS, isIdScopedProp, NAME_PROP_MEANING, normalizeIdScope } from "./id-scope";
@@ -584,18 +586,20 @@ describe("the classification tables are pinned, not just exercised", () => {
   it.each(["value", "defaultValue", "children", "className", "type", "role", "key", "title"])(
     "never treats %s as an id",
     (key) => {
-      expect(isIdScopedProp("Input", key)).toBe(false);
-      expect(isIdScopedProp("Radio", key)).toBe(false);
+      expect(isIdScopedProp(contractFor(defaultContracts, "Input"), key)).toBe(false);
+      expect(isIdScopedProp(contractFor(defaultContracts, "Radio"), key)).toBe(false);
     },
   );
 
   it("scopes name only for a DOM-name component", () => {
     for (const [component, meaning] of Object.entries(NAME_PROP_MEANING)) {
-      expect(isIdScopedProp(component, "name"), component).toBe(meaning === "dom");
+      expect(isIdScopedProp(contractFor(defaultContracts, component), "name"), component).toBe(
+        meaning === "dom",
+      );
     }
     // The default for anything absent — a future library component, or one a
     // host registered through extendRegistry — is to leave it alone.
-    expect(isIdScopedProp("SomeHostComponent", "name")).toBe(false);
+    expect(isIdScopedProp(contractFor(defaultContracts, "SomeHostComponent"), "name")).toBe(false);
   });
 });
 

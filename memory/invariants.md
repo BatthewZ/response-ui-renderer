@@ -20,6 +20,10 @@ The tempting repair is to promote those warnings to errors so the two line up. D
 would reject documents the renderer renders perfectly well. The asymmetry is the design.
 Conformance is the contract; severity is advice.
 
+Severity follows from that, and it is not a judgement about how bad a mistake is: anything that
+depends on what a *host* registered — an unknown component name above all — can only ever be a
+warning, because a validator holding no registry has to reach the same `ok`.
+
 ## Do not wrap a document's `className` in `cn()`
 
 The design system's "always merge classNames through `cn()`" rule reads as though it applies

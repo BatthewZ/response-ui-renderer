@@ -24,21 +24,31 @@ export type FunctionChildren = { args: readonly string[]; note: string };
 
 export const FUNCTION_CHILDREN: Readonly<Record<string, FunctionChildren>> = table;
 
-/** The names a document can reach inside this component's children, if any. */
-export function functionChildrenArgs(component: string): readonly string[] | undefined {
-  return Object.hasOwn(FUNCTION_CHILDREN, component)
-    ? FUNCTION_CHILDREN[component].args
-    : undefined;
-}
+const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
 
 /**
- * The argument object as reference names.
+ * What the root handed its `children` function, as reference names.
  *
- * Spread whole rather than picked by the table above: a name the library adds
- * arrives working and the gate reports the doc is behind, where picking would
- * drop it silently — the failure this package fears most.
+ * The library's own roots take **one options object**, and that one is spread
+ * whole rather than picked by `declared`: a name the library adds arrives
+ * working and the gate reports the doc is behind, where picking would drop it
+ * silently — the failure this package fears most.
+ *
+ * A render prop taking **positional** arguments — `children(row, index)`, the
+ * conventional React shape — carries no names at all, so there `declared` is
+ * the only thing that can supply them and is zipped against what arrived.
+ * Without it a host could declare `args` for its own component, watch it
+ * render, and get a subtree where every reference resolved silently to nothing.
  */
-export function argsToVars(args: unknown): Record<string, unknown> {
-  if (typeof args !== "object" || args === null || Array.isArray(args)) return {};
-  return { ...(args as Record<string, unknown>) };
+export function argsToVars(
+  received: readonly unknown[],
+  declared?: readonly string[],
+): Record<string, unknown> {
+  const positional =
+    received.length > 1 || (received.length === 1 && !isPlainObject(received[0]));
+  if (declared && declared.length > 0 && positional) {
+    return Object.fromEntries(declared.map((name, index) => [name, received[index]]));
+  }
+  return isPlainObject(received[0]) ? { ...received[0] } : {};
 }

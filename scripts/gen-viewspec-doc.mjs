@@ -1,9 +1,16 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
- * Regenerates the component tables inside VIEWSPEC.md.
+ * Derives what can only be read off the library, and writes it where the
+ * shipped code can render it.
  *
- * The prose is hand-written; only the regions between the GENERATED markers are
- * produced here, from two sources that cannot drift:
+ * This script **derives**; it does not format. The prop tables, slot keys and
+ * children notes it produces go into `src/registry/component-docs.json`, and
+ * `renderComponentReference` — which ships — turns those into the markdown
+ * between VIEWSPEC.md's GENERATED markers. A host documenting its own registry
+ * calls that same function, so there is exactly one renderer and a host's
+ * components are described the way the library's are.
+ *
+ * Two derivation sources, neither of which can drift:
  *
  *  1. the library's live barrel — the same import `defaultRegistry` derives from,
  *     so a component added upstream appears with no edit here;
@@ -12,10 +19,13 @@
  *     in the published tarball; the declarations always are.)
  *
  * Only the category and the authoring note are curated, in
- * `src/registry/component-notes.ts`, and a test asserts every live component has
- * one — so a new component upstream forces a decision instead of vanishing.
+ * `src/registry/component-notes.json`, and a test asserts every live component
+ * has one — so a new component upstream forces a decision instead of vanishing.
  *
- * Usage: node scripts/gen-viewspec-doc.mjs [--check]
+ * Run with bun, which is what lets it import the shipped renderer from source
+ * rather than keeping a second copy of it here.
+ *
+ * Usage: bun scripts/gen-viewspec-doc.mjs [--check]
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -24,6 +34,12 @@ import { fileURLToPath } from "node:url";
 
 import { globSync } from "glob";
 import * as ResponseUI from "@batthewz/response-ui-react-components";
+
+import {
+  DEFAULT_CATEGORIES,
+  referenceContracts,
+  renderComponentReference,
+} from "../src/reference/index.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const libRoot = path.join(root, "node_modules/@batthewz/response-ui-react-components");
@@ -144,12 +160,6 @@ function resolveType(source, raw) {
   return type.replace(/\s*\|\s*/g, "|");
 }
 
-/** A resolved type as a markdown table cell — a bare pipe would end it early. */
-function tidyType(type) {
-  const clipped = type.length > 72 ? `${type.slice(0, 69)}…` : type;
-  return clipped.replace(/\|/g, "\\|");
-}
-
 /** The balanced body of the first `type`/`interface` in `typeNames` that exists. */
 function declarationBody(source, typeNames) {
   for (const typeName of typeNames) {
@@ -263,11 +273,12 @@ function propsTypeNames(name, parts) {
 }
 
 /**
- * Slot keys and enumerated prop values, per addressable component.
+ * Everything the reference needs that only the declarations can say, per
+ * addressable component.
  *
- * Both are derived from the shipped declarations, and both exist because a
- * document is JSON: nothing checks a slot key or a union member at author time,
- * so the reference has to carry them and the validator has to know them.
+ * Props, slot keys and enumerated value sets all exist because a document is
+ * JSON: nothing checks a slot key or a union member at author time, so the
+ * reference has to carry them and the validator has to know them.
  *
  * A `classNames` this cannot attribute to a component throws rather than being
  * dropped. A silently skipped one is a whole component's override surface
@@ -275,7 +286,7 @@ function propsTypeNames(name, parts) {
  * generator dropped it on both sides.
  */
 function describeInternals(components, notAddressable) {
-  const slots = [];
+  const docs = {};
   const enums = {};
 
   // Every props type any addressable component claims. A file holds more than
@@ -289,8 +300,27 @@ function describeInternals(components, notAddressable) {
     // Slot keys and value sets for something a document cannot address at all
     // are advice about a component it must not reach for.
     if (Object.hasOwn(notAddressable, name)) continue;
+
+    // Declared before anything is known about them, and in the library's own
+    // declaration order: these keys ARE the addressable names, and the renderer
+    // reads a component's compound parts back off them.
+    // Every part, including one the not-addressable table warns about: naming
+    // it in the Parts column is how a model finds the row that explains why not
+    // to reach for it. Only its slot keys and value sets are withheld, below.
+    docs[name] = {};
+    for (const part of parts) docs[`${name}.${part}`] = {};
+
     const source = sourceFor(name);
     if (!source) continue;
+
+    // The same forms the slot and enum passes accept. Spelling a subset here
+    // left `ProgressBar` — whose props are declared as `ProgressBarOwnProps`,
+    // the root type being inlined into its `forwardRef` union — with an empty
+    // Props column, while its enums came through the other path regardless.
+    const props = propsOf(source, propsTypeForms(name));
+    if (props.length > 0) {
+      docs[name].props = props.map(({ key, optional, type }) => ({ key, optional, type }));
+    }
 
     const labelOf = new Map();
     for (const [label, typeNames] of propsTypeNames(name, parts)) {
@@ -306,7 +336,7 @@ function describeInternals(components, notAddressable) {
         continue;
       }
       if (label === undefined || Object.hasOwn(notAddressable, label)) continue;
-      if (keys) slots.push({ name: label, keys });
+      if (keys) docs[label].slots = keys;
       for (const entry of entriesOf(source, declaration.body)) {
         const members = literalUnion(entry.type);
         if (members) enums[`${label}.${entry.key}`] = members;
@@ -321,100 +351,8 @@ function describeInternals(components, notAddressable) {
     }
   }
 
-  return { slots: slots.sort((a, b) => a.name.localeCompare(b.name)), enums };
+  return { docs, enums };
 }
-
-function renderSlots(slots) {
-  const lines = ["| Component | `classNames` keys |", "| --- | --- |"];
-  for (const { name, keys } of slots) {
-    lines.push(`| \`${name}\` | ${keys.map((key) => `\`${key}\``).join(" ")} |`);
-  }
-  return lines.join("\n");
-}
-
-function renderFunctionChildren(functionChildren) {
-  const lines = ["| Component | Called | In scope inside `children` |", "| --- | --- | --- |"];
-  for (const [name, { note, args }] of Object.entries(functionChildren)) {
-    lines.push(`| \`${name}\` | ${note} | ${args.map((a) => `\`${a}\``).join(" · ")} |`);
-  }
-  return lines.join("\n");
-}
-
-function renderTextChildren(textChildren) {
-  const lines = ["| Component | `children` is |", "| --- | --- |"];
-  for (const [name, note] of Object.entries(textChildren)) {
-    lines.push(`| \`${name}\` | ${note} |`);
-  }
-  return lines.join("\n");
-}
-
-function formatProps(props, limit = 7) {
-  if (props.length === 0) return "—";
-  const required = props.filter((p) => !p.optional);
-  const optional = props.filter((p) => p.optional);
-  const shown = [...required, ...optional].slice(0, limit);
-  const rendered = shown
-    .map((p) => `\`${p.key}${p.optional ? "?" : ""}\`: ${tidyType(p.type)}`)
-    .join(" · ");
-  const hidden = props.length - shown.length;
-  return hidden > 0 ? `${rendered} · +${hidden} more` : rendered;
-}
-
-function render(components, notes, notAddressable) {
-  const byCategory = new Map();
-  for (const component of components) {
-    if (Object.hasOwn(notAddressable, component.name)) continue;
-    const meta = notes[component.name];
-    if (!meta) continue;
-    if (!byCategory.has(meta.category)) byCategory.set(meta.category, []);
-    byCategory.get(meta.category).push({ ...component, ...meta });
-  }
-
-  // A category with no entry here is bucketed and then never emitted, so its
-  // components vanish from the doc while `--check` still passes — it compares a
-  // generation against itself. `Action` was dropped this way, taking Button,
-  // IconButton and CopyButton with it.
-  const unordered = [...byCategory.keys()].filter((name) => !Object.hasOwn(CATEGORY_ORDER, name));
-  if (unordered.length > 0) {
-    throw new Error(
-      `component-notes.json categorises components as ${unordered.join(", ")}, which CATEGORY_ORDER does not list — they would be silently omitted.`,
-    );
-  }
-
-  const lines = [];
-  for (const category of Object.keys(CATEGORY_ORDER)) {
-    const rows = byCategory.get(category);
-    if (!rows?.length) continue;
-    lines.push(`### ${category}`, "", CATEGORY_ORDER[category], "");
-    lines.push("| Component | Parts | Props | Notes |");
-    lines.push("| --- | --- | --- | --- |");
-    for (const row of rows.sort((a, b) => a.name.localeCompare(b.name))) {
-      const source = sourceFor(row.name);
-      // The same forms the slot and enum passes accept. Spelling a subset here
-      // left `ProgressBar` — whose props are declared as `ProgressBarOwnProps`,
-      // the root type being inlined into its `forwardRef` union — with an empty
-      // Props column, while its enums came through the other path regardless.
-      const props = formatProps(propsOf(source, propsTypeForms(row.name)));
-      const parts = row.parts.length ? row.parts.map((p) => `\`.${p}\``).join(" ") : "—";
-      lines.push(`| \`${row.name}\` | ${parts} | ${props} | ${row.note ?? ""} |`);
-    }
-    lines.push("");
-  }
-  return lines.join("\n").trimEnd();
-}
-
-const CATEGORY_ORDER = {
-  Layout: "Structure and spacing. The `r1`–`r6` scale is **inverted** — `r1` is the largest step.",
-  Typography: "Text and inline marks.",
-  Action: 'Buttons and triggers. `Button` defaults to `type: "button"` — a submit control must say so explicitly.',
-  Feedback: "Status, progress and loading.",
-  Data: "Tables, metrics and lists driven by `data` + `$each`.",
-  Form: "Bind every control with `$field`; declare the field in `spec.forms` first.",
-  Overlay: "Floating surfaces. Dialogs need a literal `id` so an action can target them.",
-  Navigation: "Disclosure, tabs, wayfinding and app chrome.",
-  Media: "Images, rails and showcases.",
-  Animation: "Presentational only. Pass `animate: false` when the content must be readable without a viewport observer.",
-};
 
 function renderNotAddressable(notAddressable) {
   const lines = ["| Component | Why not, and what to do instead |", "| --- | --- |"];
@@ -432,41 +370,41 @@ function replaceRegion(doc, id, body) {
 }
 
 function main() {
-  // The same JSON the runtime modules import, so the doc and the parity gate can
-  // never disagree about which components are excused or how they are grouped.
-  const notes = JSON.parse(readFileSync(path.join(root, "src/registry/component-notes.json"), "utf8"));
+  // Which components a document must not reach for, and why. Curated here
+  // rather than in the contracts because it is advice about the *absence* of a
+  // component — there is nothing to attach it to.
   const notAddressable = JSON.parse(
     readFileSync(path.join(root, "src/examples/not-addressable.json"), "utf8"),
   );
-  const functionChildren = JSON.parse(
-    readFileSync(path.join(root, "src/registry/function-children.json"), "utf8"),
-  );
-  const textChildren = JSON.parse(
-    readFileSync(path.join(root, "src/registry/text-children.json"), "utf8"),
-  );
 
   const components = liveComponents();
-  const { slots, enums } = describeInternals(components, notAddressable);
+  const { docs, enums } = describeInternals(components, notAddressable);
+
+  // The same composition the shipped `defaultReferenceContracts` uses, applied
+  // to this run's fresh derivation rather than the committed copy of it.
+  const regions = renderComponentReference(referenceContracts(docs), DEFAULT_CATEGORIES);
 
   const original = readFileSync(docPath, "utf8");
-  let doc = replaceRegion(original, "components", render(components, notes, notAddressable));
-  doc = replaceRegion(doc, "slots", renderSlots(slots));
-  doc = replaceRegion(doc, "function-children", renderFunctionChildren(functionChildren));
-  doc = replaceRegion(doc, "text-children", renderTextChildren(textChildren));
+  let doc = replaceRegion(original, "components", regions.components);
+  doc = replaceRegion(doc, "slots", regions.slots);
+  doc = replaceRegion(doc, "function-children", regions.functionChildren);
+  doc = replaceRegion(doc, "text-children", regions.textChildren);
   doc = replaceRegion(doc, "not-addressable", renderNotAddressable(notAddressable));
 
-  // Read by the validator at runtime, so a document can be told that a value is
-  // outside a union before it renders into nothing. Generated rather than
-  // hand-kept for the same reason the doc is.
-  const enumsPath = path.join(root, "src/spec/prop-enums.json");
-  const enumsBody = `${JSON.stringify(enums, null, 2)}\n`;
-  const enumsOriginal = readFileSync(enumsPath, "utf8");
+  // Both are read at runtime, not just rendered into prose: the value sets so a
+  // document can be told a prop is outside its union before it renders into
+  // nothing, and the docs so a host can render the same tables for a registry
+  // it extended. Generated rather than hand-kept for the reason the doc is.
+  const artifacts = [
+    [path.join(root, "src/spec/prop-enums.json"), `${JSON.stringify(enums, null, 2)}\n`],
+    [path.join(root, "src/registry/component-docs.json"), `${JSON.stringify(docs, null, 2)}\n`],
+    [docPath, doc],
+  ];
 
   if (process.argv.includes("--check")) {
-    const stale = [
-      doc === original ? null : "VIEWSPEC.md",
-      enumsBody === enumsOriginal ? null : "src/spec/prop-enums.json",
-    ].filter(Boolean);
+    const stale = artifacts
+      .filter(([file, body]) => readFileSync(file, "utf8") !== body)
+      .map(([file]) => path.relative(root, file));
     if (stale.length > 0) {
       console.error(`${stale.join(" and ")} stale — run \`bun run docs:viewspec\`.`);
       process.exit(1);
@@ -475,10 +413,11 @@ function main() {
     return;
   }
 
-  writeFileSync(docPath, doc);
-  writeFileSync(enumsPath, enumsBody);
+  for (const [file, body] of artifacts) writeFileSync(file, body);
+  const withSlots = Object.values(docs).filter((entry) => entry.slots).length;
   console.log(
-    `VIEWSPEC.md regenerated (${components.length} components, ${slots.length} with slots, ` +
+    `VIEWSPEC.md, component-docs.json and prop-enums.json regenerated ` +
+      `(${components.length} components, ${withSlots} with slots, ` +
       `${Object.keys(enums).length} enumerated props).`,
   );
 }

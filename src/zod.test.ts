@@ -180,6 +180,34 @@ const ADVISORY: [string, unknown][] = [
     { version: 1, title: "T", root: { component: "Badge", props: { variant: "danger" } } },
   ],
   [
+    "a malformed node inside a `$node` prop",
+    // The renderer degrades one of these to a diagnostic exactly as it degrades
+    // a malformed child, and Zod types `props` as an open record — so descending
+    // into a prop with the structural checker made `ok` disagree. Position
+    // decides the tier; these are the shapes that proved it.
+    { version: 1, title: "T", root: { component: "Card", props: { footer: { $node: 42 } } } },
+  ],
+  [
+    "a component node with a non-string name inside a `$node` prop",
+    {
+      version: 1,
+      title: "T",
+      root: { component: "Card", props: { footer: { $node: { component: 42 } } } },
+    },
+  ],
+  [
+    "an incomplete control-flow node inside a `$node` prop",
+    {
+      version: 1,
+      title: "T",
+      root: { component: "Card", props: { footer: { $node: { $cond: "data.x" } } } },
+    },
+  ],
+  [
+    "an ordinary data row that happens to carry a `$node` key",
+    { version: 1, title: "T", root: { component: "Card", props: { rows: [{ id: 1, $node: 7 }] } } },
+  ],
+  [
     "nesting past the depth cap",
     {
       version: 1,

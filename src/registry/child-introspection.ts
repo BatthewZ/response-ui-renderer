@@ -23,6 +23,7 @@
  */
 
 import { ARIA_IDREF_LIST_PROPS } from "../render/id-scope";
+import type { ComponentContract } from "../spec/contracts";
 
 /** Parents whose injected props the renderer can forward. `"asChild"` = only on request. */
 export const CHILD_INSPECTING_PARENTS: ReadonlyMap<string, "always" | "asChild"> = new Map([
@@ -63,12 +64,11 @@ export const CHILD_INSPECTING_MODULES: readonly string[] = [
 ];
 
 export function inspectsChildren(
-  component: string,
+  contract: ComponentContract,
   props: Readonly<Record<string, unknown>> | undefined,
 ): boolean {
-  const mode = CHILD_INSPECTING_PARENTS.get(component);
-  if (mode === undefined) return false;
-  return mode === "always" || props?.asChild === true;
+  if (contract.childInspection === undefined) return false;
+  return contract.childInspection === "always" || props?.asChild === true;
 }
 
 /**

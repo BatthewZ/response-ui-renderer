@@ -57,7 +57,9 @@ describe("coverage corpus", () => {
   // document, so every warning in the corpus passed unseen. Assert the issue list
   // itself — the corpus is the reference, and must model advice it gives.
   it.each(Object.entries(coverageSpecs))("%s raises no errors or warnings", (_name, doc) => {
-    const result = validateViewSpec(doc);
+    // Against the live registry, so a component name the corpus misspells is a
+    // failure here rather than an inline warning nobody reads.
+    const result = validateViewSpec(doc, { registry: defaultRegistry });
     expect(result.issues.map((issue) => `${issue.severity} ${issue.path}: ${issue.message}`)).toEqual([]);
     expect(result.ok).toBe(true);
   });

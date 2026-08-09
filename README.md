@@ -15,6 +15,7 @@ import { ViewRenderer } from "@batthewz/response-ui-renderer";
 - **Every component the library exports is addressable, and proven to render.** 101 components and 73 compound parts, derived from the library's own barrel at runtime — not a hand-copied list — and a coverage corpus renders every one of them. 7 need host code; they are named, with the reason, in [VIEWSPEC.md](VIEWSPEC.md).
 - **Zero runtime dependencies.** React and response-ui are peers; nothing else ships.
 - **Host-agnostic.** No router, no server routes, no auth model. Navigation, network and toasts are injected.
+- **Extensible to your own components.** Register them, declare a contract, and the renderer translates their props, the validator checks them and the reference documents them — through the same code that serves the library's own, not a parallel path.
 - **Hardened for machine-generated input.** Per-node error boundaries, prototype-safe lookups, forbidden-prop stripping, URL-scheme filtering, depth limits.
 
 ---
@@ -289,7 +290,7 @@ A page that mounts one `ViewRenderer` per document — a transcript rendering a 
 
 It rewrites `id`, `htmlFor`, `list`, `form`, the ARIA id references and `DateRangePicker`'s `startInputId` / `endInputId`, on the **resolved** value — so an id that arrives through a `$ref`, or out of an `api` binding that had not loaded yet, is scoped like any other. Strings and numbers both, because a row id pulled out of data is usually a number.
 
-`name` is rewritten only where it is a **DOM form-control name** — `Input`, `Radio`, `Checkbox`, `Select`, `Textarea` and the rest of the form controls. Components that spend `name` on something else keep it verbatim: an `Icon`'s identity, an `Avatar`'s display name, a `Field` / `FieldError` form path, a `Repeater`'s field-array path, a `ViewTransition`'s CSS `view-transition-name`. A component the renderer does not know about — including one you register yourself through `extendRegistry` — is left alone, so a custom component's `name` is never rewritten behind your back.
+`name` is rewritten only where it is a **DOM form-control name** — `Input`, `Radio`, `Checkbox`, `Select`, `Textarea` and the rest of the form controls. Components that spend `name` on something else keep it verbatim: an `Icon`'s identity, an `Avatar`'s display name, a `Field` / `FieldError` form path, a `Repeater`'s field-array path, a `ViewTransition`'s CSS `view-transition-name`. A component the renderer does not know about — including one you register yourself through `extendRegistry` — is left alone, so a custom component's `name` is never rewritten behind your back. Say `nameProp: "dom"` in its [contract](#custom-components) when it *is* a form control and you want it scoped.
 
 It never touches `$field` paths, the names in `spec.forms`, `$ref` / `state` keys, or the `dialogId` an `openDialog` action names: those are already scoped to the renderer instance, so a document's actions go on naming the ids the document wrote. Components build their own internal ARIA wiring with React's per-instance id hook, which is unique already.
 
@@ -333,12 +334,22 @@ Names are matched leniently — `"trending-up"`, `"trending_up"` and `"TrendingU
 The core validator is dependency-free:
 
 ```ts
+import { defaultRegistry } from "@batthewz/response-ui-renderer";
 import { validateViewSpec } from "@batthewz/response-ui-renderer/spec";
 
-const result = validateViewSpec(json);
+const result = validateViewSpec(json, { registry: defaultRegistry });
 if (!result.ok) return renderErrors(result.issues);
 for (const issue of result.issues) console.warn(issue.path, issue.message);
 ```
+
+**Pass the registry and it checks the names.** Without it the validator has no way to tell a typo from a component it was never told about, so it judges no name at all and `"Cadr"` passes clean — surfacing only as an inline warning once the page has already drawn. With it:
+
+```
+root.children[2].component
+unknown component "Cadr"; the node renders an inline warning in its place — did you mean "Card"?
+```
+
+`registry` also takes a plain list of names, which is what `listComponentNames(registry)` returns — the form that survives being sent to a validation service with no React in it. Per-component checks (bounded prop values, dialogs that need an `id`, roots that parse their children as text) come from `contracts`, and cover [your own components](#custom-components) as readily as the library's.
 
 Every issue carries a `severity`:
 
@@ -402,6 +413,8 @@ Otherwise keep documents to the scale (`gap-r4`, `p-r3`, `w-full`) and prefer re
 
 ## Custom components
 
+Registering a component makes it *renderable*. A **contract** tells the renderer, the validator and the reference generator everything else they know about a component — the same record, read by the same code, for your components and the library's alike.
+
 ```tsx
 import { defaultRegistry, extendRegistry } from "@batthewz/response-ui-renderer";
 
@@ -411,15 +424,80 @@ const registry = extendRegistry(defaultRegistry, { BarChart, Widget: { component
 
 `listComponentNames(registry)` returns every addressable name including compound parts — useful for generating the catalogue you give a model.
 
+### Contracts
+
+Everything this package knows about a component beyond how to construct it lives in one record per addressable name, and `extendContracts` merges yours in:
+
+```tsx
+import { defaultContracts, extendContracts } from "@batthewz/response-ui-renderer";
+
+const contracts = extendContracts(defaultContracts, {
+  BarChart: {
+    category: "Charts",
+    note: "Bind `series` to a `data` key; `orientation` defaults to vertical.",
+    propEnums: { orientation: ["horizontal", "vertical"] },
+    coercions: { since: "isoDate", rowKey: "keyAccessor" },
+  },
+  "Widget.Item": { propEnums: { tone: ["muted", "loud"] } },
+});
+
+<ViewRenderer spec={spec} registry={registry} contracts={contracts} />;
+```
+
+Merging is **per field**, so naming a component that already has a record adds to it — you can attach a note to `Card` without knowing what else `Card`'s record holds. A field you supply replaces that field whole. Nothing is registered globally and nothing mutates: contracts are a value you pass, so two renderers on one page can hold different ones and a test cannot leak into the next.
+
+| Field | What it does |
+| --- | --- |
+| `category` · `note` | Where the component appears in a generated reference, and the one thing an author would otherwise get wrong |
+| `propEnums` | Props bounded to a fixed set of strings. `validateViewSpec` warns on anything else — the component would look the value up in a table of classes and draw nothing |
+| `coercions` | `isoDate` · `isoDateRange` · `keyAccessor` · `columnDefs` — props typed with something JSON cannot express |
+| `functionChildren` | `children` is a function the component calls. `args` are the names a document may `$ref` inside them — the keys of the single options object your component passes, or, if it passes positional arguments, the names they bind to in order |
+| `textChildren` | `children` is source text the component parses, not nodes it places |
+| `dialog` | The renderer owns its open state, so `openDialog` / `closeDialog` can target it |
+| `childInspection` | It clones or reads its own children, so no error boundary may sit between them. `"asChild"` to apply only when the node sets `asChild` |
+| `iconComponentProps` | Icon slots typed as a component rather than a node — handing one an element throws instead of degrading. Only consulted for props the renderer already treats as icons: named `icon`, or ending in `Icon` |
+| `nameProp` | `"dom"` when `name` reaches a real form element, so `idScope` namespaces it |
+| `props` · `slots` | Reference only: the props table and `classNames` slot keys |
+
+Omit the whole thing and a registered component still renders — it simply gets none of the above, which is what it got before contracts existed.
+
+**What a contract cannot express.** Two validator rules stay specific to the peer library: `Radio`'s bare-form `$field` spelling, and the handful of parents whose child *identity* checks (`child.type === Avatar`) cannot survive a renderer. Both turn on per-component structure — which child, which prop — rather than on data, so a contract field would have to be a predicate, and a warning that fires when an author can do nothing about it is a warning they learn to ignore. `enumeratedValues(component, prop, contracts)` reads your contracts too, so it never disagrees with the warning the validator would raise.
+
+### A reference for your registry
+
+`VIEWSPEC.md` is generated by calling the same function this package exports, so a reference covering your components is one call rather than a fork of a build script:
+
+```ts
+import {
+  DEFAULT_CATEGORIES,
+  defaultReferenceContracts,
+  extendContracts,
+  renderComponentReference,
+} from "@batthewz/response-ui-renderer/reference";
+
+const { components, slots } = renderComponentReference(
+  extendContracts(defaultReferenceContracts, contracts),
+  [...DEFAULT_CATEGORIES, { name: "Charts", blurb: "Rendered from live data." }],
+);
+```
+
+`defaultReferenceContracts` is `defaultContracts` plus everything only a reference reads: the prop tables, the slot keys, **and the library's curated category and note**. That is 60-odd kilobytes of documentation nothing reads at render or validate time, which is why it sits behind its own entry point rather than in the core — and why `defaultContracts` alone carries no category, so generating a reference from it would describe nothing. It throws rather than hand you an empty table. Compound parts are read off the names themselves: register `"Widget.Item"` and it appears in `Widget`'s Parts column.
+
+The **derivation** does not ship, only the rendering. The library's prop tables and slot keys were machine-extracted from its `.d.ts` by a script that stays in this repo; for your own components you write `props` and `slots` yourself, or their columns read `—`.
+
+Categories are yours to name, and a component categorised under a heading you did not list **throws** rather than being quietly dropped — the failure mode that once cost `VIEWSPEC.md` its entire Action section while every check still passed.
+
+Prose is not generated: this returns the table regions, and the words around them stay yours.
+
 ---
 
 ## API
 
-`ViewRenderer` · `NodeRenderer` · `NodeErrorBoundary` · `ViewThemeScope` · `ViewDataProvider` · `ViewContextExtender` · `useViewData` · `defaultRegistry` · `extendRegistry` · `createRegistryFromModule` · `lookupComponent` · `listComponentNames` · `Icon` · `IconSetProvider` · `useIconSet` · `useFormsState` · `createEventCallback` · `validateField` · `validateForm` · `resolveRef` · `resolveDeep` · `validateViewSpec` · `isViewSpec` · `PROP_ENUMS` / `enumeratedValues` · `FUNCTION_CHILDREN` — plus every type.
+`ViewRenderer` · `NodeRenderer` · `NodeErrorBoundary` · `ViewThemeScope` · `ViewDataProvider` · `ViewContextExtender` · `useViewData` · `defaultRegistry` · `extendRegistry` · `createRegistryFromModule` · `lookupComponent` · `listComponentNames` · `defaultContracts` · `extendContracts` · `contractFor` · `componentNamesOf` · `Icon` · `IconSetProvider` · `useIconSet` · `useFormsState` · `createEventCallback` · `validateField` · `validateForm` · `resolveRef` · `resolveDeep` · `validateViewSpec` · `isViewSpec` · `PROP_ENUMS` / `enumeratedValues` · `FUNCTION_CHILDREN` — plus every type.
 
 The last three are there for prompt and schema building: the accepted values of every bounded prop, and the components whose `children` is a function of their own data.
 
-Subpaths: `/spec` (types + validator, no React) · `/icons` (lucide set) · `/zod` (schemas) · `/styles` (CSS).
+Subpaths: `/spec` (types + validator + contracts, no React) · `/reference` (reference generation) · `/icons` (lucide set) · `/zod` (schemas) · `/styles` (CSS).
 
 ## License
 

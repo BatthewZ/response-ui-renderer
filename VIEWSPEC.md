@@ -133,8 +133,8 @@ Most components place the `children` a document gives them. These two **call** t
 <!-- GENERATED:function-children -->
 | Component | Called | In scope inside `children` |
 | --- | --- | --- |
-| `MultiSelect` | Called **once**, with the root's filtered list and its resolved selection: `$each` over `selected` for the chips, over `options` for the rows. | `options` · `selected` |
 | `CommandPalette` | Called **once per row** of the root's filtered, grouped list. Return one `CommandPalette.Item` — it carries the row's id, role and select handler. | `item` · `index` · `active` |
+| `MultiSelect` | Called **once**, with the root's filtered list and its resolved selection: `$each` over `selected` for the chips, over `options` for the rows. | `options` · `selected` |
 <!-- /GENERATED:function-children -->
 
 ```jsonc

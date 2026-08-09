@@ -1,3 +1,14 @@
+export { defaultContracts } from "../registry/default-contracts";
+export {
+  type ComponentContract,
+  type ComponentContracts,
+  componentNamesOf,
+  contractFor,
+  extendContracts,
+  type PropCoercion,
+  type PropDoc,
+  type RegistryLike,
+} from "./contracts";
 export * from "./types";
 export {
   DIALOG_COMPONENTS,
@@ -13,6 +24,7 @@ export {
   PROP_ENUMS,
   validateViewSpec,
   type ValidationIssue,
+  type ValidationOptions,
   type ValidationResult,
   warningsOf,
 } from "./validate";

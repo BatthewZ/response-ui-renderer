@@ -1,0 +1,3019 @@
+{
+  "Accordion": {
+    "props": [
+      {
+        "key": "mode",
+        "optional": true,
+        "type": "\"single\"|\"multiple\""
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "string|string[]"
+      },
+      {
+        "key": "value",
+        "optional": true,
+        "type": "string|string[]"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(value: string|string[]) => void"
+      },
+      {
+        "key": "headingLevel",
+        "optional": true,
+        "type": "1|2|3|4|5|6"
+      }
+    ]
+  },
+  "Accordion.Item": {},
+  "Accordion.Trigger": {
+    "slots": [
+      "heading",
+      "triggerText",
+      "chevron"
+    ]
+  },
+  "Accordion.Content": {
+    "slots": [
+      "body"
+    ]
+  },
+  "ActivityFeed": {},
+  "ActivityFeed.Item": {
+    "slots": [
+      "sentence",
+      "actor",
+      "action",
+      "target",
+      "timestamp",
+      "body"
+    ]
+  },
+  "Alert": {
+    "props": [
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"success\"|\"warning\"|\"error\"|\"info\""
+      },
+      {
+        "key": "statusLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "statusIcon",
+        "optional": true,
+        "type": "ReactNode"
+      }
+    ],
+    "slots": [
+      "icon"
+    ]
+  },
+  "AnimatePresence": {
+    "props": [
+      {
+        "key": "show",
+        "optional": false,
+        "type": "boolean"
+      },
+      {
+        "key": "enterClass",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "exitClass",
+        "optional": true,
+        "type": "string"
+      }
+    ]
+  },
+  "AppShell": {
+    "props": [
+      {
+        "key": "defaultOpen",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "open",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onOpenChange",
+        "optional": true,
+        "type": "(open: boolean) => void"
+      },
+      {
+        "key": "defaultCollapsed",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "collapsed",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onCollapsedChange",
+        "optional": true,
+        "type": "(collapsed: boolean) => void"
+      }
+    ]
+  },
+  "AppShell.Navbar": {},
+  "AppShell.Brand": {},
+  "AppShell.NavbarActions": {},
+  "AppShell.Toggle": {},
+  "AppShell.Sidebar": {
+    "slots": [
+      "scrim"
+    ]
+  },
+  "AppShell.SidebarSection": {
+    "slots": [
+      "groupHeader"
+    ]
+  },
+  "AppShell.SidebarLink": {
+    "slots": [
+      "itemIcon",
+      "itemLabel"
+    ]
+  },
+  "AppShell.Main": {},
+  "Avatar": {
+    "props": [
+      {
+        "key": "src",
+        "optional": true,
+        "type": "string|null"
+      },
+      {
+        "key": "alt",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "name",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"xs\"|\"sm\"|\"md\"|\"lg\"|\"xl\""
+      },
+      {
+        "key": "status",
+        "optional": true,
+        "type": "\"online\"|\"offline\"|\"away\""
+      },
+      {
+        "key": "statusLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "slots": [
+      "frame",
+      "image",
+      "status"
+    ]
+  },
+  "AvatarGroup": {
+    "props": [
+      {
+        "key": "max",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"xs\"|\"sm\"|\"md\"|\"lg\"|\"xl\""
+      }
+    ],
+    "slots": [
+      "itemRing",
+      "overflow"
+    ]
+  },
+  "Badge": {
+    "props": [
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"default\"|\"success\"|\"warning\"|\"error\"|\"info\""
+      },
+      {
+        "key": "statusLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "statusIcon",
+        "optional": true,
+        "type": "ReactNode"
+      }
+    ]
+  },
+  "Breadcrumbs": {
+    "props": [
+      {
+        "key": "separator",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "maxItems",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "itemsBeforeCollapse",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "itemsAfterCollapse",
+        "optional": true,
+        "type": "number"
+      }
+    ],
+    "slots": [
+      "list",
+      "ellipsis"
+    ]
+  },
+  "Breadcrumbs.Item": {
+    "slots": [
+      "current",
+      "link",
+      "text"
+    ]
+  },
+  "Breadcrumbs.Divider": {},
+  "Button": {
+    "props": [
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"primary\"|\"secondary\"|\"ghost\"|\"ghost-inverse\"|\"danger\"|\"link\""
+      },
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"sm\"|\"md\"|\"lg\""
+      },
+      {
+        "key": "as",
+        "optional": true,
+        "type": "T"
+      }
+    ]
+  },
+  "Calendar": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "Date|null"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(d: Date) => void"
+      },
+      {
+        "key": "month",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "defaultMonth",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "onMonthChange",
+        "optional": true,
+        "type": "(m: Date) => void"
+      },
+      {
+        "key": "numberOfMonths",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "min",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "isDateDisabled",
+        "optional": true,
+        "type": "(date: Date) => boolean"
+      },
+      {
+        "key": "locale",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "weekStartsOn",
+        "optional": true,
+        "type": "0|1|2|3|4|5|6"
+      },
+      {
+        "key": "showToday",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "todayLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "labels",
+        "optional": true,
+        "type": "CalendarLabels"
+      },
+      {
+        "key": "renderDay",
+        "optional": true,
+        "type": "(args: CalendarDayRenderArgs) => ReactNode"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "never"
+      }
+    ],
+    "slots": [
+      "header",
+      "labelButton",
+      "months",
+      "footer",
+      "todayButton",
+      "pickerGrid",
+      "pickerCell",
+      "month",
+      "caption",
+      "grid",
+      "weekdays",
+      "weekday",
+      "row",
+      "cell",
+      "day"
+    ]
+  },
+  "Card": {
+    "props": [
+      {
+        "key": "padding",
+        "optional": true,
+        "type": "\"r1\"|\"r2\"|\"r3\"|\"r4\"|\"r5\"|\"r6\""
+      },
+      {
+        "key": "shadow",
+        "optional": true,
+        "type": "\"sm\"|\"md\"|\"lg\""
+      }
+    ]
+  },
+  "Carousel": {
+    "props": [
+      {
+        "key": "title",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "prevLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "nextLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "slots": [
+      "title",
+      "viewport",
+      "prev",
+      "next"
+    ]
+  },
+  "Carousel.Track": {},
+  "Carousel.Item": {},
+  "Center": {},
+  "Checkbox": {
+    "props": [
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "CodeBlock": {
+    "props": [
+      {
+        "key": "code",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "language",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "filename",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "showLineNumbers",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "copyable",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "copyButtonProps",
+        "optional": true,
+        "type": "Omit<ComponentPropsWithRef<typeof CopyButton>, \"value\">"
+      }
+    ],
+    "slots": [
+      "header",
+      "filename",
+      "language",
+      "pre",
+      "code",
+      "line"
+    ]
+  },
+  "Collapsible": {
+    "props": [
+      {
+        "key": "open",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "defaultOpen",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onOpenChange",
+        "optional": true,
+        "type": "(open: boolean) => void"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "Collapsible.Trigger": {},
+  "Collapsible.Content": {},
+  "ColorPicker": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(hex: string) => void"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "(hex: string) => void"
+      },
+      {
+        "key": "presets",
+        "optional": true,
+        "type": "string[]"
+      },
+      {
+        "key": "placement",
+        "optional": true,
+        "type": "Placement"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "panelLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "areaLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "saturationLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "brightnessLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "hueLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "hexLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "slots": [
+      "trigger",
+      "swatch",
+      "value",
+      "panel",
+      "plane",
+      "thumb",
+      "hue",
+      "hex",
+      "presets",
+      "preset"
+    ]
+  },
+  "Combobox": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "string|null"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(value: string|null) => void"
+      },
+      {
+        "key": "inputValue",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "defaultInputValue",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "onInputValueChange",
+        "optional": true,
+        "type": "(value: string) => void"
+      },
+      {
+        "key": "open",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "defaultOpen",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onOpenChange",
+        "optional": true,
+        "type": "(open: boolean) => void"
+      },
+      {
+        "key": "loading",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "placement",
+        "optional": true,
+        "type": "Placement"
+      }
+    ]
+  },
+  "Combobox.Input": {
+    "slots": [
+      "toggle"
+    ]
+  },
+  "Combobox.Content": {
+    "slots": [
+      "loading"
+    ]
+  },
+  "Combobox.Item": {},
+  "Combobox.Empty": {},
+  "CommandPalette": {
+    "props": [
+      {
+        "key": "open",
+        "optional": false,
+        "type": "boolean"
+      },
+      {
+        "key": "items",
+        "optional": false,
+        "type": "CommandPaletteItem[]"
+      },
+      {
+        "key": "filter",
+        "optional": true,
+        "type": "(item: CommandPaletteItem, query: string) => boolean"
+      },
+      {
+        "key": "placeholder",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "emptyMessage",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "searchLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "listLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "statusMessage",
+        "optional": true,
+        "type": "(count: number) => string"
+      }
+    ],
+    "slots": [
+      "search",
+      "input",
+      "list",
+      "group",
+      "groupHeader",
+      "empty",
+      "itemIcon",
+      "itemLabel",
+      "itemShortcut"
+    ]
+  },
+  "CommandPalette.Item": {},
+  "Container": {
+    "props": [
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"sm\"|\"md\"|\"lg\"|\"xl\"|\"full\""
+      }
+    ]
+  },
+  "ContextMenu": {
+    "props": [
+      {
+        "key": "open",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onOpenChange",
+        "optional": true,
+        "type": "(open: boolean) => void"
+      },
+      {
+        "key": "defaultOpen",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "ContextMenu.Trigger": {},
+  "ContextMenu.Content": {},
+  "ContextMenu.Item": {},
+  "ContextMenu.Divider": {},
+  "ContextMenu.GroupHeader": {},
+  "CopyButton": {
+    "props": [
+      {
+        "key": "value",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "timeout",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "copiedLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "onCopyError",
+        "optional": true,
+        "type": "(error: Error) => void"
+      }
+    ]
+  },
+  "DataTable": {
+    "props": [
+      {
+        "key": "data",
+        "optional": false,
+        "type": "T[]"
+      },
+      {
+        "key": "columns",
+        "optional": false,
+        "type": "ColumnDef<T>[]"
+      },
+      {
+        "key": "sort",
+        "optional": true,
+        "type": "SortState|null"
+      },
+      {
+        "key": "defaultSort",
+        "optional": true,
+        "type": "SortState|null"
+      },
+      {
+        "key": "onSortChange",
+        "optional": true,
+        "type": "(sort: SortState|null) => void"
+      },
+      {
+        "key": "sortComparator",
+        "optional": true,
+        "type": "(a: T, b: T, columnKey: string, direction: \"asc\"|\"desc\") => number"
+      },
+      {
+        "key": "selectable",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "selectedKeys",
+        "optional": true,
+        "type": "Set<string|number>"
+      },
+      {
+        "key": "onSelectionChange",
+        "optional": true,
+        "type": "(keys: Set<string|number>) => void"
+      },
+      {
+        "key": "rowLabel",
+        "optional": true,
+        "type": "(row: T, index: number) => string"
+      },
+      {
+        "key": "renderExpanded",
+        "optional": true,
+        "type": "(row: T, index: number) => ReactNode"
+      },
+      {
+        "key": "expandedKeys",
+        "optional": true,
+        "type": "Set<string|number>"
+      },
+      {
+        "key": "onExpandedChange",
+        "optional": true,
+        "type": "(keys: Set<string|number>) => void"
+      },
+      {
+        "key": "pageSize",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "page",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "defaultPage",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "totalPages",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "onPageChange",
+        "optional": true,
+        "type": "(page: number) => void"
+      },
+      {
+        "key": "density",
+        "optional": true,
+        "type": "\"dense\"|\"comfortable\"|\"spacious\""
+      },
+      {
+        "key": "striped",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "stickyHeader",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "maxHeight",
+        "optional": true,
+        "type": "number|string"
+      },
+      {
+        "key": "loading",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "loadingRowCount",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "emptyContent",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "footer",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "tableProps",
+        "optional": true,
+        "type": "TableProps[\"tableProps\"]"
+      },
+      {
+        "key": "paginationProps",
+        "optional": true,
+        "type": "Omit<ComponentPropsWithRef<typeof Pagination>, \"page\"|\"totalPages\"|\"onPageChange\">"
+      }
+    ],
+    "slots": [
+      "expandToggle",
+      "expandedCell",
+      "expandedBody"
+    ]
+  },
+  "DatePicker": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "Date|null"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(d: Date|null) => void"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "(d: Date|null) => void"
+      },
+      {
+        "key": "min",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "isDateDisabled",
+        "optional": true,
+        "type": "(date: Date) => boolean"
+      },
+      {
+        "key": "locale",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "formatOptions",
+        "optional": true,
+        "type": "Intl.DateTimeFormatOptions"
+      },
+      {
+        "key": "placeholder",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "clearable",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "labels",
+        "optional": true,
+        "type": "DatePickerLabels"
+      },
+      {
+        "key": "rejectMessage",
+        "optional": true,
+        "type": "(reason: DateRejection, text: string) => string"
+      },
+      {
+        "key": "weekStartsOn",
+        "optional": true,
+        "type": "0|1|2|3|4|5|6"
+      },
+      {
+        "key": "numberOfMonths",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "showToday",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "todayLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "slots": [
+      "control",
+      "actions",
+      "panel"
+    ]
+  },
+  "DateRangePicker": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "DateRange"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "DateRange"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(range: DateRange) => void"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "(range: DateRange) => void"
+      },
+      {
+        "key": "defaultMonth",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "min",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "isDateDisabled",
+        "optional": true,
+        "type": "(date: Date) => boolean"
+      },
+      {
+        "key": "locale",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "formatOptions",
+        "optional": true,
+        "type": "Intl.DateTimeFormatOptions"
+      },
+      {
+        "key": "numberOfMonths",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "startPlaceholder",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "endPlaceholder",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "labels",
+        "optional": true,
+        "type": "DateRangePickerLabels"
+      },
+      {
+        "key": "rejectMessage",
+        "optional": true,
+        "type": "(reason: DateRejection, text: string) => string"
+      },
+      {
+        "key": "startInputId",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "endInputId",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "form",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "name",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "color",
+        "optional": true,
+        "type": "never"
+      }
+    ],
+    "slots": [
+      "control",
+      "panel"
+    ]
+  },
+  "DescriptionList": {
+    "props": [
+      {
+        "key": "layout",
+        "optional": true,
+        "type": "\"horizontal\"|\"vertical\""
+      }
+    ]
+  },
+  "DescriptionList.Term": {},
+  "DescriptionList.Detail": {},
+  "Dialog": {
+    "props": [
+      {
+        "key": "open",
+        "optional": false,
+        "type": "boolean"
+      },
+      {
+        "key": "lightDismiss",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "DialogBody": {},
+  "DialogHeader": {
+    "props": [
+      {
+        "key": "onClose",
+        "optional": true,
+        "type": "() => void"
+      },
+      {
+        "key": "closeLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ]
+  },
+  "Divider": {
+    "props": [
+      {
+        "key": "orientation",
+        "optional": true,
+        "type": "\"horizontal\"|\"vertical\""
+      }
+    ]
+  },
+  "Drawer": {
+    "props": [
+      {
+        "key": "open",
+        "optional": false,
+        "type": "boolean"
+      },
+      {
+        "key": "side",
+        "optional": true,
+        "type": "\"left\"|\"right\"|\"top\"|\"bottom\""
+      }
+    ]
+  },
+  "DropdownMenu": {
+    "props": [
+      {
+        "key": "open",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onOpenChange",
+        "optional": true,
+        "type": "(open: boolean) => void"
+      },
+      {
+        "key": "defaultOpen",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "placement",
+        "optional": true,
+        "type": "Placement"
+      }
+    ]
+  },
+  "DropdownMenu.Trigger": {},
+  "DropdownMenu.Content": {},
+  "DropdownMenu.Item": {},
+  "DropdownMenu.Divider": {},
+  "DropdownMenu.GroupHeader": {},
+  "EmptyState": {
+    "props": [
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"sm\"|\"md\"|\"lg\""
+      }
+    ]
+  },
+  "EmptyStateActions": {},
+  "EmptyStateDescription": {},
+  "EmptyStateIcon": {},
+  "EmptyStateTitle": {
+    "props": [
+      {
+        "key": "as",
+        "optional": true,
+        "type": "T"
+      }
+    ]
+  },
+  "ErrorBoundary": {},
+  "Field": {
+    "props": [
+      {
+        "key": "name",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "ReactNode"
+      }
+    ]
+  },
+  "FieldError": {},
+  "FormActions": {},
+  "Grid": {
+    "props": [
+      {
+        "key": "columns",
+        "optional": true,
+        "type": "ColumnBreakpoints<GridColumnCount>|GridColumnCount"
+      },
+      {
+        "key": "gap",
+        "optional": true,
+        "type": "\"r1\"|\"r2\"|\"r3\"|\"r4\"|\"r5\"|\"r6\""
+      },
+      {
+        "key": "as",
+        "optional": true,
+        "type": "T"
+      }
+    ]
+  },
+  "Hero": {
+    "props": [
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"sm\"|\"md\"|\"lg\"|\"full\""
+      },
+      {
+        "key": "overlay",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "align",
+        "optional": true,
+        "type": "\"start\"|\"center\"|\"end\""
+      }
+    ],
+    "slots": [
+      "overlay"
+    ]
+  },
+  "Hero.Background": {},
+  "Hero.Content": {},
+  "HoverCard": {
+    "props": [
+      {
+        "key": "open",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "defaultOpen",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onOpenChange",
+        "optional": true,
+        "type": "(open: boolean) => void"
+      },
+      {
+        "key": "openDelay",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "closeDelay",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "placement",
+        "optional": true,
+        "type": "Placement"
+      }
+    ]
+  },
+  "HoverCard.Trigger": {},
+  "HoverCard.Content": {
+    "slots": [
+      "arrow"
+    ]
+  },
+  "Icon": {},
+  "IconButton": {},
+  "Input": {
+    "props": [
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "Kbd": {},
+  "Label": {},
+  "Markdown": {
+    "props": [
+      {
+        "key": "codeBlockProps",
+        "optional": true,
+        "type": "Omit<ComponentPropsWithRef<typeof CodeBlock>, \"code\"|\"language\">"
+      }
+    ],
+    "slots": [
+      "heading",
+      "paragraph",
+      "list",
+      "listItem",
+      "blockquote",
+      "code",
+      "codeBlock",
+      "link",
+      "image",
+      "table",
+      "hr"
+    ]
+  },
+  "MasonryGrid": {
+    "props": [
+      {
+        "key": "columns",
+        "optional": true,
+        "type": "ColumnBreakpoints<ColumnCount>|ColumnCount"
+      },
+      {
+        "key": "gap",
+        "optional": true,
+        "type": "\"r1\"|\"r2\"|\"r3\"|\"r4\"|\"r5\"|\"r6\""
+      },
+      {
+        "key": "animate",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "animation",
+        "optional": true,
+        "type": "\"fade-up\"|\"fade-in\"|\"fade-left\"|\"fade-right\"|\"scale\""
+      }
+    ]
+  },
+  "MasonryGrid.Item": {},
+  "MediaCard": {
+    "props": [
+      {
+        "key": "orientation",
+        "optional": true,
+        "type": "\"portrait\"|\"landscape\"|\"square\""
+      }
+    ]
+  },
+  "MediaCard.Image": {},
+  "MediaCard.Overlay": {},
+  "MediaCard.Content": {},
+  "MediaCard.Badge": {},
+  "MediaCard.Action": {},
+  "Meter": {
+    "props": [
+      {
+        "key": "value",
+        "optional": false,
+        "type": "number"
+      },
+      {
+        "key": "min",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "segments",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "warningAt",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "criticalAt",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "statusLabels",
+        "optional": true,
+        "type": "Partial<Record<MeterStatus, string>>"
+      },
+      {
+        "key": "statusIcons",
+        "optional": true,
+        "type": "Partial<Record<MeterStatus, ReactNode>>"
+      }
+    ]
+  },
+  "MultiSelect": {
+    "props": [
+      {
+        "key": "options",
+        "optional": false,
+        "type": "MultiSelectItem[]"
+      },
+      {
+        "key": "value",
+        "optional": true,
+        "type": "string[]"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "string[]"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(value: string[]) => void"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "(value: string[]) => void"
+      },
+      {
+        "key": "placeholder",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "open",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "defaultOpen",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onOpenChange",
+        "optional": true,
+        "type": "(open: boolean) => void"
+      },
+      {
+        "key": "searchable",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "maxItems",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "placement",
+        "optional": true,
+        "type": "Placement"
+      }
+    ],
+    "slots": [
+      "control",
+      "list",
+      "input",
+      "chevron"
+    ]
+  },
+  "MultiSelect.Content": {},
+  "MultiSelect.Item": {},
+  "MultiSelect.ItemIndicator": {},
+  "MultiSelect.Empty": {},
+  "MultiSelect.Tag": {},
+  "MultiSelect.TagRemove": {},
+  "NumberInput": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "number|null"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(value: number|null) => void"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "(value: number|null) => void"
+      },
+      {
+        "key": "min",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "step",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "precision",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
+    "slots": [
+      "control",
+      "chevron"
+    ]
+  },
+  "OTPInput": {
+    "props": [
+      {
+        "key": "length",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "value",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(v: string) => void"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "(v: string) => void"
+      },
+      {
+        "key": "onComplete",
+        "optional": true,
+        "type": "(v: string) => void"
+      },
+      {
+        "key": "mode",
+        "optional": true,
+        "type": "\"numeric\"|\"alphanumeric\""
+      },
+      {
+        "key": "charLabel",
+        "optional": true,
+        "type": "(position: number, length: number) => string"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
+    "slots": [
+      "box"
+    ]
+  },
+  "Pagination": {
+    "props": [
+      {
+        "key": "page",
+        "optional": false,
+        "type": "number"
+      },
+      {
+        "key": "totalPages",
+        "optional": false,
+        "type": "number"
+      },
+      {
+        "key": "siblingCount",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "showEdges",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"full\"|\"compact\""
+      },
+      {
+        "key": "compactBelow",
+        "optional": true,
+        "type": "number|string"
+      }
+    ],
+    "slots": [
+      "list",
+      "first",
+      "prev",
+      "next",
+      "last",
+      "page",
+      "ellipsis",
+      "info"
+    ]
+  },
+  "Parallax": {
+    "props": [
+      {
+        "key": "rate",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "clamp",
+        "optional": true,
+        "type": "number"
+      }
+    ]
+  },
+  "Popover": {
+    "props": [
+      {
+        "key": "open",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onOpenChange",
+        "optional": true,
+        "type": "(open: boolean) => void"
+      },
+      {
+        "key": "defaultOpen",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "placement",
+        "optional": true,
+        "type": "Placement"
+      },
+      {
+        "key": "offset",
+        "optional": true,
+        "type": "number"
+      }
+    ]
+  },
+  "Popover.Trigger": {},
+  "Popover.Content": {
+    "slots": [
+      "arrow"
+    ]
+  },
+  "Portal": {
+    "props": [
+      {
+        "key": "container",
+        "optional": true,
+        "type": "Element|null"
+      }
+    ]
+  },
+  "ProgressBar": {
+    "props": [
+      {
+        "key": "value",
+        "optional": false,
+        "type": "number"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"default\"|\"gradient\"|\"striped\""
+      },
+      {
+        "key": "color",
+        "optional": true,
+        "type": "\"accent\"|\"success\"|\"warning\"|\"error\""
+      },
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"sm\"|\"md\"|\"lg\""
+      },
+      {
+        "key": "animate",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "statusLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "slots": [
+      "fill"
+    ]
+  },
+  "ProgressBar.Label": {},
+  "ProgressBar.Value": {},
+  "ProgressRing": {
+    "props": [
+      {
+        "key": "value",
+        "optional": false,
+        "type": "number"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "size",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "thickness",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "color",
+        "optional": true,
+        "type": "\"accent\"|\"success\"|\"warning\"|\"error\""
+      }
+    ],
+    "slots": [
+      "svg",
+      "track",
+      "indicator",
+      "center"
+    ]
+  },
+  "Radio": {},
+  "RangeCalendar": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "DateRange"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "DateRange"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(range: DateRange) => void"
+      },
+      {
+        "key": "month",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "defaultMonth",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "onMonthChange",
+        "optional": true,
+        "type": "(m: Date) => void"
+      },
+      {
+        "key": "numberOfMonths",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "min",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "Date"
+      },
+      {
+        "key": "isDateDisabled",
+        "optional": true,
+        "type": "(date: Date) => boolean"
+      },
+      {
+        "key": "locale",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "weekStartsOn",
+        "optional": true,
+        "type": "0|1|2|3|4|5|6"
+      },
+      {
+        "key": "showToday",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "todayLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "labels",
+        "optional": true,
+        "type": "CalendarLabels"
+      },
+      {
+        "key": "renderDay",
+        "optional": true,
+        "type": "(args: CalendarDayRenderArgs) => ReactNode"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "never"
+      }
+    ],
+    "slots": [
+      "header",
+      "labelButton",
+      "months",
+      "footer",
+      "todayButton",
+      "pickerGrid",
+      "pickerCell",
+      "month",
+      "caption",
+      "grid",
+      "weekdays",
+      "weekday",
+      "row",
+      "cell",
+      "day"
+    ]
+  },
+  "RangeSlider": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "[number, number]"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "[number, number]"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(value: RangeSliderValue) => void"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "(value: RangeSliderValue) => void"
+      },
+      {
+        "key": "min",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "step",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "minDistance",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "minLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "maxLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "formatValue",
+        "optional": true,
+        "type": "(value: number) => string"
+      }
+    ],
+    "slots": [
+      "track",
+      "fill",
+      "input"
+    ]
+  },
+  "Rating": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(v: number) => void"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "allowHalf",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "readOnly",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "formatValue",
+        "optional": true,
+        "type": "(value: number, max: number) => string"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "never"
+      }
+    ]
+  },
+  "RequireAuth": {
+    "props": [
+      {
+        "key": "status",
+        "optional": false,
+        "type": "\"loading\"|\"authenticated\"|\"unauthenticated\""
+      },
+      {
+        "key": "redirect",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "loadingFallback",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "loadingLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "unauthenticatedFallback",
+        "optional": true,
+        "type": "ReactNode"
+      }
+    ]
+  },
+  "Row": {
+    "props": [
+      {
+        "key": "gap",
+        "optional": true,
+        "type": "\"r1\"|\"r2\"|\"r3\"|\"r4\"|\"r5\"|\"r6\""
+      },
+      {
+        "key": "align",
+        "optional": true,
+        "type": "keyof typeof alignMap"
+      },
+      {
+        "key": "justify",
+        "optional": true,
+        "type": "keyof typeof justifyMap"
+      },
+      {
+        "key": "wrap",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "as",
+        "optional": true,
+        "type": "T"
+      }
+    ]
+  },
+  "ScrollReveal": {
+    "props": [
+      {
+        "key": "animation",
+        "optional": true,
+        "type": "\"fade-up\"|\"fade-in\"|\"fade-left\"|\"fade-right\"|\"scale\"|\"none\""
+      },
+      {
+        "key": "threshold",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "delay",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "once",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "rootMargin",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "animate",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "as",
+        "optional": true,
+        "type": "ElementType"
+      }
+    ]
+  },
+  "SearchInput": {
+    "props": [
+      {
+        "key": "value",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "onClear",
+        "optional": true,
+        "type": "() => void"
+      },
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"sm\"|\"md\""
+      },
+      {
+        "key": "clearLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "never"
+      }
+    ],
+    "slots": [
+      "icon",
+      "input",
+      "clear"
+    ]
+  },
+  "Select": {
+    "props": [
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
+    "slots": [
+      "control",
+      "chevron"
+    ]
+  },
+  "Skeleton": {
+    "props": [
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"text\"|\"circular\"|\"rectangular\"|\"rounded\""
+      }
+    ]
+  },
+  "Slider": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(value: number) => void"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "(value: number) => void"
+      },
+      {
+        "key": "min",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "step",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "Spacer": {},
+  "Sparkline": {
+    "props": [
+      {
+        "key": "values",
+        "optional": false,
+        "type": "number[]"
+      },
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"line\"|\"area\"|\"bar\""
+      },
+      {
+        "key": "width",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "height",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "strokeWidth",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "min",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "max",
+        "optional": true,
+        "type": "number"
+      }
+    ]
+  },
+  "Spinner": {
+    "props": [
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"sm\"|\"md\"|\"lg\""
+      }
+    ]
+  },
+  "Spotlight": {
+    "props": [
+      {
+        "key": "animate",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "Spotlight.Item": {},
+  "Spotlight.Image": {},
+  "Spotlight.Content": {},
+  "Stack": {
+    "props": [
+      {
+        "key": "gap",
+        "optional": true,
+        "type": "\"r1\"|\"r2\"|\"r3\"|\"r4\"|\"r5\"|\"r6\""
+      },
+      {
+        "key": "as",
+        "optional": true,
+        "type": "T"
+      }
+    ]
+  },
+  "Stagger": {
+    "props": [
+      {
+        "key": "staggerDelay",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "as",
+        "optional": true,
+        "type": "ElementType"
+      }
+    ]
+  },
+  "StatCard": {},
+  "StatCard.Value": {},
+  "StatCard.Label": {},
+  "StatCard.Trend": {
+    "slots": [
+      "trendIcon"
+    ]
+  },
+  "StatCard.Icon": {},
+  "StatCard.Sparkline": {},
+  "Stepper": {
+    "props": [
+      {
+        "key": "activeStep",
+        "optional": false,
+        "type": "number"
+      },
+      {
+        "key": "orientation",
+        "optional": true,
+        "type": "\"horizontal\"|\"vertical\""
+      },
+      {
+        "key": "onStepClick",
+        "optional": true,
+        "type": "(index: number) => void"
+      },
+      {
+        "key": "isStepClickable",
+        "optional": true,
+        "type": "(index: number) => boolean"
+      },
+      {
+        "key": "statusLabels",
+        "optional": true,
+        "type": "Partial<Record<StepStatus, string>>"
+      }
+    ]
+  },
+  "Stepper.Step": {
+    "slots": [
+      "indicator",
+      "glyph",
+      "itemBody",
+      "title",
+      "description",
+      "connector"
+    ]
+  },
+  "Swimlane": {
+    "props": [
+      {
+        "key": "title",
+        "optional": false,
+        "type": "ReactNode"
+      },
+      {
+        "key": "titleAs",
+        "optional": true,
+        "type": "\"h1\"|\"h2\"|\"h3\"|\"h4\"|\"h5\"|\"h6\""
+      },
+      {
+        "key": "subtitle",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "viewAllHref",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "viewAllLabel",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "viewAllProps",
+        "optional": true,
+        "type": "Omit<ComponentPropsWithRef<\"a\">, \"href\"|\"children\">"
+      },
+      {
+        "key": "animation",
+        "optional": true,
+        "type": "\"fade-up\"|\"fade-in\"|\"fade-left\"|\"fade-right\"|\"scale\""
+      },
+      {
+        "key": "once",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "animate",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
+    "slots": [
+      "header",
+      "titleGroup",
+      "title",
+      "description",
+      "body"
+    ]
+  },
+  "Switch": {
+    "props": [
+      {
+        "key": "checked",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "defaultChecked",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "onCheckedChange",
+        "optional": true,
+        "type": "(checked: boolean) => void"
+      },
+      {
+        "key": "size",
+        "optional": true,
+        "type": "\"sm\"|\"md\""
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "name",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "never"
+      }
+    ],
+    "slots": [
+      "thumb"
+    ]
+  },
+  "Table": {
+    "props": [
+      {
+        "key": "density",
+        "optional": true,
+        "type": "\"dense\"|\"comfortable\"|\"spacious\""
+      },
+      {
+        "key": "striped",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "stickyHeader",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "maxHeight",
+        "optional": true,
+        "type": "number|string"
+      },
+      {
+        "key": "tableProps",
+        "optional": true,
+        "type": "ComponentPropsWithRef<\"table\">"
+      }
+    ]
+  },
+  "Table.Head": {},
+  "Table.Body": {},
+  "Table.Row": {},
+  "Table.HeaderCell": {
+    "slots": [
+      "sortButton",
+      "sortIcon"
+    ]
+  },
+  "Table.Cell": {},
+  "Tabs": {
+    "props": [
+      {
+        "key": "defaultValue",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(value: string) => void"
+      },
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"underline\"|\"pill\"|\"enclosed\""
+      }
+    ]
+  },
+  "Tabs.List": {
+    "slots": [
+      "indicator"
+    ]
+  },
+  "Tabs.Tab": {},
+  "Tabs.Panel": {},
+  "TagInput": {
+    "props": [
+      {
+        "key": "value",
+        "optional": true,
+        "type": "string[]"
+      },
+      {
+        "key": "defaultValue",
+        "optional": true,
+        "type": "string[]"
+      },
+      {
+        "key": "onValueChange",
+        "optional": true,
+        "type": "(tags: string[]) => void"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "(tags: string[]) => void"
+      },
+      {
+        "key": "maxTags",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "validateTag",
+        "optional": true,
+        "type": "(tag: string) => boolean|string"
+      },
+      {
+        "key": "delimiter",
+        "optional": true,
+        "type": "RegExp"
+      },
+      {
+        "key": "addAnnouncement",
+        "optional": true,
+        "type": "(added: string[], count: number) => string"
+      },
+      {
+        "key": "removeAnnouncement",
+        "optional": true,
+        "type": "(tag: string, count: number) => string"
+      },
+      {
+        "key": "rejectAnnouncement",
+        "optional": true,
+        "type": "(reason: TagRejection, tag: string, count: number) => string"
+      },
+      {
+        "key": "placeholder",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "badgeProps",
+        "optional": true,
+        "type": "Omit<ComponentPropsWithRef<typeof Badge>, \"children\">"
+      }
+    ],
+    "slots": [
+      "control",
+      "input",
+      "tagRemove"
+    ]
+  },
+  "Text": {
+    "props": [
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"h1\"|\"h2\"|\"h3\"|\"h4\"|\"h5\"|\"h6\"|\"body-1\"|\"body-2\"|\"body-3\""
+      },
+      {
+        "key": "weight",
+        "optional": true,
+        "type": "\"semibold\"|\"bold\""
+      },
+      {
+        "key": "color",
+        "optional": true,
+        "type": "\"primary\"|\"secondary\"|\"muted\"|\"inverse\"|\"on-primary\""
+      },
+      {
+        "key": "as",
+        "optional": true,
+        "type": "T"
+      }
+    ]
+  },
+  "Textarea": {
+    "props": [
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "ThemeSwitcher": {
+    "props": [
+      {
+        "key": "themes",
+        "optional": true,
+        "type": "readonly string[]"
+      },
+      {
+        "key": "labels",
+        "optional": true,
+        "type": "Partial<Record<string, string>>"
+      }
+    ],
+    "slots": [
+      "item"
+    ]
+  },
+  "Timeline": {
+    "props": [
+      {
+        "key": "animate",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "align",
+        "optional": true,
+        "type": "\"left\"|\"center\"|\"right\""
+      },
+      {
+        "key": "density",
+        "optional": true,
+        "type": "\"dense\"|\"comfortable\"|\"spacious\""
+      },
+      {
+        "key": "card",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "Timeline.Item": {
+    "slots": [
+      "icon",
+      "card",
+      "timestamp",
+      "title",
+      "body"
+    ]
+  },
+  "Toast": {
+    "props": [
+      {
+        "key": "variant",
+        "optional": true,
+        "type": "\"success\"|\"warning\"|\"error\"|\"info\""
+      },
+      {
+        "key": "title",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "dismissing",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "statusLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "statusIcon",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "dismissLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ],
+    "slots": [
+      "icon",
+      "body",
+      "title",
+      "dismiss"
+    ]
+  },
+  "Tooltip": {
+    "props": [
+      {
+        "key": "content",
+        "optional": false,
+        "type": "ReactNode"
+      },
+      {
+        "key": "placement",
+        "optional": true,
+        "type": "Placement"
+      },
+      {
+        "key": "delay",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "offset",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "container",
+        "optional": true,
+        "type": "HTMLElement|null"
+      },
+      {
+        "key": "arrow",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
+    "slots": [
+      "arrow"
+    ]
+  },
+  "ViewTransition": {
+    "props": [
+      {
+        "key": "name",
+        "optional": false,
+        "type": "string"
+      }
+    ]
+  },
+  "VirtualizedDataTable": {
+    "props": [
+      {
+        "key": "data",
+        "optional": false,
+        "type": "T[]"
+      },
+      {
+        "key": "columns",
+        "optional": false,
+        "type": "ColumnDef<T>[]"
+      },
+      {
+        "key": "sort",
+        "optional": true,
+        "type": "SortState|null"
+      },
+      {
+        "key": "defaultSort",
+        "optional": true,
+        "type": "SortState|null"
+      },
+      {
+        "key": "onSortChange",
+        "optional": true,
+        "type": "(sort: SortState|null) => void"
+      },
+      {
+        "key": "sortComparator",
+        "optional": true,
+        "type": "(a: T, b: T, columnKey: string, direction: \"asc\"|\"desc\") => number"
+      },
+      {
+        "key": "selectable",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "selectedKeys",
+        "optional": true,
+        "type": "Set<string|number>"
+      },
+      {
+        "key": "onSelectionChange",
+        "optional": true,
+        "type": "(keys: Set<string|number>) => void"
+      },
+      {
+        "key": "rowLabel",
+        "optional": true,
+        "type": "(row: T, index: number) => string"
+      },
+      {
+        "key": "rowHeight",
+        "optional": false,
+        "type": "number"
+      },
+      {
+        "key": "height",
+        "optional": true,
+        "type": "number|string"
+      },
+      {
+        "key": "overscan",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "onEndReached",
+        "optional": true,
+        "type": "() => void"
+      },
+      {
+        "key": "endReachedThreshold",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "density",
+        "optional": true,
+        "type": "\"dense\"|\"comfortable\"|\"spacious\""
+      },
+      {
+        "key": "striped",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "stickyHeader",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "loading",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "loadingRowCount",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "emptyContent",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "tableProps",
+        "optional": true,
+        "type": "TableProps[\"tableProps\"]"
+      }
+    ]
+  },
+  "Wizard": {
+    "props": [
+      {
+        "key": "steps",
+        "optional": false,
+        "type": "WizardStep[]"
+      },
+      {
+        "key": "step",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "defaultStep",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "onStepChange",
+        "optional": true,
+        "type": "(step: number) => void"
+      },
+      {
+        "key": "onComplete",
+        "optional": true,
+        "type": "() => void"
+      },
+      {
+        "key": "orientation",
+        "optional": true,
+        "type": "\"horizontal\"|\"vertical\""
+      },
+      {
+        "key": "allowBackNavigation",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "backLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "nextLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "finishLabel",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "onChange",
+        "optional": true,
+        "type": "never"
+      }
+    ],
+    "slots": [
+      "body",
+      "footer"
+    ]
+  }
+}

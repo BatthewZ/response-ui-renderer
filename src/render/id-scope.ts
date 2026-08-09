@@ -19,6 +19,8 @@
  * gate reads the token, not the meaning.
  */
 
+import type { ComponentContract } from "../spec/contracts";
+
 /**
  * ARIA attributes typed as an ID reference *list* in ARIA 1.2: a parent may
  * append its own id to whatever the child already carried.
@@ -84,6 +86,10 @@ export const ID_REF_PROPS: ReadonlySet<string> = new Set([
  * Defaulting to "scope it" means enumerating the open set forever, across a
  * package boundary. Defaulting to "leave it" means enumerating the closed one.
  *
+ * A host closes that set for its own components by declaring `nameProp` on their
+ * contract. Opting in is the only way a registered component's `name` is ever
+ * rewritten, so the promise that this never happens behind your back holds.
+ *
  * Getting this backwards is not hypothetical: it silently corrupted
  * `ViewTransition`, whose required `name` is a CSS `view-transition-name` that
  * only works when it *matches* a counterpart, and which this package's own
@@ -139,8 +145,8 @@ export function normalizeIdScope(scope: boolean | string | undefined, generated:
 }
 
 /** True when this component's prop carries a DOM id that scoping must rewrite. */
-export function isIdScopedProp(component: string, key: string): boolean {
-  if (key === "name") return NAME_PROP_MEANING[component] === "dom";
+export function isIdScopedProp(contract: ComponentContract, key: string): boolean {
+  if (key === "name") return contract.nameProp === "dom";
   return ID_REF_PROPS.has(key);
 }
 

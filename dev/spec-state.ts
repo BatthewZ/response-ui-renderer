@@ -1,3 +1,4 @@
+import { defaultRegistry } from "../src/registry/registry";
 import {
   errorsOf,
   validateViewSpec,
@@ -54,7 +55,10 @@ export function readSpec(text: string): SpecState {
     return failure(message, at ? Number(at[1]) : null);
   }
 
-  const result = validateViewSpec(parsed);
+  // The playground renders with `defaultRegistry`, so it validates against it:
+  // a misspelled component is reported here rather than only appearing as an
+  // inline warning once the preview has already drawn.
+  const result = validateViewSpec(parsed, { registry: defaultRegistry });
   const errors = errorsOf(result.issues);
   const warnings = warningsOf(result.issues);
   return {

@@ -20,8 +20,3 @@ import table from "./text-children.json";
  * VIEWSPEC.md that the renderer binds at runtime.
  */
 export const TEXT_CHILDREN: Readonly<Record<string, string>> = table;
-
-/** Whether this component parses its children instead of placing them. */
-export function takesTextChildren(component: string): boolean {
-  return Object.hasOwn(TEXT_CHILDREN, component);
-}

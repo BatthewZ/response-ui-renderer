@@ -79,6 +79,22 @@ anything. Categorise first, regenerate second. More generally, when a bump fires
 gates at once, fix the one naming the missing decision before the one naming the stale
 artifact; regeneration is what launders an unmade decision into a passing check.
 
+## A derived view over gated tables is itself ungated
+
+Every hand-maintained table here has a gate that fails when the library moves. Assembling
+several of them into one per-component record has none: drop a fold and each table's own gate
+goes on passing while the renderer silently stops doing something. The assembled view needs its
+own test, asserting it carries every entry of every table it folds in. Note the residual risk
+honestly rather than claiming it away: such a test iterates each table's *entries*, but the set
+of tables is itself hand-listed beside the fold — they are a Map, a Set and several records, with
+nothing to enumerate them by. Adding a fold means adding its assertion and nothing forces that,
+so keep the two adjacent in one file where the omission is visible, and do not write prose
+claiming a completeness the test cannot have.
+
+The same asymmetry applies to the reference. `--check` regenerates and diffs, so it cannot see
+whether the *committed* derived data agrees with the *committed* doc — it rewrites both sides
+from one in-memory derivation. Read the two committed artifacts and relate them to each other.
+
 ## A covariant type will not catch a list that shrinks
 
 Zod's `ZodType` is covariant in its output, so a schema whose union is a strict *subset*

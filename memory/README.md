@@ -5,6 +5,7 @@ traps only: no TODOs, no line numbers, no file-by-file inventory.
 
 | File | What it holds |
 | --- | --- |
+| [extending-the-registry.md](extending-the-registry.md) | Why registering a component was never the whole extension story, why the per-component knowledge is a computed view over the tables rather than a second copy of them and what that leaves ungated, why a merge API must be per-field and never global, what actually decides an issue's severity, why a name suggestion has to treat a transposition as one edit, and why the doc generator is split into a deriver and a shipped renderer rather than shipped whole |
 | [driving-a-component-library-from-json.md](driving-a-component-library-from-json.md) | The recurring shapes that defeat a JSON renderer, which of them can be fixed at all, why a coercion keyed on a prop's name must run on the resolved side of a reference, and why a per-node error boundary must never remember |
 | [authoring-documents.md](authoring-documents.md) | Making a document look like a product: scoped theme overrides need the document to paint its own canvas, component defaults that fight polish, and how to verify visually |
 | [composing-several-documents.md](composing-several-documents.md) | What breaks only when a page mounts more than one renderer, why the DOM id namespace cannot be fixed from the host side, how to choose the direction of a default when a rule keys on an overloaded prop name, and what a scoped namespace still cannot reach |

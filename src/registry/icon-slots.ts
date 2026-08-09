@@ -20,7 +20,3 @@ export const COMPONENT_TYPED_ICON_SLOTS: ReadonlySet<string> = new Set([
 
 /** Components named by COMPONENT_TYPED_ICON_SLOTS, for the drift test. */
 export const COMPONENT_TYPED_ICON_OWNERS = slotOwners(COMPONENT_TYPED_ICON_SLOTS);
-
-export function wantsIconComponent(componentName: string, propName: string): boolean {
-  return COMPONENT_TYPED_ICON_SLOTS.has(`${componentName}.${propName}`);
-}

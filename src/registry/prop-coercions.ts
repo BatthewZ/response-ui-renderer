@@ -1,3 +1,4 @@
+import type { PropCoercion } from "../spec/contracts";
 import { slotOwners } from "./slot-keys";
 
 /**
@@ -8,7 +9,7 @@ import { slotOwners } from "./slot-keys";
  * the same way: `contracts.test.ts` asserts every component named here still
  * exists upstream, so a rename fails the suite rather than a consumer's page.
  */
-export type PropCoercion = "isoDate" | "isoDateRange" | "keyAccessor" | "columnDefs";
+export type { PropCoercion };
 
 /**
  * Every `Date`-typed prop, per component. Spelled out rather than generated
@@ -51,10 +52,6 @@ export const PROP_COERCIONS: ReadonlyMap<string, PropCoercion> = buildCoercions(
 
 /** Components named by PROP_COERCIONS, for the drift test. */
 export const PROP_COERCION_OWNERS = slotOwners(PROP_COERCIONS.keys());
-
-export function propCoercion(component: string, prop: string): PropCoercion | undefined {
-  return PROP_COERCIONS.get(`${component}.${prop}`);
-}
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 

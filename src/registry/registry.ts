@@ -1,5 +1,6 @@
 import * as ResponseUI from "@batthewz/response-ui-react-components";
 
+import { componentNamesOf } from "../spec/contracts";
 import { Icon } from "./Icon";
 import {
   type ComponentRegistry,
@@ -19,14 +20,13 @@ export const defaultRegistry: ComponentRegistry = extendRegistry(
   { Icon },
 );
 
-/** Sorted names addressable from JSON, including `Parent.Child` parts. */
+/**
+ * Sorted names addressable from JSON, including `Parent.Child` parts.
+ *
+ * Hand this to `validateViewSpec` — as `{ registry }` or as this list — and a
+ * document naming something the registry does not hold is reported at the gate
+ * rather than as an inline warning in a user's browser.
+ */
 export function listComponentNames(registry: ComponentRegistry): string[] {
-  const names: string[] = [];
-  for (const [name, entry] of Object.entries(registry)) {
-    names.push(name);
-    if (entry.subComponents) {
-      for (const sub of Object.keys(entry.subComponents)) names.push(`${name}.${sub}`);
-    }
-  }
-  return names.sort((a, b) => a.localeCompare(b));
+  return [...componentNamesOf(registry)].sort((a, b) => a.localeCompare(b));
 }

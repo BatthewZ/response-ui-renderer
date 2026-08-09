@@ -3,17 +3,12 @@
 import { createElement, type ReactNode, useId } from "react";
 
 import { composeProp, inspectsChildren } from "../registry/child-introspection";
-import { argsToVars, functionChildrenArgs } from "../registry/function-children";
+import { defaultContracts } from "../registry/default-contracts";
+import { argsToVars } from "../registry/function-children";
 import { Icon } from "../registry/Icon";
-import { wantsIconComponent } from "../registry/icon-slots";
-import {
-  parseIsoDate,
-  parseIsoDateRange,
-  propCoercion,
-  toKeyAccessor,
-} from "../registry/prop-coercions";
-import { takesTextChildren } from "../registry/text-children";
+import { parseIsoDate, parseIsoDateRange, toKeyAccessor } from "../registry/prop-coercions";
 import { type ComponentRegistry, lookupComponent } from "../registry/types";
+import { type ComponentContracts, contractFor, ownProp } from "../spec/contracts";
 import {
   FIELD_BINDING_KEY,
   isComponentNode,
@@ -28,7 +23,6 @@ import {
   type ViewNode,
 } from "../spec/types";
 import {
-  DIALOG_COMPONENTS,
   EVENT_ACTIONS,
   FORBIDDEN_PROPS,
   isDangerousUrl,
@@ -58,6 +52,12 @@ import { useViewData, ViewContextExtender } from "./ViewDataProvider";
 type NodeRendererProps = {
   node: ViewNode;
   registry: ComponentRegistry;
+  /**
+   * What each registered name means beyond how to construct it. Defaults to the
+   * built-in library's; extend it whenever the registry is extended, or a
+   * host's component renders with none of the translations the library's get.
+   */
+  contracts?: ComponentContracts;
   eventContext: EventHandlerContext;
   depth?: number;
 } & { [injected: string]: unknown };
@@ -136,6 +136,7 @@ function toOptionElements(options: readonly unknown[]): ReactNode[] {
 export function NodeRenderer({
   node,
   registry,
+  contracts = defaultContracts,
   eventContext,
   depth = 0,
   ...injected
@@ -178,6 +179,7 @@ export function NodeRenderer({
       key={key}
       node={child}
       registry={registry}
+      contracts={contracts}
       eventContext={eventContext}
       depth={depth + 1}
     />
@@ -199,6 +201,7 @@ export function NodeRenderer({
           {...injected}
           node={branch}
           registry={registry}
+          contracts={contracts}
           eventContext={eventContext}
           depth={depth + 1}
         />
@@ -241,6 +244,7 @@ export function NodeRenderer({
     );
   }
 
+  const contract = contractFor(contracts, node.component);
   const props: Record<string, unknown> = {};
 
   /** Both binding spellings converge here, after every literal prop is in place. */
@@ -359,7 +363,7 @@ export function NodeRenderer({
       continue;
     }
 
-    const coercion = propCoercion(node.component, key);
+    const coercion = ownProp(contract.coercions, key);
 
     // The one coercion that must run BEFORE resolution: a column's `render` is a
     // `$node` template, and `coerceNested` would render it to an element where
@@ -386,7 +390,7 @@ export function NodeRenderer({
     // The same shape again: several documents on one page share a DOM id
     // namespace, and only the resolved value can be prefixed — a host walking
     // the spec first sees `{"$ref": …}`, and an `api` binding has no value yet.
-    if (view.idScope && isIdScopedProp(node.component, key)) {
+    if (view.idScope && isIdScopedProp(contract, key)) {
       props[key] = scopeIdValue(resolved, view.idScope);
       continue;
     }
@@ -398,7 +402,7 @@ export function NodeRenderer({
       // Most slots are typed ReactNode and want an element; a few are typed
       // LucideIcon and are invoked as a component. Handing over the wrong one
       // throws inside the library rather than degrading.
-      props[key] = wantsIconComponent(node.component, key)
+      props[key] = contract.iconComponentProps?.includes(key)
         ? () => <Icon name={resolved} />
         : <Icon name={resolved} />;
       continue;
@@ -433,7 +437,7 @@ export function NodeRenderer({
   // that reached the DOM: `dialogStates` is already per-ViewRenderer, so it needs
   // no namespacing, and keeping the two separate is what lets an `openDialog`
   // payload go on naming the id the document wrote.
-  if (DIALOG_COMPONENTS.has(node.component)) {
+  if (contract.dialog) {
     const dialogId = typeof node.props?.id === "string" ? node.props.id : autoDialogId;
     props.open = view.dialogStates[dialogId] ?? node.props?.open === true;
     props.onClose = () => eventContext.dialogs.close(dialogId);
@@ -471,7 +475,7 @@ export function NodeRenderer({
   // Only when the document supplied children, so a `children` prop that came
   // from a `$ref` or a literal still stands — that is the other spelling of the
   // same thing, and it already resolves to a string on its own.
-  if (takesTextChildren(node.component) && node.children && node.children.length > 0) {
+  if (contract.textChildren !== undefined && node.children && node.children.length > 0) {
     return (
       <NodeErrorBoundary label={node.component}>
         {createElement(Component, { ...props, children: childrenToText(node.children, refContext) })}
@@ -482,7 +486,7 @@ export function NodeRenderer({
   // A parent that clones or identity-checks its children cannot see past a
   // boundary. The view's own top-level boundary still contains a throw; only the
   // per-sibling isolation is traded away, and only at these positions.
-  const parentInspectsChildren = inspectsChildren(node.component, node.props);
+  const parentInspectsChildren = inspectsChildren(contract, node.props);
 
   const childNodes = node.children?.map((child, index) => {
     const key = nodeKey(child, index);
@@ -505,9 +509,14 @@ export function NodeRenderer({
   //
   // Omitting children leaves this untouched, so the component's default tree is
   // exactly what it was.
+  const functionChildren = contract.functionChildren;
   const asFunctionChildren =
-    functionChildrenArgs(node.component) && children && children.length > 0
-      ? (args: unknown) => <ViewContextExtender vars={argsToVars(args)}>{children}</ViewContextExtender>
+    functionChildren && children && children.length > 0
+      ? (...received: unknown[]) => (
+          <ViewContextExtender vars={argsToVars(received, functionChildren.args)}>
+            {children}
+          </ViewContextExtender>
+        )
       : undefined;
 
   // Spread rather than passing the array, so one child arrives as one element

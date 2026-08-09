@@ -36,6 +36,10 @@
     "./examples": {
       "types": "./dist/examples/index.d.ts",
       "import": "./dist/examples/index.js"
+    },
+    "./reference": {
+      "types": "./dist/reference/index.d.ts",
+      "import": "./dist/reference/index.js"
     }
   },
   "publishConfig": {
@@ -51,7 +55,7 @@
     "prepublishOnly": "bun run build && bun run typecheck && bun run docs:viewspec -- --check && bun run test",
     "dev": "vite --config dev/vite.config.ts",
     "dev:build": "vite build --config dev/vite.config.ts",
-    "docs:viewspec": "node scripts/gen-viewspec-doc.mjs"
+    "docs:viewspec": "bun scripts/gen-viewspec-doc.mjs"
   },
   "peerDependencies": {
     "@batthewz/response-ui-react-components": "^0.18.0",

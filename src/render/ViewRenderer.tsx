@@ -3,9 +3,11 @@
 import { type ReactNode, useCallback, useId, useMemo, useState } from "react";
 
 import type { RendererAdapters } from "../adapters/types";
+import { defaultContracts } from "../registry/default-contracts";
 import { type IconSet,IconSetProvider } from "../registry/Icon";
 import { defaultRegistry } from "../registry/registry";
 import type { ComponentRegistry } from "../registry/types";
+import type { ComponentContracts } from "../spec/contracts";
 import type { FormDef, ViewSpec } from "../spec/types";
 import type { EventHandlerContext } from "./event-handler";
 import { EMPTY_FORMS, useFormsState } from "./form-state";
@@ -24,6 +26,16 @@ export type ViewRendererProps = {
   adapters?: RendererAdapters;
   /** Defaults to every `@batthewz/response-ui-react-components` export + `Icon`. */
   registry?: ComponentRegistry;
+  /**
+   * What each registered name means beyond how to construct it: which of its
+   * props are bounded to a set, which need translating out of JSON, whether its
+   * `children` is a function it calls or text it parses.
+   *
+   * Defaults to the built-in library's. Extend a registry and you almost always
+   * want to extend this with it — `extendContracts(defaultContracts, yours)` —
+   * or your component renders with none of the translations the library's get.
+   */
+  contracts?: ComponentContracts;
   /** Name → component map for `Icon` nodes and string-valued `icon` props. */
   icons?: IconSet;
   /** Overrides `spec.theme` — for a host-level theme picker. */
@@ -77,6 +89,7 @@ function DataDiagnostics({ children }: { children: ReactNode }) {
 function ViewBody({
   spec,
   registry,
+  contracts,
   adapters,
   formDefs,
   dialogs,
@@ -85,6 +98,7 @@ function ViewBody({
 }: {
   spec: ViewSpec;
   registry: ComponentRegistry;
+  contracts: ComponentContracts;
   adapters: RendererAdapters;
   formDefs: Readonly<Record<string, FormDef>>;
   dialogs: { open: (id: string) => void; close: (id: string) => void };
@@ -107,7 +121,14 @@ function ViewBody({
     return { adapters, formStates: view.forms, formDefs, dialogs, setState, refContext };
   }, [adapters, view.data, view.forms, view.vars, formDefs, dialogs, setState]);
 
-  const tree = <NodeRenderer node={spec.root} registry={registry} eventContext={eventContext} />;
+  const tree = (
+    <NodeRenderer
+      node={spec.root}
+      registry={registry}
+      contracts={contracts}
+      eventContext={eventContext}
+    />
+  );
 
   return hideDiagnostics ? tree : <DataDiagnostics>{tree}</DataDiagnostics>;
 }
@@ -122,6 +143,7 @@ export function ViewRenderer({
   spec,
   adapters = EMPTY_ADAPTERS,
   registry = defaultRegistry,
+  contracts = defaultContracts,
   icons,
   theme,
   themeMode = "root",
@@ -179,6 +201,7 @@ export function ViewRenderer({
             <ViewBody
               spec={spec}
               registry={registry}
+              contracts={contracts}
               adapters={adapters}
               formDefs={formDefs}
               dialogs={dialogs}
