@@ -8,6 +8,7 @@ import {
   extendContracts,
   type PropDoc,
 } from "../spec/contracts";
+import { replaceGeneratedRegion } from "./regions";
 
 export { type ComponentContracts, extendContracts };
 
@@ -21,7 +22,7 @@ export { type ComponentContracts, extendContracts };
  * renderer that drifts. There is nothing here a built-in component gets and a
  * registered one does not.
  *
- * **Prose is never generated.** `renderComponentReference` returns the table
+ * **Prose is never generated.** `renderReferenceRegions` returns the table
  * regions and nothing else; `renderViewSpecReference` *carries* this package's
  * own hand-written words around them, unfiltered. A host documenting its own
  * registry writes its own.
@@ -37,7 +38,7 @@ export { type ComponentContracts, extendContracts };
  * a page that renders one card, nor in a server-side validation gate.
  *
  * Extend this, not `defaultContracts`, when generating a reference:
- * `renderComponentReference(extendContracts(defaultReferenceContracts, yours))`.
+ * `renderReferenceRegions(extendContracts(defaultReferenceContracts, yours))`.
  */
 export function referenceContracts(docs: ComponentContracts): ComponentContracts {
   // Derived facts first: their key order is the library's own declaration
@@ -272,7 +273,7 @@ export type ReferenceOptions = {
  * alternative is a component that is silently absent from the document a model
  * authors against.
  */
-export function renderComponentReference(
+export function renderReferenceRegions(
   contracts: ComponentContracts,
   { categories = DEFAULT_CATEGORIES, propLimit = 7 }: ReferenceOptions = {},
 ): ReferenceRegions {
@@ -281,7 +282,7 @@ export function renderComponentReference(
     // no props behind a dangling `· +N more`; a negative one silently drops the
     // last prop of every row, which is the omission this option exists to end.
     throw new Error(
-      `renderComponentReference: propLimit must be a positive integer or false, not ${String(propLimit)}.`,
+      `renderReferenceRegions: propLimit must be a positive integer or false, not ${String(propLimit)}.`,
     );
   }
   return {
@@ -428,27 +429,6 @@ export function scopeContracts(
   return next;
 }
 
-/**
- * Rewrites a `<!-- GENERATED:x -->…<!-- /GENERATED:x -->` region of a markdown
- * document, leaving everything around it alone.
- *
- * How a generated table gets into a hand-written reference — this package's own
- * and, for a host keeping its own document, theirs. Throws on a marker the
- * document does not carry, because the alternative is a reference that silently
- * stops being regenerated while every check still passes.
- */
-export function replaceGeneratedRegion(doc: string, id: string, body: string): string {
-  // Escaped, because `id` is the caller's: an unescaped `.` in `"table.rows"`
-  // matches a *different* marker and rewrites the wrong region — the silent
-  // failure this function's own throw exists to prevent — and a `(` throws a
-  // SyntaxError from a regex the caller never wrote.
-  const marker = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(`(<!-- GENERATED:${marker} -->)[\\s\\S]*?(<!-- /GENERATED:${marker} -->)`);
-  if (!pattern.test(doc)) throw new Error(`the document has no GENERATED:${id} region`);
-  // A function replacer, because a note is free to contain `$&` or "$`" and a
-  // string replacement would expand it into something the author never wrote.
-  return doc.replace(pattern, (_, open: string, close: string) => `${open}\n${body}\n${close}`);
-}
 
 export type ViewSpecReferenceOptions = ReferenceOptions &
   (ContractScope | { readonly include?: undefined; readonly exclude?: undefined }) & {
@@ -467,7 +447,7 @@ export type ViewSpecReferenceOptions = ReferenceOptions &
  * **This document's prose is about `@batthewz/response-ui-react-components`.**
  * It is the reference this package ships, re-rendered from the contracts it is
  * handed, so `contracts` is for *adding* your components to it. A host
- * documenting a registry of its own instead wants `renderComponentReference`
+ * documenting a registry of its own instead wants `renderReferenceRegions`
  * and its own words around it.
  *
  * With no options it reproduces the committed file byte for byte. Given a scope
@@ -537,12 +517,12 @@ export function renderViewSpecReference(options: ViewSpecReferenceOptions = {}):
       ? contracts
       : scopeContracts(contracts, (include === undefined ? { exclude } : { include }));
 
-  const regions = renderComponentReference(scoped, rest);
+  const regions = renderReferenceRegions(scoped, rest);
 
   // Prepended to the components region rather than written into the prose: it
   // is generated, so it round-trips through the markers, and it is empty for an
   // unscoped document, which is what keeps that case byte-identical to the
-  // committed file. `renderComponentReference` does not do this — the claim is
+  // committed file. `renderReferenceRegions` does not do this — the claim is
   // about *this* document's examples, not about anyone's contracts.
   const undocumented = undocumentedInProse(scoped);
   const components =

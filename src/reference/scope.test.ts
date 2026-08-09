@@ -5,11 +5,11 @@ import {
   type ContractScope,
   DEFAULT_CATEGORIES,
   defaultReferenceContracts,
-  renderComponentReference,
+  renderReferenceRegions,
   renderViewSpecReference,
-  replaceGeneratedRegion,
   scopeContracts,
 } from "./index";
+import { replaceGeneratedRegion } from "./regions";
 
 /**
  * The component vocabulary of a real producer: every distinct name across 23
@@ -63,7 +63,7 @@ describe("scopeContracts", () => {
   it("carries a root's compound parts, so its Parts column is not a lie", () => {
     const scoped = scopeContracts(defaultReferenceContracts, { include: ["Tabs"] });
     expect(Object.keys(scoped)).toContain("Tabs.Panel");
-    const { components } = renderComponentReference(scoped);
+    const { components } = renderReferenceRegions(scoped);
     expect(components).toContain("`.Panel`");
   });
 
@@ -99,7 +99,7 @@ describe("scopeContracts", () => {
     // The Parts column is read off the surviving names, so it loses the part
     // too. Its curated *note* still names `.Panel`: a note is hand-written
     // advice, and scoping prose is exactly what this deliberately does not do.
-    const { components } = renderComponentReference(scoped);
+    const { components } = renderReferenceRegions(scoped);
     const tabs = components.split("\n").find((line) => line.startsWith("| `Tabs` |"));
     expect(tabs?.split(" | ")[1]).toBe("`.List` `.Tab`");
     expect(tabs).toContain("`.Panel` is a sibling of `.List`.");
@@ -218,12 +218,12 @@ describe("propLimit", () => {
   const wide = scopeContracts(defaultReferenceContracts, { include: ["DataTable"] });
 
   it("truncates at seven by default, which is what the full reference does", () => {
-    const { components } = renderComponentReference(wide);
+    const { components } = renderReferenceRegions(wide);
     expect(components).toContain("+21 more");
   });
 
   it("lists every prop when the scope is narrow enough to afford them", () => {
-    const { components } = renderComponentReference(wide, { propLimit: false });
+    const { components } = renderReferenceRegions(wide, { propLimit: false });
     expect(components).not.toMatch(/\+\d+ more/);
     const declared = defaultReferenceContracts.DataTable.props ?? [];
     expect(declared.length).toBe(28);
@@ -232,7 +232,7 @@ describe("propLimit", () => {
 
   it("reaches the whole document, which is where the docs point", () => {
     // The README's headline call passes `propLimit` to `renderViewSpecReference`,
-    // not to `renderComponentReference` — and forwarding it was the one step no
+    // not to `renderReferenceRegions` — and forwarding it was the one step no
     // test exercised.
     const capped = renderViewSpecReference({ include: ["DataTable"] });
     const complete = renderViewSpecReference({ include: ["DataTable"], propLimit: false });
@@ -246,18 +246,18 @@ describe("propLimit", () => {
     // "` · +28 more`" — a dangling separator ahead of a count of nothing.
     // A negative one silently dropped the last prop of every row.
     for (const propLimit of [0, -1, 1.5, Number.NaN]) {
-      expect(() => renderComponentReference(wide, { propLimit }), String(propLimit)).toThrow(
+      expect(() => renderReferenceRegions(wide, { propLimit }), String(propLimit)).toThrow(
         /positive integer or false/,
       );
     }
-    expect(() => renderComponentReference(wide, { propLimit: 1 })).not.toThrow();
+    expect(() => renderReferenceRegions(wide, { propLimit: 1 })).not.toThrow();
   });
 
   it("clips a type too long for a table cell rather than widening the row", () => {
     const long = `"${"a".repeat(40)}"|"${"b".repeat(40)}"`;
     expect(long.length).toBeGreaterThan(72);
     const cellOf = (type: string) =>
-      renderComponentReference(
+      renderReferenceRegions(
         { Widget: { category: "Layout", props: [{ key: "mode", optional: true, type }] } },
         // No ellipsis in the blurb: the first version of this test asserted
         // `toContain("…")` against a blurb that was itself an ellipsis, and
@@ -425,7 +425,7 @@ describe("renderViewSpecReference", () => {
     // The template is the committed reference, so a region left unspliced comes
     // out looking right. Scoping is the only input that can tell the two apart:
     // each of these must differ from the full document, and equal what
-    // `renderComponentReference` says for the same contracts.
+    // `renderReferenceRegions` says for the same contracts.
     //
     // Excluding rather than including, and these three names specifically:
     // `CommandPalette` and `MultiSelect` are the only two components with
@@ -437,7 +437,7 @@ describe("renderViewSpecReference", () => {
     const scoped = scopeContracts(defaultReferenceContracts, { exclude });
     const profile = renderViewSpecReference({ exclude });
     const full = renderViewSpecReference();
-    const regions = renderComponentReference(scoped);
+    const regions = renderReferenceRegions(scoped);
 
     for (const [id, body] of [
       ["slots", regions.slots],
@@ -448,7 +448,7 @@ describe("renderViewSpecReference", () => {
       expect(region(profile, id), id).not.toBe(region(full, id));
     }
 
-    // The components region carries one thing `renderComponentReference` cannot
+    // The components region carries one thing `renderReferenceRegions` cannot
     // know about — the warning naming components the *prose* authors and these
     // contracts no longer cover. The tables under it are still exactly what the
     // region renderer produced.

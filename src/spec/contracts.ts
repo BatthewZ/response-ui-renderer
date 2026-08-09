@@ -13,7 +13,7 @@ import propEnums from "./prop-enums.json";
  *
  * One record per **addressable name**, the same spelling the registry and a
  * document use: `"Card"`, `"Table.Row"`. Merged with `extendContracts`, passed
- * to `ViewRenderer`, `validateViewSpec` and `renderComponentReference` — so a
+ * to `ViewRenderer`, `validateViewSpec` and `renderReferenceRegions` — so a
  * component declared once is rendered, validated and documented from that one
  * declaration.
  */

@@ -472,10 +472,10 @@ import {
   DEFAULT_CATEGORIES,
   defaultReferenceContracts,
   extendContracts,
-  renderComponentReference,
+  renderReferenceRegions,
 } from "@batthewz/response-ui-renderer/reference";
 
-const { components, slots } = renderComponentReference(
+const { components, slots } = renderReferenceRegions(
   extendContracts(defaultReferenceContracts, contracts),
   { categories: [...DEFAULT_CATEGORIES, { name: "Charts", blurb: "Rendered from live data." }] },
 );

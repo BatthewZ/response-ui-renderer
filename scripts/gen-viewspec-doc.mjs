@@ -37,11 +37,11 @@ import { globSync } from "glob";
 import * as ResponseUI from "@batthewz/response-ui-react-components";
 
 import { NOT_ADDRESSABLE } from "../src/examples/not-addressable.ts";
-import {
-  referenceContracts,
-  replaceGeneratedRegion,
-  renderViewSpecReference,
-} from "../src/reference/index.ts";
+import { referenceContracts, renderViewSpecReference } from "../src/reference/index.ts";
+// Deep import on purpose: the splicer is shared with the shipped renderer but is
+// not part of `/reference`'s public surface, and a build script inside this
+// repository is not a consumer.
+import { replaceGeneratedRegion } from "../src/reference/regions.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const libRoot = path.join(root, "node_modules/@batthewz/response-ui-react-components");

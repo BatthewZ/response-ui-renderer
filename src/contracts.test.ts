@@ -9,7 +9,7 @@ import { NOT_ADDRESSABLE } from "./examples/not-addressable";
 import * as rootBarrel from "./index";
 import {
   defaultReferenceContracts,
-  renderComponentReference,
+  renderReferenceRegions,
   renderViewSpecReference,
 } from "./reference";
 import {
@@ -559,7 +559,7 @@ describe("the shipped reference renderer produces the shipped reference", () => 
   // imports to document its own registry — says the same thing, because the
   // generator would rewrite both sides from the same in-memory derivation.
   // This reads the two committed files and relates them to each other.
-  const regions = renderComponentReference(defaultReferenceContracts);
+  const regions = renderReferenceRegions(defaultReferenceContracts);
 
   it.each(Object.entries(regions))("renders VIEWSPEC.md's %s region byte for byte", (id, body) => {
     const marker = id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
