@@ -147,6 +147,7 @@ describe("apiCall inside a rendered document", () => {
   it("blocks a cross-origin endpoint and says so", async () => {
     const fetchImpl = vi.fn();
     const toast = vi.fn();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const user = userEvent.setup();
     render(
       <ViewRenderer
@@ -160,5 +161,7 @@ describe("apiCall inside a rendered document", () => {
     await user.click(screen.getByRole("button", { name: "Go" }));
     expect(fetchImpl).not.toHaveBeenCalled();
     expect(toast).toHaveBeenCalledWith(expect.stringContaining("blocked"), expect.anything());
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("https://evil.example/x"));
+    warn.mockRestore();
   });
 });

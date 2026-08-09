@@ -2,7 +2,9 @@
 
 `bun run test` — **not** `bun test`, which runs Bun's own runner against a vitest suite and
 fails a large fraction of it for reasons that have nothing to do with the code.
-`bun run typecheck` is `tsc --noEmit && eslint src`; both must be clean.
+`bun run typecheck` is `tsc --noEmit` plus eslint; both must be clean. Lint the test-only
+modules at the repo root along with `src` and `dev` — they are TypeScript like everything else,
+and while they sat outside the lint scope they quietly accumulated errors nobody could see.
 
 ## jsdom omissions
 
@@ -44,6 +46,31 @@ more; it cannot fail on the behaviour that motivated it. Where clickability is t
 proof is a real engine driving a real click through to the handler, which lives in the
 sibling's browser probes and cannot be reproduced here — so cite that rather than adding a
 fixture whose green is uninformative.
+
+## An expected throw must not print like an unexpected one
+
+A handful of tests prove the renderer degrades to a diagnostic instead of blanking, so a
+component really throws and React really logs it — a stack per throw, and by far the loudest
+thing the suite emits, all of it the suite working. Render those through `renderThrowing`
+(`test-utils.ts`), which supplies the root's `onCaughtError` and swallows the log.
+
+Scope is the whole point, so do not move that into the setup file. Global silence buys the
+same quiet and spends the signal: a boundary catch in a test that never asked for one is
+exactly the failure worth shouting about, and after a blanket silence it reads as a pass.
+The helper also asserts that something *was* caught, so its name cannot go stale — a peer
+release that makes a formerly-broken document render fails the call instead of passing
+quietly under a name that no longer describes it.
+
+Two things make this easy to misjudge. Vitest's default reporter prints console output only
+for *failing* tests, so the dump is invisible until something else has already gone wrong or
+you run `--reporter=verbose` — it is loudest precisely when you are reading the output for
+another reason. And the noise is not evidence of a real problem, which is why it survived so
+long: everything was green underneath it.
+
+The residue that remains is jsdom's `Not implemented: navigation to another Document`, raised
+by the site tests that assert a click was **left to the browser**. There, the message is the
+behaviour being proven, and jsdom offers no way to quieten it that does not also hide real
+output.
 
 ## The installed version is not the supported range
 

@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { renderThrowing } from "../../test-utils";
 import { exampleSpecs } from "../examples";
 import { lucideIcons } from "../icons";
 import type { ViewSpec } from "../spec/types";
@@ -627,7 +628,7 @@ describe("icons", () => {
   it("contains a compound part used outside its parent instead of blanking the view", () => {
     // The library throws for orphaned compound parts by design; a document from
     // a generator will produce them, and the view must survive it.
-    const { container } = render(
+    const { container } = renderThrowing(
       <ViewRenderer
         spec={spec({
           root: {
@@ -765,7 +766,7 @@ describe("hostile and degenerate documents", () => {
       throw new Error("component exploded");
     };
     const registry = { Boom: { component: Boom } };
-    const { container } = render(
+    const { container } = renderThrowing(
       <ViewRenderer
         registry={registry}
         spec={spec({ root: { component: "Boom" } })}
@@ -809,7 +810,7 @@ describe("document identity", () => {
     const build = (variant: string) =>
       spec({ root: { component: "Text", props: { variant }, children: ["fixed text"] } });
 
-    const { container, rerender } = render(<ViewRenderer spec={build("body")} />);
+    const { container, rerender } = renderThrowing(<ViewRenderer spec={build("body")} />);
     expect(container.textContent).toContain("Render error");
 
     rerender(<ViewRenderer spec={build("body-2")} />);
@@ -840,7 +841,7 @@ describe("document identity", () => {
       },
     });
 
-    const { container } = render(<ViewRenderer spec={document} />);
+    const { container } = renderThrowing(<ViewRenderer spec={document} />);
     expect(container.textContent).toContain("Render error");
 
     await user.click(screen.getByRole("button", { name: "flip" }));
@@ -878,7 +879,7 @@ describe("document identity", () => {
       },
     });
 
-    const { container } = render(<ViewRenderer spec={document} />);
+    const { container } = renderThrowing(<ViewRenderer spec={document} />);
     expect(container.textContent).toContain("Render error");
 
     await user.click(screen.getByRole("button", { name: "reload" }));

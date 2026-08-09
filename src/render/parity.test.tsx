@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
+import { renderThrowing } from "../../test-utils";
 import { parseIsoDate } from "../registry/prop-coercions";
 import type { ViewNode, ViewSpec } from "../spec/types";
 import { validateViewSpec, warningsOf } from "../spec/validate";
@@ -816,7 +817,7 @@ describe("children a component calls", () => {
       },
     });
 
-    render(<ViewRenderer spec={wrong} />);
+    renderThrowing(<ViewRenderer spec={wrong} />);
 
     // Scanned from the body: the listbox is a floating portal, so a diagnostic
     // inside it is nowhere near the render container.
@@ -835,7 +836,7 @@ describe("children a component calls", () => {
       },
     });
 
-    const { container } = render(<ViewRenderer spec={wrong} />);
+    const { container } = renderThrowing(<ViewRenderer spec={wrong} />);
 
     expect(findRenderDiagnostics(container).join("\n")).toContain(
       "not a position in the selection",
@@ -853,7 +854,7 @@ describe("children a component calls", () => {
       },
     });
 
-    const { container } = render(<ViewRenderer spec={orphan} />);
+    const { container } = renderThrowing(<ViewRenderer spec={orphan} />);
 
     expect(findRenderDiagnostics(container).join("\n")).toContain(
       "must be returned from CommandPalette's children function",
