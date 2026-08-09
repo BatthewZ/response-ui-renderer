@@ -427,6 +427,8 @@ These need host code. Register a wrapper with `extendRegistry` if a document mus
 
 Props typed as a **predicate or formatter** (`isDateDisabled`, `formatValue`, `rejectMessage`, `sortComparator`, `filter`) are unreachable everywhere: a declarative handler returns nothing, so binding one is silently wrong rather than merely unsupported. Omit them.
 
+Props typed as a **DOM element** (`container` on `Tooltip` and `Portal`) are unreachable for the same reason — JSON has no element to pass. Omit them rather than passing `null`, which means "no override" and not "the body".
+
 ## Spacing Scale
 
 Gap, padding and size props take responsive tokens. The scale is **inverted**: `r1` is the largest step, `r6` the smallest. Never write raw pixels.
@@ -435,7 +437,9 @@ Gap, padding and size props take responsive tokens. The scale is **inverted**: `
 
 Two optional levers. `theme` names a theme **your application defines**; `response-ui-css` defines only `default`, which *is* `:root`. A theme authored `:root[data-theme="…"]` matches `<html>` and nothing else, so it cannot be scoped to a subtree; the renderer's default `themeMode: "root"` writes there. For per-view theming prefer `themeOverrides`.
 
-`themeOverrides` sets CSS custom properties inline on the view's wrapper — always scoped to the view, always works, and independent of `themeMode`. Only keys starting with `--` are applied; anything else is dropped, so a document can re-point design tokens but never restyle arbitrary CSS. Every token has a default, so override only what the design calls for. (`Portal` renders outside the wrapper and does not receive them.)
+`themeOverrides` sets CSS custom properties inline on the view's wrapper — always scoped to the view, always works, and independent of `themeMode`. Only keys starting with `--` are applied; anything else is dropped, so a document can re-point design tokens but never restyle arbitrary CSS. Every token has a default, so override only what the design calls for.
+
+They reach a node by **inheritance**, so the test is where it lands in the DOM, not where you wrote it. Anything portalled to `<body>` lands outside the wrapper and keeps the host's tokens: that is `Portal` always, and a floating panel — tooltip, popover, menu, listbox — opened anywhere but inside an overlay. A panel opened *inside* a `Dialog`, `Drawer` or `CommandPalette` portals into that overlay instead, which is inside the wrapper, so it does inherit them.
 
 ```jsonc
 "themeOverrides": {
@@ -510,6 +514,7 @@ A font-family override only takes effect if the host app already loads that font
 4. `$each` must reference an array, or nothing renders.
 5. `$field` needs the field declared in `spec.forms` first.
 6. `Dialog`, `Drawer` and `CommandPalette` need a literal string `id`, or no action can open them.
-7. Give every control an accessible name — most have none of their own.
-8. Anything that reveals on scroll (`Timeline`, `MasonryGrid`, `Swimlane`, `Spotlight`, `ScrollReveal`, `Hero.Content`) starts invisible. Pass `animate: false` when the content matters more than the effect.
-9. `dangerouslySetInnerHTML`, `ref`, `key` and `__proto__` are dropped; `javascript:` URLs are stripped. Do not rely on them.
+7. Nest tooltips, popovers, menus and select listboxes inside a `Dialog`, `Drawer` or `CommandPalette` freely — they portal into the overlay rather than to `<body>`, so they paint above it and stay clickable. Nothing to configure.
+8. Give every control an accessible name — most have none of their own.
+9. Anything that reveals on scroll (`Timeline`, `MasonryGrid`, `Swimlane`, `Spotlight`, `ScrollReveal`, `Hero.Content`) starts invisible. Pass `animate: false` when the content matters more than the effect.
+10. `dangerouslySetInnerHTML`, `ref`, `key` and `__proto__` are dropped; `javascript:` URLs are stripped. Do not rely on them.

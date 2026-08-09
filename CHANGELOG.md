@@ -4,7 +4,7 @@ All notable changes to `@batthewz/response-ui-renderer` will be documented in th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0.0, breaking changes will bump the **minor** version.
 
-## Unreleased
+## [0.2.0] — 2026-08-09
 
 ### Added
 
@@ -50,6 +50,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   shared counter. Author-supplied ids are untouched with `idScope` omitted, but every
   library-generated id in the tree shifts by one, so a host that server-renders on 0.1.0 and
   hydrates on this version will see an id mismatch.
+
+- **Requires `@batthewz/response-ui-react-components` 0.18.** The peer range moves from
+  `^0.17.1`, which cannot resolve it. Nothing in the wire format changes — `props` is an open
+  record and `VIEWSPEC.md` regenerates byte-identical against the new build, verified — but two
+  behaviours a document can observe do:
+
+  **Floating panels nested in an overlay now work.** A tooltip, popover, menu or select listbox
+  opened inside a `Dialog`, `Drawer` or `CommandPalette` used to portal to `<body>`, which put it
+  under the dialog's top layer *and* inside `showModal()`'s inert subtree — positioned correctly,
+  invisible, and taking no clicks. Nothing a document could write fixed it, so the composition
+  was effectively unavailable. It now portals into the overlay. The corpus exercises it:
+  `overlays.viewspec.json` nests a `Tooltip` in a `Dialog` and a `DropdownMenu` in a `Drawer`.
+
+  **`themeOverrides` reaches those panels.** They are appended to the `<dialog>`, which is inside
+  the view's wrapper, so they inherit the overrides — where the same panel opened outside an
+  overlay still lands in `<body>` and still does not. The docs previously claimed only `Portal`
+  escaped the wrapper, which was never true of floating panels; `README.md` and `VIEWSPEC.md`
+  now state the rule as inheritance and name both cases.
+
+  Also fixed upstream, and reachable from JSON: `"container": null` on a `Tooltip` rendered no
+  bubble at all, because it was forwarded as "wait for a mount node that never arrives". It now
+  reads as "no override". `container` still cannot be *used* from a document — JSON has no
+  element to pass — and `VIEWSPEC.md` now says so alongside the predicate/formatter props.
 
 ## [0.1.0] — 2026-08-08
 

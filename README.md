@@ -247,6 +247,8 @@ const { toast } = useToast();
 
 Keys must start with `--`; anything else is ignored. See the [theme contract](https://github.com/BatthewZ/response-ui-css/blob/main/docs/theme-contract.md) for the full token list.
 
+"Cascade to descendants" is the whole rule, and portalled content is the case where it bites: a `Portal`, and any floating panel opened outside an overlay, is appended to `<body>` and keeps the host's tokens. Open that same panel inside a `Dialog`, `Drawer` or `CommandPalette` and it portals into the overlay — still a descendant of the wrapper, so it inherits the overrides.
+
 ### `theme` and the `:root` caveat
 
 A `theme` name refers to a theme **your application defines** — writing your own is the normal case. `response-ui-css` defines only `default` (which is `:root` itself); the `events` / `grimdark` / `tech` themes it ships are opt-in worked examples, not a built-in set, and nothing imports them for you.

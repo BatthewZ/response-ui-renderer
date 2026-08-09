@@ -155,6 +155,29 @@ the library gives you the choice, a prop whose wrong value is *loud*: a bounded 
 generated into `prop-enums.json` and warned about, so it degrades to a message rather than
 to silence.
 
+## What no gate can see: a behaviour change with no type change
+
+The sibling's most consequential releases can move every gate here by nothing at all. A change
+that alters *where* a component puts something in the DOM, what a prop's existing value now
+means, or how long a node stays mounted has no signature to notice: the generated reference
+regenerates byte-identical, the types check, and the corpus renders green — correctly, because
+none of those artifacts describes runtime behaviour. Green after a peer bump means "nothing we
+model changed", never "nothing changed".
+
+So the upstream changelog is the input, not the diffstat, and the sections that matter are
+`Changed` and `Fixed` rather than `Breaking` alone. Read them for three shapes in particular,
+each of which lands in this package's *prose* and nowhere else: a portal target moving, because
+this package's docs make inheritance claims about the wrapper that only hold while portalled
+content stays where it was; the meaning of a value a document can literally write, `null` above
+all, since JSON can express it and a prop that quietly changed from "wait" to "no override"
+flips a document from broken to working with nothing here to show for it; and a timing change,
+which is invisible until a host's own tests advance a clock.
+
+The corollary is the ordering. Docs describing an unreleased upstream are a bet on work that
+may still change shape, so write them against the sibling's changelog once its bug rows are
+closed, and land them in the same commit as the range bump — never before it, or the package
+documents behaviour no installable combination provides.
+
 ## Slot keys and value sets are generated, not written
 
 `classNames` keys and every prop bounded to a fixed set of strings are parsed out of the

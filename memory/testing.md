@@ -33,6 +33,18 @@ callback it actually calls before retiring a known gap.
 A third half, once you can open one: a `<dialog>`'s children stay in the DOM whether or not it
 is open, so `findByText` inside a panel passes on a dialog that never opened. Assert `open`.
 
+The `<dialog>` gap runs deeper than its methods, and the depth is what makes overlay coverage
+misleading. jsdom has no **top layer** and no **inert**, which are the two things that decide
+whether a floating panel opened inside a dialog is actually usable. Both are pure
+paint-and-hit-test concepts with no DOM shape at all, so a tooltip or menu nested in a
+`Dialog`/`Drawer` renders and queries identically whether it is genuinely interactive or
+invisible and swallowing every click — the exact failure such a fixture looks like it covers.
+A corpus document nesting the two is therefore evidence that the *spec* renders, and nothing
+more; it cannot fail on the behaviour that motivated it. Where clickability is the claim, the
+proof is a real engine driving a real click through to the handler, which lives in the
+sibling's browser probes and cannot be reproduced here — so cite that rather than adding a
+fixture whose green is uninformative.
+
 ## The installed version is not the supported range
 
 React's generated id has been spelled `«r0»` and `_r_0_` across the `^19.0.0` peer range, and

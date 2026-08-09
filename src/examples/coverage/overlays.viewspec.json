@@ -671,6 +671,23 @@
                             "children": [
                               "Comments are kept with the revision they were left on, so a link you share today still resolves after the next edit."
                             ]
+                          },
+                          {
+                            "component": "Row",
+                            "props": { "gap": "r5", "align": "center" },
+                            "children": [
+                              {
+                                "component": "Tooltip",
+                                "props": { "content": "Anyone with the link can comment until you revoke it.", "placement": "top" },
+                                "children": [
+                                  {
+                                    "component": "Button",
+                                    "props": { "size": "sm", "variant": "secondary" },
+                                    "children": ["Link settings"]
+                                  }
+                                ]
+                              }
+                            ]
                           }
                         ]
                       }
@@ -782,6 +799,52 @@
                             "children": ["Revision history"]
                           },
                           { "component": "Spacer" },
+                          {
+                            "component": "DropdownMenu",
+                            "props": { "placement": "bottom-end" },
+                            "children": [
+                              {
+                                "component": "DropdownMenu.Trigger",
+                                "children": ["Revision actions"]
+                              },
+                              {
+                                "component": "DropdownMenu.Content",
+                                "props": { "aria-label": "Revision actions" },
+                                "children": [
+                                  {
+                                    "component": "DropdownMenu.Item",
+                                    "props": {
+                                      "index": 0,
+                                      "icon": "copy",
+                                      "onSelect": {
+                                        "action": "setState",
+                                        "payload": {
+                                          "key": "lastAction",
+                                          "value": "Copied a link to the selected revision"
+                                        }
+                                      }
+                                    },
+                                    "children": ["Copy link to revision"]
+                                  },
+                                  {
+                                    "component": "DropdownMenu.Item",
+                                    "props": {
+                                      "index": 1,
+                                      "icon": "history",
+                                      "onSelect": {
+                                        "action": "setState",
+                                        "payload": {
+                                          "key": "lastAction",
+                                          "value": "Restored the selected revision"
+                                        }
+                                      }
+                                    },
+                                    "children": ["Restore this revision"]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
                           {
                             "component": "Button",
                             "props": {
