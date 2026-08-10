@@ -354,7 +354,7 @@ unknown component "Cadr"; the node renders an inline warning in its place — di
 Every issue carries a `severity`:
 
 - `"error"` — the document does not conform; `ok` is `false`. Use `errorsOf(issues)`.
-- `"warning"` — it conforms, but names something that will not do what it looks like: a forbidden prop, a `javascript:` URL, an unknown action inside a prop, a theme override that is not a custom property, nesting past the depth cap, or a value outside the set a prop accepts. Use `warningsOf(issues)`.
+- `"warning"` — it conforms, but names something that will not do what it looks like: a forbidden prop, a URL whose scheme is not allowed, an element `as` will not render, an unknown action inside a prop, a theme override that is not a custom property, nesting past the depth cap, or a value outside the set a prop accepts. Use `warningsOf(issues)`.
 
 That last one is the difference between a document that fails and one that quietly underdelivers. Props like `gap`, `variant` and `size` are looked up in a table of classes; a miss returns nothing, so the component renders with that dimension absent and nothing in the DOM to notice. The accepted values are read out of the library's own declarations, so the reference a model authors from and the check it is validated against are one artifact.
 
@@ -385,8 +385,11 @@ Documents are assumed untrusted, because a generator wrote them.
 | --- | --- |
 | A component throws | per-node error boundary; siblings keep rendering |
 | Unknown component | inline warning in place |
-| `dangerouslySetInnerHTML`, `ref`, `key`, `__proto__` | dropped before `createElement` |
-| `javascript:` / `vbscript:` / `data:text/html` URLs | dropped, including `java\tscript:` |
+| `dangerouslySetInnerHTML`, `srcDoc`, `ref`, `key`, `constructor`, `prototype`, `__proto__` | dropped before `createElement`. Inside a spread props bag, `dangerouslySetInnerHTML`, `srcDoc` and `__proto__` only — `ref` and `key` are ordinary field names on a data row |
+| URLs | scheme **allowlist** — `http:`, `https:`, `mailto:`, `tel:`, relative, and `data:` for real image types. Everything else is dropped, including `java\tscript:`, `blob:`, `ftp:`, `sms:` and `data:image/svg+xml`. Attribute names are matched case-insensitively, as the DOM matches them |
+| A URL under a prop that is not spelled like one | checked too — `Swimlane.viewAllHref`, `AppShell.SidebarLink.to` and `RequireAuth.redirect` all become an `href`, and the registry records that. Register your own with `urlProps` |
+| A URL inside a spread props bag (`imgProps`, `tableProps`, …) | checked, including when the bag arrives whole from a `$ref`. Not past 20 levels of nesting, and not inside an event-handler payload or a `columnDefs` array |
+| Choosing the element: `as`, `titleAs`, `headingLevel` | constrained to an allowlist of content elements. `script`, `iframe`, `object`, `embed`, `style`, `link`, `base`, `meta`, `template`, `slot`, `svg` and `math` are refused, and so is anything not on the list — see `ALLOWED_AS_ELEMENTS` for the full set |
 | `"component": "__proto__"` | own-property lookups only; resolves to nothing |
 | `$ref` into `constructor` / `__proto__` | own-property walks only |
 | Runaway nesting | capped at 50 levels |
@@ -457,6 +460,10 @@ Merging is **per field**, so naming a component that already has a record adds t
 | `childInspection` | It clones or reads its own children, so no error boundary may sit between them. `"asChild"` to apply only when the node sets `asChild` |
 | `iconComponentProps` | Icon slots typed as a component rather than a node — handing one an element throws instead of degrading. Only consulted for props the renderer already treats as icons: named `icon`, or ending in `Icon` |
 | `nameProp` | `"dom"` when `name` reaches a real form element, so `idScope` namespaces it |
+| `urlProps` | Props your component turns into a URL attribute under a different name — a `to` or a `linkHref`. The universal DOM names (`href`, `src`, …) are checked for every component; without this a renamed one is not |
+| `elementProps` | Props your component reads as the host element to render, spelled as something other than `as`. Constrained to the same allowlist |
+| `headingLevelProps` | Props interpolated *into* a tag name (`` `h${level}` ``) rather than being one. Constrained to 1–6 |
+| `contentProps` | Props whose name matches a URL attribute's but whose value is content — a `ReactNode` slot named `action`. Exempts them from the URL check |
 | `props` · `slots` | Reference only: the props table and `classNames` slot keys |
 
 Omit the whole thing and a registered component still renders — it simply gets none of the above, which is what it got before contracts existed.

@@ -247,9 +247,16 @@ describe("isDangerousUrl", () => {
     expect(isDangerousUrl(url)).toBe(false);
   });
 
-  it("ignores non-strings", () => {
+  it("judges a non-string by what React would put in the attribute", () => {
+    // Not "ignores non-strings", which is what this used to check and what let
+    // an array through: React stringifies, so `["vbscript:…"]` becomes exactly
+    // that string in the DOM. Only the two values that make React omit the
+    // attribute altogether are exempt.
     expect(isDangerousUrl(null)).toBe(false);
+    expect(isDangerousUrl(undefined)).toBe(false);
     expect(isDangerousUrl(42)).toBe(false);
+    expect(isDangerousUrl(["vbscript:msgbox(1)"])).toBe(true);
+    expect(isDangerousUrl(["/safe/path"])).toBe(false);
   });
 });
 
@@ -316,5 +323,79 @@ describe("real generated documents", () => {
   it("narrows with isViewSpec", () => {
     expect(isViewSpec(exampleSpecs.contactForm)).toBe(true);
     expect(isViewSpec({ nope: true })).toBe(false);
+  });
+});
+
+/**
+ * The renderer's drops and the validator's warnings must name the same
+ * population, or the gate a host runs before rendering is telling it something
+ * untrue. Every one of these mutations passed the suite before they existed.
+ */
+describe("the validator warns for what the renderer drops", () => {
+  const warn = (root: unknown) =>
+    warningsOf(validateViewSpec({ version: 1, title: "T", root }).issues).map((i) => i.path);
+
+  it("warns for a renamed URL prop", () => {
+    expect(warn({ component: "Swimlane", props: { title: "t", viewAllHref: "javascript:alert(1)" } })).toContain(
+      "root.props.viewAllHref",
+    );
+  });
+
+  it("says nothing about a renamed URL prop carrying a safe value", () => {
+    expect(warn({ component: "Swimlane", props: { title: "t", viewAllHref: "/all" } })).not.toContain(
+      "root.props.viewAllHref",
+    );
+  });
+
+  it("warns for a refused element, under `as` and under a renamed spelling", () => {
+    expect(warn({ component: "Stack", props: { as: "script" } })).toContain("root.props.as");
+    expect(warn({ component: "Swimlane", props: { title: "t", titleAs: "script" } })).toContain(
+      "root.props.titleAs",
+    );
+  });
+
+  it("warns for a heading level that is not a level", () => {
+    expect(warn({ component: "Accordion", props: { headingLevel: "eader" } })).toContain(
+      "root.props.headingLevel",
+    );
+    expect(warn({ component: "Accordion", props: { headingLevel: 3 } })).not.toContain(
+      "root.props.headingLevel",
+    );
+  });
+
+  it("warns inside a spread bag, and stays silent about ordinary data", () => {
+    expect(warn({ component: "Hero.Background", props: { imgProps: { srcSet: "javascript:alert(1)" } } })).toContain(
+      "root.props.imgProps.srcSet",
+    );
+    // Same key, same value, in a payload rather than a bag. Warning here would
+    // mean the renderer was dropping a `DataTable` cell.
+    expect(warn({ component: "DataTable", props: { data: [{ action: "Approve: pending" }] } })).toEqual([]);
+  });
+
+  it("warns for a mis-cased attribute name", () => {
+    expect(warn({ component: "Button", props: { as: "a", HREF: "javascript:alert(1)" } })).toContain(
+      "root.props.HREF",
+    );
+  });
+
+  it("keeps every new issue at the warning tier, so `ok` still means conformance", () => {
+    const result = validateViewSpec({
+      version: 1,
+      title: "T",
+      root: { component: "Stack", props: { as: "script", srcDoc: "<script>x</script>" } },
+    });
+    expect(result.ok).toBe(true);
+    expect(errorsOf(result.issues)).toEqual([]);
+    expect(warningsOf(result.issues).length).toBeGreaterThan(0);
+  });
+
+  it("survives a document nested past the depth cap instead of exhausting the stack", () => {
+    // The nested walk shipped uncapped and threw RangeError here — in the one
+    // function whose job is to survive hostile input.
+    let deep: Record<string, unknown> = { srcSet: "javascript:alert(1)" };
+    for (let i = 0; i < 5000; i += 1) deep = { imgProps: deep };
+    expect(() =>
+      validateViewSpec({ version: 1, title: "T", root: { component: "Hero.Background", props: deep } }),
+    ).not.toThrow();
   });
 });

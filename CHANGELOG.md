@@ -4,6 +4,109 @@ All notable changes to `@batthewz/response-ui-renderer` will be documented in th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0.0, breaking changes will bump the **minor** version.
 
+## [0.4.0] — Unreleased
+
+### Security
+
+- **The URL filter was keyed on the prop's name, from one global list.** So it only ever saw
+  the names it had been told about. A component that renames a URL on the way in was invisible
+  to it: `Swimlane.viewAllHref`, `AppShell.SidebarLink.to` and `RequireAuth.redirect` all become
+  an `href` on a real anchor, and none was ever examined. `RequireAuth.redirect` is the sharpest —
+  the component renders a hidden link and clicks it in an effect, so the value navigates on render
+  with no user gesture at all.
+
+  The name is still the key, because for these props the value cannot be: `CodeBlock.code` holds a
+  `javascript:` string legitimately and never becomes an attribute. What has changed is that the
+  *list* is no longer hand-kept. `RENAMED_URL_PROPS` records the renames per component and
+  `contracts.test.ts` scans the library's own source and fails when it finds a prop feeding a URL
+  attribute that nobody classified. A rename test cannot catch an omission; only an omission test
+  can, and an omission is what this was. The scan sees `attr={identifier}` JSX in the peer library
+  and nothing else — a host's own components are covered by `urlProps`, not by the gate.
+
+- **Attribute names are now matched case-insensitively.** `HREF` is not a React prop, so React
+  handed it to `setAttribute`, where an HTML document lowercased it into the real `href`. Measured
+  in Chrome: `{"as": "a", "HREF": "javascript:…"}` produced a link that executed on click, with no
+  browser backstop — the same defect as the one reported, on the universal names themselves.
+
+- **The scheme check is now an allowlist.** It was a denylist of three, and every bypass of it was
+  simply a fourth: `data:image/svg+xml`, `data:application/xhtml+xml`, `blob:`, `view-source:`.
+  A URL is kept only if its scheme is `http:`, `https:`, `mailto:`, `tel:`, an image `data:` type,
+  or it is relative. This mirrors `markdown-parse.ts` in the component library, and a test holds
+  the two declarations identical.
+
+- **The check reads what React will put in the attribute, not only strings.** `href` valued
+  `["vbscript:msgbox(1)"]` passed a `typeof value === "string"` guard and landed in the DOM as
+  that exact string. Arrays and primitives are now stringified first; a plain object is not, and
+  reaches React as the inert `[object Object]`.
+
+- **URLs and `srcDoc` are checked inside the props bags a component spreads onto an element.**
+  `imgProps.srcSet` and `tableProps.background` are the same DOM attributes as the top-level ones,
+  reached by a route the top-level loop could not see — including when the whole bag arrives from
+  a `$ref`, which resolved without being walked. Scoped to props whose name ends in `Props`,
+  which is the library's own convention and is asserted: applied to every nested key instead, the
+  check emptied `DataTable` cells holding `"Approve: pending review"`, because `action` and `cite`
+  are ordinary field names and ordinary prose parses as a scheme.
+
+- **`srcDoc` is refused, in any casing and inside a bag.** It is not a URL and no URL filter could
+  have reached it: it is a whole HTML document as an attribute value, running in the embedder's
+  own origin. It is `dangerouslySetInnerHTML` spelled as a plain DOM attribute.
+
+- **A document can no longer choose an executing element.** `as` was unconstrained, so
+  `as: "script"` with text children, or `as: "iframe"` with `srcDoc`, was script execution with no
+  URL involved anywhere. `as`, the renamed spellings `titleAs`, and `Accordion.headingLevel`
+  (which is interpolated into `` `h${level}` ``) are now constrained.
+
+- **The `navigate` action refuses a destination whose scheme executes.** `payload.path` is resolved
+  deeply, so it can arrive from an api binding, and a host adapter that assigns to `location.href`
+  would run it.
+
+- **A coercion can no longer step in front of the filter.** The `columnDefs` branch runs before
+  prop resolution and `continue`s, so it stood ahead of every check below it.
+
+- **`validateViewSpec` warns for the prop-level refusals** — renamed URL props, disallowed
+  elements and heading levels, mis-cased attribute names, and bag contents — at the existing
+  `"warning"` tier, so `ok` still means conformance. It cannot see through a `$ref` (it does not
+  resolve bindings), and it does not report the `navigate` or `columnDefs` refusals; the renderer
+  is what stops those.
+
+### Breaking
+
+- **`isDangerousUrl` answers a different question.** It was "does this start with one of three
+  dangerous schemes"; it is now "can this package vouch for this as a URL a browser resolves".
+  An unrecognised scheme is refused rather than waved through.
+- **URLs that previously rendered are now dropped**, wherever they appear: `blob:`, `ftp:`,
+  `sms:`, `geo:`, `ws:`/`wss:`, custom app schemes such as `myapp://`, `data:` types other than
+  the six image ones (including `data:image/svg+xml` even on an `<img src>`, where it cannot
+  execute), and any URL containing a tab, LF or CR. `sms:` in particular is the near-sibling of
+  the allowed `tel:`; if your documents use it, widen `ALLOWED_SCHEMES` in both this package and
+  the component library's `markdown-parse.ts`, which the mirror test holds together.
+- **`as` accepts only elements on `ALLOWED_AS_ELEMENTS`.** That is every HTML element that
+  presents or structures content, including the form controls and media elements. Refused:
+  `script`, `iframe`, `object`, `embed`, `style`, `link`, `base`, `meta`, `template`, `slot`, the
+  foreign-content roots `svg` and `math`, and any custom element. A refused value drops the prop,
+  leaving the component on its default element — silently, at render; `validateViewSpec` warns.
+  A host component that uses `as` for something other than an element loses it.
+- **`data` is no longer a universal URL prop.** It is a URL on `<object>` only, which a document
+  can no longer name, and it is the prop `DataTable` takes its rows under. A host component that
+  renders `<object data={…}>` declares it with `urlProps`.
+
+### Added
+
+- `ComponentContract` gains `urlProps`, `elementProps`, `headingLevelProps` and `contentProps`,
+  so a host registering its own components declares which props are destinations, which choose an
+  element, and which merely share a name with a DOM attribute. Without them a host component is
+  covered by the universal names only. Documented in the README's contract table.
+- `ALLOWED_AS_ELEMENTS`, `URL_PROPS`, `isAttributeBagProp`, `isElementProp`,
+  `isForbiddenAsElement`, `isForbiddenHeadingLevel`, `isForbiddenProp`, `isHeadingLevelProp`,
+  `isNestedForbiddenKey` and `isNestedUrlKey` are exported from `/spec`.
+- `isUrlProp(key)` takes an optional second argument, the component's contract. Existing
+  one-argument calls keep the universal answer.
+
+### Fixed
+
+- `validateViewSpec` no longer exhausts the stack on a deeply nested document. The nested walk
+  shipped uncapped, in the one function whose job is to survive hostile input.
+
 ## [0.3.0] — 2026-08-09
 
 ### Added

@@ -22,11 +22,34 @@ import { FUNCTION_CHILDREN } from "./registry/function-children";
 import { COMPONENT_TYPED_ICON_OWNERS } from "./registry/icon-slots";
 import { PROP_COERCION_OWNERS, PROP_COERCIONS } from "./registry/prop-coercions";
 import { defaultRegistry, listComponentNames } from "./registry/registry";
+import {
+  CONTENT_PROPS,
+  HEADING_LEVEL_PROPS,
+  RENAMED_ELEMENT_PROP_OWNERS,
+  RENAMED_ELEMENT_PROPS,
+  RENAMED_URL_PROP_OWNERS,
+  RENAMED_URL_PROPS,
+} from "./registry/sink-props";
 import { TEXT_CHILDREN } from "./registry/text-children";
 import { lookupComponent } from "./registry/types";
 import { RENDER_DIAGNOSTIC_CLASSES, RENDER_DIAGNOSTIC_SELECTOR } from "./render/diagnostics";
 import { NAME_PROP_MEANING } from "./render/id-scope";
-import { DIALOG_COMPONENTS, PROP_ENUMS, validateViewSpec, warningsOf } from "./spec/validate";
+import {
+  ALLOWED_AS_ELEMENTS,
+  DIALOG_COMPONENTS,
+  PROP_ENUMS,
+  URL_PROPS as UNIVERSAL_URL_PROP_NAMES,
+  validateViewSpec,
+  warningsOf,
+} from "./spec/validate";
+
+/**
+ * What the scan looks for in the library's JSX. The universal attribute names,
+ * plus `to`: the router adapter's Link renders `<a href={to}>`, so a `to=` in a
+ * component is a URL attribute one indirection away — and that indirection is
+ * what hid two of the three holes this gate exists to prevent.
+ */
+const URL_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([...UNIVERSAL_URL_PROP_NAMES, "to"]);
 
 /**
  * Contracts this package commits to, enforced rather than documented.
@@ -326,6 +349,268 @@ describe("hand-maintained coercion tables", () => {
       .sort();
 
     expect(inspecting).toEqual([...CHILD_INSPECTING_MODULES].sort());
+  });
+});
+
+/**
+ * The two sink tables, and the gate that is the actual point of them.
+ *
+ * A URL filter keyed on the prop's name is only ever as complete as its list of
+ * names, and that list was hand-kept: `AppShell.SidebarLink.to`,
+ * `Swimlane.viewAllHref` and `RequireAuth.redirect` all reached a live `href`
+ * because nobody had written them down. Keying on the value instead is not
+ * available — `CodeBlock.code` holds a `javascript:` string legitimately — so
+ * the name stays the key and the *list* stops being hand-kept: the scan below
+ * reads the library's own source and fails when it finds a sink nobody
+ * classified. A rename test cannot do this; only an omission test can.
+ */
+describe("sink-prop tables stay in step with the library", () => {
+  it.each([...RENAMED_URL_PROP_OWNERS, ...RENAMED_ELEMENT_PROP_OWNERS])(
+    "%s still exists upstream",
+    (name) => {
+      expect(lookupComponent(defaultRegistry, name)).toBeTruthy();
+    },
+  );
+
+  it.each([...RENAMED_URL_PROPS, ...RENAMED_ELEMENT_PROPS])(
+    "%s is still declared by its component upstream",
+    (key) => {
+      const dot = key.lastIndexOf(".");
+      const owner = key.slice(0, dot).split(".")[0];
+      const prop = key.slice(dot + 1);
+      const declaration = globSync(`src/components/**/${owner}.tsx`, {
+        cwd: libraryRoot,
+        absolute: true,
+      })[0];
+      expect(declaration).toBeTruthy();
+      expect(new RegExp(`\\b${prop}\\??:`).test(read(declaration))).toBe(true);
+    },
+  );
+
+  /**
+   * Every JSX attribute in the library that a browser resolves as a URL, paired
+   * with the identifier feeding it: `href={viewAllHref}` → `viewAllHref`.
+   * Attribute values that are not a bare identifier (`src={preview?.url}`) are
+   * component-internal by construction and are reported separately.
+   */
+  /**
+   * Prose is not code. The library documents these very indirections in its
+   * docblocks — `AppShell` explains `<a href={to} {...rest}>` in a comment — and
+   * a gate that reads a comment as a finding can also be *satisfied* by one.
+   * Block comments and whole-line `//` comments only, so a `https://` inside a
+   * string literal survives.
+   */
+  function stripComments(source: string): string {
+    return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  }
+
+  function urlAttributeFeeds(source: string): { prop: string; attr: string }[] {
+    const names = [...URL_ATTRIBUTE_NAMES].join("|");
+    return [...source.matchAll(new RegExp(`\\b(${names})=\\{(\\w+)\\}`, "g"))].map((m) => ({
+      attr: m[1],
+      prop: m[2],
+    }));
+  }
+
+  it("names every prop that feeds a URL attribute under a different name", () => {
+    // The scan is over the library's shipped `src`, which is the real upstream
+    // rather than a copy of it. `to=` is included because the router adapter's
+    // Link turns it into an `href` — that indirection is exactly what hid two
+    // of the three holes.
+    const files = globSync("src/components/**/*.tsx", { cwd: libraryRoot, absolute: true }).filter(
+      (file) => !/\.(test|examples)\.tsx$/.test(file),
+    );
+
+    const unclassified: string[] = [];
+    let feeds = 0;
+
+    for (const file of files) {
+      const source = stripComments(read(file));
+      for (const { prop, attr } of urlAttributeFeeds(source)) {
+        feeds += 1;
+        // Spelled like the attribute it becomes — the universal set covers it
+        // for every component at once, registered or not.
+        if (UNIVERSAL_URL_PROP_NAMES.has(prop)) continue;
+        // Declared by the component that renders this element, under this name?
+        // If not, the identifier is a local and the value never came from a
+        // document. `\bprop\??:` is the same declaration test the coercion gate
+        // uses, applied to the file the attribute lives in.
+        if (!new RegExp(`^\\s+${prop}\\??\\s*:`, "m").test(source)) continue;
+        const owner = path.basename(file, ".tsx");
+        // The question this gate asks is whether a *document* can put a value
+        // here, so the two populations that answer "no" are not findings:
+        //
+        // `router-adapter` is the indirection itself, not a component — its
+        // `to` is where the classified props arrive, and the registry has no
+        // such name. `FileUpload` is on the not-addressable list: it needs a
+        // live `File`, so its `previewUrl` can only ever be a blob URL the
+        // component minted for itself.
+        //
+        // Both are read from existing sources of truth rather than named here.
+        // A component leaving `NOT_ADDRESSABLE`, or the adapter growing a real
+        // registry entry, re-arms this test by itself.
+        if (!lookupComponent(defaultRegistry, owner)) continue;
+        if (Object.hasOwn(NOT_ADDRESSABLE, owner)) continue;
+        const classified = [...RENAMED_URL_PROPS].some((key) => {
+          const [component, declared] = [key.slice(0, key.lastIndexOf(".")), key.slice(key.lastIndexOf(".") + 1)];
+          return declared === prop && component.split(".")[0] === owner;
+        });
+        if (!classified) unclassified.push(`${owner}.${prop} → ${attr} (${path.basename(file)})`);
+      }
+    }
+
+    // The scan finding nothing would satisfy the assertion below it.
+    expect(feeds).toBeGreaterThan(0);
+    expect(unclassified).toEqual([]);
+  });
+
+  it("names every prop that chooses the host element under a different name", () => {
+    // `as` is universal; anything else that lands in a JSX tag position is a
+    // renamed element picker. The library spells those by destructuring with a
+    // capitalised alias — `titleAs: Heading = "h2"` — which is what this finds.
+    const files = globSync("src/components/**/*.tsx", { cwd: libraryRoot, absolute: true }).filter(
+      (file) => !/\.(test|examples)\.tsx$/.test(file),
+    );
+
+    const unclassified: string[] = [];
+    let pickers = 0;
+
+    for (const file of files) {
+      const source = stripComments(read(file));
+      // `[{,\n]` rather than a line anchor: the library destructures inline —
+      // `{ title, titleAs: Heading = "h2", … }` — and anchoring to the start of
+      // a line silently skipped `AppShell.SidebarSection.titleAs`, one of the
+      // three props this gate exists to have found.
+      for (const match of source.matchAll(/[{,\n]\s*(\w+):\s*[A-Z]\w*\s*=\s*["'](\w+)["']/g)) {
+        const [, prop, fallback] = match;
+        // The alias defaults to a real host element — that is what makes this a
+        // tag position rather than an ordinary renamed prop.
+        if (!ALLOWED_AS_ELEMENTS.has(fallback)) continue;
+        pickers += 1;
+        if (prop === "as") continue;
+        const owner = path.basename(file, ".tsx");
+        const classified = [...RENAMED_ELEMENT_PROPS].some((key) => {
+          const [component, declared] = [key.slice(0, key.lastIndexOf(".")), key.slice(key.lastIndexOf(".") + 1)];
+          return declared === prop && component.split(".")[0] === owner;
+        });
+        if (!classified) unclassified.push(`${owner}.${prop} (defaults to <${fallback}>)`);
+      }
+    }
+
+    expect(pickers).toBeGreaterThan(0);
+    expect(unclassified).toEqual([]);
+  });
+
+  it("names every content prop that collides with a URL attribute's name", () => {
+    // The other direction of the same mistake. `ActivityFeed.Item.action` is a
+    // `ReactNode` slot whose name happens to be `<form action>`; under a scheme
+    // allowlist ordinary prose has a scheme, so the slot rendered empty. A prop
+    // the library types as content is never a URL, whatever it is called.
+    const files = globSync("src/components/**/*.tsx", { cwd: libraryRoot, absolute: true }).filter(
+      (file) => !/\.(test|examples)\.tsx$/.test(file),
+    );
+    const names = [...UNIVERSAL_URL_PROP_NAMES].join("|");
+    const unclassified: string[] = [];
+    let slots = 0;
+
+    for (const file of files) {
+      const source = stripComments(read(file));
+      for (const match of source.matchAll(
+        new RegExp(`^\\s+(${names})\\??:\\s*(ReactNode|ReactElement)\\b`, "gm"),
+      )) {
+        slots += 1;
+        const owner = path.basename(file, ".tsx");
+        const classified = [...CONTENT_PROPS].some((key) => {
+          const dot = key.lastIndexOf(".");
+          return key.slice(dot + 1) === match[1] && key.slice(0, dot).split(".")[0] === owner;
+        });
+        if (!classified) {
+          unclassified.push(`${owner}.${match[1]} is content — add it to CONTENT_PROPS`);
+        }
+      }
+    }
+
+    expect(slots).toBeGreaterThan(0);
+    expect(unclassified).toEqual([]);
+  });
+
+  it("names every prop interpolated into a tag name", () => {
+    // `Accordion` builds `` `h${headingLevel}` ``. The value is a fragment, so
+    // the element allowlist cannot judge it and it needs its own table.
+    const files = globSync("src/components/**/*.tsx", { cwd: libraryRoot, absolute: true }).filter(
+      (file) => !/\.(test|examples)\.tsx$/.test(file),
+    );
+    const unclassified: string[] = [];
+    let interpolations = 0;
+
+    for (const file of files) {
+      const source = stripComments(read(file));
+      for (const match of source.matchAll(/=\s*`[a-z]+\$\{(\w+)\}`/g)) {
+        interpolations += 1;
+        const owner = path.basename(file, ".tsx");
+        const classified = [...HEADING_LEVEL_PROPS].some((key) => {
+          const dot = key.lastIndexOf(".");
+          return key.slice(dot + 1) === match[1] && key.slice(0, dot).split(".")[0] === owner;
+        });
+        if (!classified) {
+          unclassified.push(`${owner}.${match[1]} builds a tag name — add it to HEADING_LEVEL_PROPS`);
+        }
+      }
+    }
+
+    expect(interpolations).toBeGreaterThan(0);
+    expect(unclassified).toEqual([]);
+  });
+
+  it("finds every prop bag the library spreads named so the nested check sees it", () => {
+    // The nested filter is scoped to props whose name ends in `Props`. That is
+    // the library's convention, not a rule it is bound by, so it is asserted:
+    // a bag named otherwise would be spread onto an element unexamined.
+    const files = globSync("src/components/**/*.tsx", { cwd: libraryRoot, absolute: true }).filter(
+      (file) => !/\.(test|examples)\.tsx$/.test(file),
+    );
+    const bags = new Set<string>();
+    for (const file of files) {
+      const source = stripComments(read(file));
+      for (const match of source.matchAll(/\{\.\.\.(\w+)\}/g)) {
+        // Only bags a *document* fills. `dismissHandlers` is a local from
+        // `useLightDismiss`; the component's own rest element is not a bag
+        // either. Both are excluded by asking whether the name is a declared
+        // prop, rather than by naming them here — a local that later becomes a
+        // prop re-arms this by itself.
+        if (/^(props|rest|others|restProps)$/.test(match[1])) continue;
+        if (!new RegExp(`^\\s+${match[1]}\\??\\s*:`, "m").test(source)) continue;
+        bags.add(match[1]);
+      }
+    }
+    expect(bags.size).toBeGreaterThan(0);
+    expect([...bags].filter((name) => !name.endsWith("Props"))).toEqual([]);
+  });
+
+  it("agrees with the component library's own URL allowlist", () => {
+    // `markdown-parse.ts` guards markdown's links with the same question and
+    // settled it first. The renderer cannot import it — `/spec` must stay free
+    // of React so a server can validate without the component library — so the
+    // decision is mirrored, and this is what stops the mirror drifting into a
+    // second, weaker opinion.
+    const schemesOf = (source: string, declaration: RegExp): string[] | undefined => {
+      const body = declaration.exec(source)?.[1];
+      return body === undefined ? undefined : [...body.matchAll(/"([^"]+)"/g)].map((m) => m[1]).sort();
+    };
+    const dataTypeOf = (source: string) => /const SAFE_DATA_TYPE = (\/.*\/i);/.exec(source)?.[1];
+
+    const upstream = read(path.join(libraryRoot, "src/components/ui/markdown-parse.ts"));
+    const ours = read(path.join(root, "src/spec/validate.ts"));
+
+    const upstreamSchemes = schemesOf(upstream, /const ALLOWED_SCHEMES = new Set\(\[([^\]]*)\]\)/);
+    const oursSchemes = schemesOf(ours, /const ALLOWED_SCHEMES: ReadonlySet<string> = new Set\(\[([^\]]*)\]\)/);
+
+    // Both halves must be found — two undefineds compare equal and would make
+    // this pass while reading nothing at all.
+    expect(upstreamSchemes).toBeDefined();
+    expect(dataTypeOf(upstream)).toBeDefined();
+    expect(oursSchemes).toEqual(upstreamSchemes);
+    expect(dataTypeOf(ours)).toBe(dataTypeOf(upstream));
   });
 });
 

@@ -9,6 +9,7 @@ import { CHILD_INSPECTING_PARENTS } from "./child-introspection";
 import { FUNCTION_CHILDREN } from "./function-children";
 import { COMPONENT_TYPED_ICON_SLOTS } from "./icon-slots";
 import { PROP_COERCIONS } from "./prop-coercions";
+import { CONTENT_PROPS, HEADING_LEVEL_PROPS, RENAMED_ELEMENT_PROPS, RENAMED_URL_PROPS } from "./sink-props";
 import { splitSlotKey } from "./slot-keys";
 import { TEXT_CHILDREN } from "./text-children";
 
@@ -67,6 +68,30 @@ function buildDefaultContracts(): ComponentContracts {
     const [name, prop] = splitSlotKey(key);
     const contract = at(name);
     contract.iconComponentProps = [...(contract.iconComponentProps ?? []), prop];
+  }
+
+  for (const key of RENAMED_URL_PROPS) {
+    const [name, prop] = splitSlotKey(key);
+    const contract = at(name);
+    contract.urlProps = [...(contract.urlProps ?? []), prop];
+  }
+
+  for (const key of RENAMED_ELEMENT_PROPS) {
+    const [name, prop] = splitSlotKey(key);
+    const contract = at(name);
+    contract.elementProps = [...(contract.elementProps ?? []), prop];
+  }
+
+  for (const key of CONTENT_PROPS) {
+    const [name, prop] = splitSlotKey(key);
+    const contract = at(name);
+    contract.contentProps = [...(contract.contentProps ?? []), prop];
+  }
+
+  for (const key of HEADING_LEVEL_PROPS) {
+    const [name, prop] = splitSlotKey(key);
+    const contract = at(name);
+    contract.headingLevelProps = [...(contract.headingLevelProps ?? []), prop];
   }
 
   for (const [name, meaning] of Object.entries(NAME_PROP_MEANING)) {

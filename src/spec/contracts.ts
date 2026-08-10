@@ -87,6 +87,34 @@ export type ComponentContract = {
   readonly iconComponentProps?: readonly string[];
 
   /**
+   * Props this component turns into a URL attribute under a different name.
+   *
+   * The universal DOM names are checked for every component; these are the ones
+   * only this component knows about — `viewAllHref` and `to` are both an `href`
+   * by the time they reach the element, and neither is spelled like one.
+   */
+  readonly urlProps?: readonly string[];
+
+  /**
+   * Props this component reads as the host element to render, spelled as
+   * something other than `as`. Constrained to the same allowlist `as` is.
+   */
+  readonly elementProps?: readonly string[];
+
+  /**
+   * Props whose name matches a URL attribute's but whose value is content, so
+   * the universal URL check must not apply to them.
+   */
+  readonly contentProps?: readonly string[];
+
+  /**
+   * Props interpolated *into* a tag name rather than being one —
+   * `Accordion.headingLevel` becomes `` `h${level}` ``. Constrained to 1–6,
+   * because the value is a fragment and the element allowlist cannot judge it.
+   */
+  readonly headingLevelProps?: readonly string[];
+
+  /**
    * What this component's `name` prop means. `"dom"` — it reaches a real form
    * element, so `idScope` must namespace it. `"own"` — the component spends
    * `name` on something else and scoping it would corrupt an authored value.

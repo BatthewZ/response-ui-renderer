@@ -25,7 +25,15 @@ import {
 import {
   EVENT_ACTIONS,
   FORBIDDEN_PROPS,
+  isAttributeBagProp,
   isDangerousUrl,
+  isElementProp,
+  isForbiddenAsElement,
+  isForbiddenHeadingLevel,
+  isForbiddenProp,
+  isHeadingLevelProp,
+  isNestedForbiddenKey,
+  isNestedUrlKey,
   isUrlProp,
   MAX_NODE_DEPTH,
 } from "../spec/validate";
@@ -286,10 +294,41 @@ export function NodeRenderer({
    * handler must be exactly handler-shaped, because nested values are normally
    * data and a row carrying an `action` string must stay a row.
    */
-  const coerceNested = (value: unknown, path: string, valueDepth: number): unknown => {
+  /**
+   * Drops the attribute keys a spread bag must not carry, at any depth.
+   *
+   * Separate from `coerceNested` because a `$ref` returns a whole object the
+   * walk never entered: `imgProps: { "$ref": "bag" }` resolved to a record with
+   * `srcDoc` and `srcSet` in it and handed the lot to the element. Same lesson
+   * the top-level filter learned about references, one level down.
+   */
+  const scrubBag = (value: unknown, valueDepth: number): unknown => {
+    if (valueDepth > MAX_PROP_DEPTH) return value;
+    if (Array.isArray(value)) return value.map((item) => scrubBag(item, valueDepth + 1));
+    if (typeof value !== "object" || value === null) return value;
+    if (Object.getPrototypeOf(value) !== Object.prototype) return value;
+    const out: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value)) {
+      if (isNestedForbiddenKey(key)) continue;
+      if (isNestedUrlKey(key) && isDangerousUrl(item)) continue;
+      out[key] = scrubBag(item, valueDepth + 1);
+    }
+    return out;
+  };
+
+  const coerceNested = (
+    value: unknown,
+    path: string,
+    valueDepth: number,
+    /** True once inside a prop the component spreads onto an element. */
+    inBag: boolean,
+  ): unknown => {
     if (valueDepth > MAX_PROP_DEPTH) return value;
 
-    if (isRefValue(value)) return resolveRef(value.$ref, refContext);
+    if (isRefValue(value)) {
+      const resolved = resolveRef(value.$ref, refContext);
+      return inBag ? scrubBag(resolved, valueDepth) : resolved;
+    }
 
     if (isNodeValue(value)) {
       return (
@@ -304,13 +343,22 @@ export function NodeRenderer({
     }
 
     if (Array.isArray(value)) {
-      return value.map((item, index) => coerceNested(item, `${path}.${index}`, valueDepth + 1));
+      return value.map((item, index) => coerceNested(item, `${path}.${index}`, valueDepth + 1, inBag));
     }
 
     if (typeof value === "object" && value !== null && Object.getPrototypeOf(value) === Object.prototype) {
       const out: Record<string, unknown> = {};
       for (const [key, item] of Object.entries(value)) {
-        out[key] = coerceNested(item, `${path}.${key}`, valueDepth + 1);
+        // Only inside a bag the component spreads onto an element. Applied to
+        // every nested key instead, this emptied `DataTable` cells holding
+        // "Approve: pending review" — `action` and `cite` are ordinary field
+        // names and ordinary prose parses as a scheme. Attributes here, data
+        // everywhere else.
+        if (inBag && isNestedForbiddenKey(key)) continue;
+        const childInBag = inBag || isAttributeBagProp(key);
+        const nested = coerceNested(item, `${path}.${key}`, valueDepth + 1, childInBag);
+        if (inBag && isNestedUrlKey(key) && isDangerousUrl(nested)) continue;
+        out[key] = nested;
       }
       return out;
     }
@@ -344,7 +392,7 @@ export function NodeRenderer({
 
   for (const [key, value] of Object.entries(node.props ?? {})) {
     // Never let a document reach into React's escape hatches.
-    if (FORBIDDEN_PROPS.has(key)) continue;
+    if (isForbiddenProp(key)) continue;
 
     // Canonical binding: `props: { $field: "contact.email" }`. Applied after the
     // loop so it wins over a literal `value` declared alongside it.
@@ -368,12 +416,22 @@ export function NodeRenderer({
     // The one coercion that must run BEFORE resolution: a column's `render` is a
     // `$node` template, and `coerceNested` would render it to an element where
     // the column def needs the function that wraps it.
-    if (coercion === "columnDefs" && Array.isArray(value)) {
+    //
+    // Guarded on the prop not being a sink, because this branch `continue`s and
+    // so stands in front of every check below it. No in-tree contract coerces a
+    // URL prop this way, but `extendContracts` lets a host declare one, and a
+    // filter that a caller can step around by naming a coercion is not a filter.
+    if (
+      coercion === "columnDefs" &&
+      Array.isArray(value) &&
+      !isUrlProp(key, contract) &&
+      !isElementProp(key, contract)
+    ) {
       props[key] = value.map((column) => coerceColumnDef(column));
       continue;
     }
 
-    const resolved = coerceNested(value, key, 0);
+    const resolved = coerceNested(value, key, 0, isAttributeBagProp(key));
 
     // Everything below reads the RESOLVED value, not the literal: a `$ref` is an
     // object until it is resolved, so a rule that tests the literal silently
@@ -385,7 +443,24 @@ export function NodeRenderer({
     // binding, which makes a remote response able to put a `data:text/html` URL
     // in an href. React blocks `javascript:` itself, which masked this —
     // `vbscript:` and `data:` have no such backstop.
-    if (isUrlProp(key) && isDangerousUrl(resolved)) continue;
+    //
+    // `contract` is what makes this see a prop the component renames on the way
+    // in: `Swimlane.viewAllHref` and `AppShell.SidebarLink.to` are both an href
+    // at the element, and the universal DOM names alone never looked at either.
+    if (isUrlProp(key, contract) && isDangerousUrl(resolved)) continue;
+
+    // Which element to render is the same kind of decision as which URL to
+    // follow, and was open in the same way. `as: "script"` needs no URL at all —
+    // its children are the payload — and `as: "iframe"` carries `srcDoc`, which
+    // is raw HTML in the embedder's own origin. Dropping the prop leaves the
+    // component on its default element, which renders.
+    if (isElementProp(key, contract) && isForbiddenAsElement(resolved)) continue;
+
+    // `Accordion.headingLevel` is interpolated as `h${level}`, so the document
+    // supplies a fragment rather than a tag: "eader" rendered a <header>. The
+    // `h` prefix caps this short of script execution, which is why it is a
+    // narrower check and not the element allowlist.
+    if (isHeadingLevelProp(key, contract) && isForbiddenHeadingLevel(resolved)) continue;
 
     // The same shape again: several documents on one page share a DOM id
     // namespace, and only the resolved value can be prefixed — a host walking

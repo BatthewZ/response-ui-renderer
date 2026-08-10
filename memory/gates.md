@@ -37,6 +37,64 @@ yourself — "it found no violations" and "it found nothing" print identically.
 Two of these caught real drift the moment they were written — a generated cross-product named
 three date props that do not exist, and the doc gate caught a stale table. That is the point.
 
+## A security filter keyed on a name is an inventory, and an inventory needs an omission gate
+
+Every other table here fails loudly when it is wrong: a coercion that no longer matches leaves a
+date unparsed, and someone sees it. A table of *places to look for danger* fails silently and in
+the safe-looking direction — the render succeeds, the page looks right, and the thing nobody
+wrote down went through untouched.
+
+The URL filter was one global list of prop names. Three components rename a URL on the way in and
+all three reached a live `href` unexamined; one of them clicks the link itself, so it needed no
+gesture. The same shape, twice more: the check ran only at the top level, so a URL inside a props
+bag that gets spread onto the element was never seen; and `as` was unconstrained, so a document
+could ask for `script` or `iframe` and skip URLs altogether.
+
+Two lessons, and the second is the load-bearing one:
+
+- **A drift test is not an omission test.** Asserting that every name in the table still resolves
+  upstream catches a rename and nothing else. It cannot catch the entry that was never written,
+  which is the only failure mode that matters for a table like this. The gate has to read the
+  library and enumerate the sinks itself, then ask which of them nobody classified.
+- **Prefer the question "can a document reach this?" over a skip list.** The sink scan finds two
+  real non-findings — the router adapter, which is the indirection rather than a component, and a
+  component that mints its own blob URLs and is already excused as not addressable. Both fall out
+  of asking the registry and `NOT_ADDRESSABLE`, so neither is named in the gate, and a component
+  that later becomes addressable re-arms the test on its own.
+
+The tempting fix is to check the value everywhere and forget the name. Do not read that as
+settled: checking the value *at the sink*, where it becomes an attribute, is the stronger shape
+and this renderer cannot do it — the check runs at the document's prop-name entry point, one
+stage before a component maps its props onto elements. That one-stage gap is the whole cost, and
+it is paid in a specific currency: a prop-name check cannot tell a `<form action>` from a data
+row's `action` field. Under a scheme *allowlist* that stops being theoretical, because ordinary
+prose has a scheme — `"Approve: pending review"`, `"s3://bucket/key"`, `"Re: your ticket"`. Every
+one of those was measured being deleted from a rendered table.
+
+So the position is the key, but the position has to be qualified three ways, and each was learned
+by measuring damage rather than by reasoning:
+
+- **Only inside a bag the component spreads.** Nested keys are data; a bag's keys are attributes.
+- **Only where the component does not say otherwise.** A prop typed `ReactNode` is content no
+  matter what it is called, and one component names such a slot `action`.
+- **Matching the name the way the DOM matches it**, which is case-insensitively. `HREF` is not a
+  React prop, so it goes to `setAttribute` and the HTML parser lowercases it. This was the worst
+  hole found anywhere in the exercise — worse than the reported one, which a browser rule had
+  blunted — and it existed because the check compared strings the DOM does not.
+
+Related, and the sharpest edge in the whole area: the scheme test should be an allowlist — every
+bypass of the old three-scheme denylist was simply a fourth — but **flipping a denylist to an
+allowlist converts every dormant false positive into a live one at the same instant.** A name that
+was harmlessly on the list for years starts deleting content, because the old list matched three
+strings and the new one matches everything unfamiliar. Budget for that when flipping: enumerate
+what the list will now *refuse* before shipping it, not just what it will now catch. `sms:` and
+`geo:` are refused as this stands, and they are the near-siblings of an allowed `tel:`.
+
+One more, cheap to state and easy to miss: **the guard must read what React will put in the
+attribute, not the type the document happened to use.** `href: ["vbscript:…"]` defeated a
+`typeof value === "string"` test and landed in the DOM as that exact string — on a prop name the
+filter already knew about.
+
 ## An example in prose is a claim, and rots the same way a number does
 
 Counts in the README are gated because a number in prose drifts silently. A quickstart is the

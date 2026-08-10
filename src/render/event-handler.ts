@@ -11,6 +11,7 @@ import {
   isEventHandlerSpec,
   type ValidationRules,
 } from "../spec/types";
+import { isDangerousUrl } from "../spec/validate";
 import type { FormState } from "./form-state";
 import { readReportedValue } from "./reported-value";
 import { type RefContext, resolveDeep } from "./resolve-ref";
@@ -182,6 +183,16 @@ export function createEventCallback(
         const path = payload.path;
         if (typeof path !== "string" || path.length === 0) {
           warn("navigate: payload.path is required");
+          return;
+        }
+        // The same test the renderer applies to an `href`, for the same reason:
+        // `payload` is resolved deeply, so this destination can arrive from an
+        // api binding rather than the document. Where it goes is the host's
+        // adapter, and assigning to `location.href` is an ordinary way to write
+        // one — which makes an unchecked `javascript:` here a navigation the
+        // document chose and nothing examined.
+        if (isDangerousUrl(path)) {
+          warn(`navigate: URL scheme is not allowed; "${path}" ignored`);
           return;
         }
         if (!adapters.navigate) {

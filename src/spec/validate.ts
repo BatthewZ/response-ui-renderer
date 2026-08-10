@@ -98,7 +98,17 @@ export function enumeratedValues(
   return ownProp(contractFor(contracts, component).propEnums, prop);
 }
 
-/** Keys that must never reach `createElement`, whatever the document says. */
+/**
+ * Keys that must never reach `createElement`, whatever the document says.
+ *
+ * `srcDoc` sits here rather than among the URL props because it is not a URL:
+ * it is a whole HTML document as an attribute value, and an `<iframe srcdoc>`
+ * runs in the embedder's own origin. It is `dangerouslySetInnerHTML` spelled as
+ * a plain DOM attribute, so it gets the same answer. Both casings are named —
+ * React canonicalises `srcDoc`, but passes an unrecognised lowercase `srcdoc`
+ * through to `setAttribute` verbatim, where the HTML parser reads it just the
+ * same.
+ */
 export const FORBIDDEN_PROPS: ReadonlySet<string> = new Set([
   "dangerouslySetInnerHTML",
   "ref",
@@ -106,21 +116,127 @@ export const FORBIDDEN_PROPS: ReadonlySet<string> = new Set([
   "__proto__",
   "constructor",
   "prototype",
+  "srcDoc",
+  "srcdoc",
 ]);
 
-/** Props whose value is a URL, and so can smuggle script execution. */
-const URL_PROPS: ReadonlySet<string> = new Set([
+/**
+ * DOM attributes whose value a browser resolves as a URL and then fetches or
+ * navigates to.
+ *
+ * `ping`, `cite`, `manifest` and `xlinkHref` were absent while the rest were
+ * listed, which is the failure this whole set invites: it is an inventory of
+ * places to look, and an inventory is only ever as good as the last person to
+ * extend it. The bag scoping and the per-component table below narrow the
+ * ways one can be missed; `contracts.test.ts` is what catches a new one.
+ */
+export const URL_PROPS: ReadonlySet<string> = new Set([
   "href",
   "src",
   "action",
   "formAction",
   "poster",
-  "data",
   "srcSet",
   "background",
+  "ping",
+  "cite",
+  "manifest",
+  "xlinkHref",
 ]);
 
-const DANGEROUS_SCHEME = /^(?:javascript|vbscript|data:text\/html)/i;
+/**
+ * `data` is deliberately absent, and it used to be here.
+ *
+ * It is a URL on exactly one element, `<object>`, which a document can no
+ * longer name — `ALLOWED_AS_ELEMENTS` refuses it and no library component
+ * renders one. So the entry guards nothing, while `data` is the prop name
+ * `DataTable` and `VirtualizedDataTable` take their rows under. Listing it cost
+ * a real payload: `data: ["Revenue: 4"]` reads as the scheme `Revenue:` and the
+ * whole prop was dropped, silently.
+ *
+ * A host component that really does render `<object data={…}>` declares it with
+ * `urlProps` on its contract, which is what that field is for.
+ */
+
+/**
+ * The DOM lowercases attribute names, so these comparisons must too.
+ *
+ * `HREF` is not a React prop, so React hands it to `setAttribute`, where an
+ * HTML document lowercases it into the real `href`. A case-sensitive set let
+ * `{"as": "a", "HREF": "javascript:…"}` render a live link, measured in
+ * Chrome and clicking through to execution — the reported defect over again, on
+ * the universal names themselves, and with no browser backstop this time.
+ *
+ * Renamed props are matched exactly by contrast: those are read by the
+ * component's own destructuring, which is case-sensitive, so a mis-cased one
+ * never reaches an element at all.
+ */
+const lowerSet = (keys: Iterable<string>): ReadonlySet<string> =>
+  new Set([...keys].map((key) => key.toLowerCase()));
+
+const URL_PROPS_LOWER = lowerSet(URL_PROPS);
+
+/**
+ * The forbidden keys that are DOM attributes rather than React or JS spellings,
+ * and so need the same case-insensitivity. `ref`, `key`, `constructor` and
+ * `prototype` are read by React or by the language, both case-sensitive;
+ * `SRCDOC` is read by the HTML parser, which is not.
+ */
+const FORBIDDEN_ATTRS_LOWER = lowerSet(["srcDoc", "dangerouslySetInnerHTML"]);
+
+/**
+ * Props the library spreads wholesale onto an element — `imgProps`,
+ * `tableProps`, `viewAllProps`. Their keys are DOM attributes, so `srcSet` one
+ * level down is the same attribute as `srcSet` at the top.
+ *
+ * The suffix is the whole test, and it is the library's own convention: all
+ * sixteen of its spread bags are named `…Props`, which `contracts.test.ts`
+ * asserts. Scoping the nested check this way rather than applying it to every
+ * nested key is not a shortcut — it is the difference between filtering
+ * attributes and filtering *data*. `action`, `cite` and `src` are ordinary field
+ * names and ordinary prose parses as a scheme, so an unscoped check emptied
+ * `DataTable` cells holding `"Approve: pending review"` and `"s3://bucket/key"`.
+ */
+export function isAttributeBagProp(key: string): boolean {
+  return key.length > "Props".length && key.endsWith("Props");
+}
+
+/** A DOM attribute name, at any depth inside a spread bag. */
+export function isNestedUrlKey(key: string): boolean {
+  return URL_PROPS_LOWER.has(key.toLowerCase());
+}
+
+/**
+ * Keys refused inside a spread bag.
+ *
+ * `__proto__` is here and `ref`/`key` are not: those two are ordinary field
+ * names on a data row, and dropping them would corrupt a legitimate row to no
+ * benefit. `constructor` and `prototype` cannot be reached by assignment the
+ * way `__proto__` can.
+ */
+export function isNestedForbiddenKey(key: string): boolean {
+  return key === "__proto__" || FORBIDDEN_ATTRS_LOWER.has(key.toLowerCase());
+}
+
+/**
+ * Schemes a document may put in an attribute that navigates or loads.
+ *
+ * An allowlist, not a denylist. This was three dangerous schemes, and every
+ * measured bypass of it was a fourth: `data:image/svg+xml` (SVG is a document
+ * and carries `onload`), `data:application/xhtml+xml`, `blob:`, `view-source:`.
+ * `markdown-parse.ts` in the component library reached the same conclusion for
+ * the same reason and states it plainly — enumerating what is dangerous is a
+ * registry that keeps growing; enumerating what is safe is not. This mirrors
+ * that decision deliberately, and `contracts.test.ts` holds the two to it.
+ */
+const ALLOWED_SCHEMES: ReadonlySet<string> = new Set(["http:", "https:", "mailto:", "tel:"]);
+
+/**
+ * The `data:` types that cannot carry script. `image/svg+xml` is deliberately
+ * absent: SVG is a document, not a bitmap, and it holds `<script>` and
+ * `onload=`.
+ */
+const SAFE_DATA_TYPE = /^data:image\/(?:png|jpeg|jpg|gif|webp|avif)[;,]/i;
 
 /**
  * True for characters a browser ignores while parsing a URL scheme: C0/C1
@@ -148,14 +264,163 @@ function stripSchemeNoise(value: string): string {
   return out;
 }
 
-/** True when a URL string would execute script if the browser followed it. */
-export function isDangerousUrl(value: unknown): boolean {
-  if (typeof value !== "string") return false;
-  return DANGEROUS_SCHEME.test(stripSchemeNoise(value));
+/**
+ * The scheme, or null when the URL is relative. The pattern is anchored and its
+ * alphabet is the scheme grammar itself, so `./a:b` and `/path?x=a:b` simply
+ * fail to match.
+ */
+function schemeOf(url: string): string | null {
+  const match = /^[a-z][a-z0-9+.-]*:/i.exec(url);
+  return match ? match[0].toLowerCase() : null;
 }
 
-export function isUrlProp(key: string): boolean {
-  return URL_PROPS.has(key);
+/**
+ * What React will put in the attribute.
+ *
+ * Not `typeof value === "string"`. React stringifies whatever it is given, so
+ * `href: ["vbscript:msgbox(1)"]` reached the DOM as that exact string while a
+ * string-only guard read the array and returned "not a URL" — the shortest
+ * bypass in the whole surface, and one that defeated the check on a prop it
+ * already knew to inspect. `null`/`undefined` make React omit the attribute
+ * entirely, so those alone are exempt.
+ */
+function asAttributeValue(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+    return String(value);
+  }
+  // React joins an array with commas, so every element is a candidate scheme.
+  // A non-primitive element stringifies to something inert, and `""` for it
+  // keeps the commas — and so the positions — intact.
+  if (Array.isArray(value)) {
+    return value.map((item) => asAttributeValue(item) ?? "").join(",");
+  }
+  return undefined;
+}
+
+/**
+ * True unless the value is one this package will vouch for as an attribute a
+ * browser resolves.
+ *
+ * Named for the answer it gives the caller, which is "drop this". The bar is
+ * *not* provable danger — it is provable safety, so an unrecognised scheme is
+ * refused rather than waved through.
+ *
+ * The value is judged whole, including for the two list-valued attributes:
+ * `srcSet` and `ping` hold several URLs, and only the first one's scheme is
+ * read here. That is deliberate rather than overlooked — neither attribute
+ * executes what it fetches, so the scheme is not the thing that matters about
+ * them, and splitting on the separator would reject an ordinary `https:` URL
+ * whose query happens to carry a comma and a colon.
+ */
+export function isDangerousUrl(value: unknown): boolean {
+  const raw = asAttributeValue(value);
+  if (raw === undefined) return false;
+  // A URL carrying tab/LF/CR is refused rather than parsed: browsers delete
+  // those before reading it, so the string judged here and the string the
+  // browser follows would not be the same string.
+  if (/[\t\n\r]/.test(raw)) return true;
+  const scheme = schemeOf(stripSchemeNoise(raw));
+  if (scheme === null) return false;
+  if (ALLOWED_SCHEMES.has(scheme)) return false;
+  return !(scheme === "data:" && SAFE_DATA_TYPE.test(stripSchemeNoise(raw)));
+}
+
+/**
+ * Whether a prop's value lands in an attribute a browser resolves as a URL.
+ *
+ * `contract` carries the props a component renames on the way in —
+ * `Swimlane.viewAllHref` and `AppShell.SidebarLink.to` are both an `href` by
+ * the time they reach the DOM, and a check keyed only on the universal DOM
+ * names never looked at either. Passing no contract keeps the universal answer,
+ * which is what an unregistered or host-supplied component gets.
+ */
+export function isUrlProp(key: string, contract?: ComponentContract): boolean {
+  // A component's own declaration wins both ways: `contentProps` says this name
+  // is a slot here even though it is an attribute elsewhere, and `urlProps`
+  // says this name is a destination even though it looks like nothing.
+  if (contract?.contentProps?.includes(key)) return false;
+  return URL_PROPS_LOWER.has(key.toLowerCase()) || (contract?.urlProps?.includes(key) ?? false);
+}
+
+/** Forbidden as a top-level prop, case-insensitively for the DOM spellings. */
+export function isForbiddenProp(key: string): boolean {
+  return FORBIDDEN_PROPS.has(key) || FORBIDDEN_ATTRS_LOWER.has(key.toLowerCase());
+}
+
+/**
+ * Host elements a document may name through a polymorphic `as`.
+ *
+ * `as` is unconstrained upstream — it is `ElementType`, and the library is
+ * right to leave it there, because in React the caller is the developer. Here
+ * the caller is the document, and `as: "script"` with text children, or
+ * `as: "iframe"` with `srcDoc`, is script execution that no URL filter can
+ * reach: there is no URL in either.
+ *
+ * The rule, stated so the list can be checked against it: **every HTML element
+ * that presents or structures content is here, and an element is left off only
+ * because it loads, executes, or reinterprets what it is given.** That is
+ * `script`, `iframe`, `object`, `embed`, `style`, `link`, `base`, `meta`,
+ * `template` and `slot`, plus the foreign-content roots `svg` and `math`, whose
+ * children follow different parsing rules than the ones every check here
+ * assumes. Form controls, media and the text-level elements are all present:
+ * refusing `as: "input"` or `as: "search"` would be a silent break for no
+ * safety, and an earlier draft of this list did exactly that.
+ */
+export const ALLOWED_AS_ELEMENTS: ReadonlySet<string> = new Set([
+  "a", "abbr", "address", "area", "article", "aside", "audio", "b", "bdi",
+  "bdo", "blockquote", "br", "button", "canvas", "caption", "cite", "code",
+  "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn",
+  "dialog", "div", "dl", "dt", "em", "fieldset", "figcaption", "figure",
+  "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup",
+  "hr", "i", "img", "input", "ins", "kbd", "label", "legend", "li", "main",
+  "map", "mark", "menu", "meter", "nav", "ol", "optgroup", "option", "output",
+  "p", "picture", "pre", "progress", "q", "rp", "rt", "ruby", "s", "samp",
+  "search", "section", "select", "small", "source", "span", "strong", "sub",
+  "summary", "sup", "table", "tbody", "td", "textarea", "tfoot", "th", "thead",
+  "time", "tr", "track", "u", "ul", "var", "video", "wbr",
+]);
+
+/**
+ * True for an `as` value the renderer will refuse to turn into an element.
+ *
+ * A non-string is refused too. Not `typeof value === "string" && !allowed` —
+ * that is the very shape this change condemns two docblocks up, and it let a
+ * non-string fall through untested. Absent is not refused: React treats a
+ * missing `as` as "use the component's default", which is the same outcome a
+ * refusal produces.
+ */
+export function isForbiddenAsElement(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  return typeof value !== "string" || !ALLOWED_AS_ELEMENTS.has(value);
+}
+
+/** The universal name for the host element to render. */
+export function isElementProp(key: string, contract?: ComponentContract): boolean {
+  return key === "as" || (contract?.elementProps?.includes(key) ?? false);
+}
+
+/**
+ * Props whose value is interpolated *into* a tag name rather than being one —
+ * `Accordion.headingLevel` becomes `` `h${level}` ``.
+ *
+ * A separate field from `elementProps` because the value is a fragment, so the
+ * element allowlist cannot judge it: `3` is legitimate and is not a tag. The
+ * `h` prefix caps the damage at heading-shaped tags, so this is not script
+ * execution — but `headingLevel: "eader"` rendered a `<header>` and
+ * `headingLevel: "1><img src=x onerror=…>"` rendered a document-triggerable
+ * error box, which is document control of the element either way.
+ */
+const HEADING_LEVELS: ReadonlySet<string> = new Set(["1", "2", "3", "4", "5", "6"]);
+
+export function isForbiddenHeadingLevel(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "number") return !HEADING_LEVELS.has(String(value));
+  return typeof value !== "string" || !HEADING_LEVELS.has(value);
+}
+
+export function isHeadingLevelProp(key: string, contract?: ComponentContract): boolean {
+  return contract?.headingLevelProps?.includes(key) ?? false;
 }
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
@@ -408,7 +673,43 @@ function checkNodeValues(
   }
 }
 
+/**
+ * The nested half of the prop checks, mirroring `scrubBag` in the renderer.
+ *
+ * Entered only for a prop the component spreads onto an element, because only
+ * there are the keys DOM attributes. Walking every nested key instead made this
+ * warn about `DataTable` rows holding `"Approve: pending review"` — data, not a
+ * URL — which is the same mistake as filtering them.
+ */
+function checkNestedSinks(value: unknown, path: string, valueDepth: number, at: Checker): void {
+  // Capped like every other walk here. Uncapped, a deeply nested document made
+  // `validateViewSpec` throw `RangeError: Maximum call stack size exceeded` —
+  // in the one function whose job is to survive hostile input. The cap is the
+  // renderer's, so the two agree on what they will and will not look at, and
+  // this side never warns "will be dropped" about a value the renderer keeps.
+  if (valueDepth > MAX_PROP_DEPTH) return;
+  if (Array.isArray(value)) {
+    value.forEach((item, index) =>
+      checkNestedSinks(item, `${path}[${index}]`, valueDepth + 1, at),
+    );
+    return;
+  }
+  if (!isPlainObject(value) || isNodeValue(value)) return;
+  for (const [key, item] of Object.entries(value)) {
+    if (isNestedForbiddenKey(key)) {
+      at.warn(`${path}.${key}`, `"${key}" is not allowed and will be dropped`);
+      continue;
+    }
+    if (isNestedUrlKey(key) && isDangerousUrl(item)) {
+      at.warn(`${path}.${key}`, "URL scheme is not allowed and will be dropped");
+      continue;
+    }
+    checkNestedSinks(item, `${path}.${key}`, valueDepth + 1, at);
+  }
+}
+
 function checkProps(
+  component: string,
   props: Record<string, unknown>,
   path: string,
   depth: number,
@@ -423,16 +724,29 @@ function checkProps(
   // the position decides the tier, not the check.
   const asPolicy: Checker = { ...at, error: at.warn };
 
+  const contract = contractFor(at.contracts, component);
+
   for (const [key, value] of Object.entries(props)) {
-    if (FORBIDDEN_PROPS.has(key)) {
+    if (isForbiddenProp(key)) {
       at.warn(`${path}.${key}`, `prop "${key}" is not allowed and will be dropped`);
     }
-    if (isUrlProp(key) && isDangerousUrl(value)) {
+    // The literal, not the resolved value — a `$ref` is an object here and this
+    // side cannot resolve it. The renderer re-runs the same test on what the
+    // reference produced, which is what actually stops an indirect URL; this
+    // reports the ones a document states outright, one stage earlier.
+    if (isUrlProp(key, contract) && isDangerousUrl(value)) {
       at.warn(`${path}.${key}`, "URL scheme is not allowed and will be dropped");
+    }
+    if (isElementProp(key, contract) && isForbiddenAsElement(value)) {
+      at.warn(`${path}.${key}`, "element is not allowed and will be dropped");
+    }
+    if (isHeadingLevelProp(key, contract) && isForbiddenHeadingLevel(value)) {
+      at.warn(`${path}.${key}`, "heading level must be 1-6 and will be dropped");
     }
     if (isPlainObject(value) && "action" in value) {
       checkEventHandler(value, `${path}.${key}`, at, "warning");
     }
+    if (isAttributeBagProp(key)) checkNestedSinks(value, `${path}.${key}`, 0, at);
     checkNodeValues(value, `${path}.${key}`, depth, 0, asPolicy);
   }
 }
@@ -479,7 +793,13 @@ function checkNode(node: unknown, path: string, depth: number, at: Checker): voi
     if (node.props !== undefined && props === undefined) {
       at.error(`${path}.props`, "props must be an object");
     } else if (props) {
-      checkProps(props, `${path}.props`, depth, at);
+      checkProps(
+        typeof node.component === "string" ? node.component : "",
+        props,
+        `${path}.props`,
+        depth,
+        at,
+      );
     }
     if (typeof node.component === "string") {
       const children = Array.isArray(node.children) ? node.children : [];
