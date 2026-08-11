@@ -4,7 +4,40 @@ All notable changes to `@batthewz/response-ui-renderer` will be documented in th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0.0, breaking changes will bump the **minor** version.
 
-## [0.4.0] — Unreleased
+## [0.7.0] — Unreleased
+
+### Changed
+
+- **Peer range moves to `@batthewz/response-ui-react-components@^0.21.0`**, which is where
+  `safeUrl` became a public export.
+
+### Added
+
+- **The URL mirror is now gated by behaviour rather than by text.** This package duplicates the
+  component library's scheme allowlist, because `/spec` must stay free of React *and* of the
+  component library so a server can validate a document without installing either. That
+  duplication stands; what changes is the gate on it. `contracts.test.ts` used to read both
+  declarations out of source and assert the text matched, which pinned the two constants and
+  nothing else — the scheme-noise stripping, and the order in which each side consults those
+  constants, drifted unwatched. It now imports `safeUrl` (test-only, no runtime coupling) and runs
+  both over a shared corpus, failing on any URL the two judge differently. Deleting a single line
+  of zero-width stripping leaves both constants byte-identical and the old gate green; this one
+  fails.
+
+  It found a real divergence on its first run: `safeUrl` returns `""` both for "refused" and for
+  "allowed, and it trimmed to empty", so the two disagree about a whitespace-only URL. Harmless —
+  an empty `href` resolves to the current page — and now recorded as an asserted fact rather than
+  filtered quietly out of the corpus.
+
+- **`contracts.test.ts` asserts the installed peer satisfies the declared range.** Every gate in
+  that file scans `node_modules`, so none of them can notice that what is installed there is not
+  what this package claims to support. That had already happened, with the suite green throughout.
+
+## [0.6.0] — 2026-08-11
+
+Republished 0.5.0 unchanged; the two tarballs are byte-identical apart from the version.
+
+## [0.5.0] — 2026-08-11
 
 ### Security
 
@@ -31,11 +64,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **The scheme check is now an allowlist.** It was a denylist of three, and every bypass of it was
   simply a fourth: `data:image/svg+xml`, `data:application/xhtml+xml`, `blob:`, `view-source:`.
   A URL is kept only if its scheme is `http:`, `https:`, `mailto:`, `tel:`, an image `data:` type,
-  or it is relative. This mirrors `safeUrl` in the component library, and a test holds the two to
-  it by **behaviour** — it runs both over a shared corpus and fails on any URL they judge
-  differently. Comparing the two declarations as text, which is where this started, left the
-  scheme-noise stripping and the way each side uses its constants unchecked; the behaviour form
-  caught a divergence there on its first run with both constants byte-identical.
+  or it is relative. This mirrors the component library's own answer for markdown links, and a
+  test holds the two declarations identical. (0.7.0 replaces that textual comparison with a
+  behavioural one.)
 
 - **The check reads what React will put in the attribute, not only strings.** `href` valued
   `["vbscript:msgbox(1)"]` passed a `typeof value === "string"` guard and landed in the DOM as
@@ -117,10 +148,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `isUrlProp(key)` takes an optional second argument, the component's contract. Existing
   one-argument calls keep the universal answer.
 
-### Changed
-
-- **Peer range moves to `^0.21.0`**, for `safeUrl`.
-
 ### Fixed
 
 - `defaultAllowUrl` no longer refuses a protocol-relative URL that is in fact same-origin
@@ -128,6 +155,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   `location` — server-side and browser now answer alike.
 - `validateViewSpec` no longer exhausts the stack on a deeply nested document. The nested walk
   shipped uncapped, in the one function whose job is to survive hostile input.
+
+## [0.4.0] — 2026-08-09
+
+### Changed
+
+- Regenerated `component-docs.json` and `prop-enums.json` against
+  `@batthewz/response-ui-react-components@0.19.0`. No other source change.
 
 ## [0.3.0] — 2026-08-09
 
