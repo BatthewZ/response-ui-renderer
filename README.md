@@ -394,7 +394,7 @@ Documents are assumed untrusted, because a generator wrote them.
 | `$ref` into `constructor` / `__proto__` | own-property walks only |
 | Runaway nesting | capped at 50 levels |
 | Handler recursion | capped at 5 |
-| Cross-origin requests | blocked unless `allowUrl` says otherwise |
+| Cross-origin requests | blocked unless `allowUrl` says otherwise. The endpoint is **resolved** and its origin compared, not pattern-matched, so `/\evil.test/x` and its tab- and newline-separated spellings are refused |
 
 This is defence in depth, not a sanitiser: a component given hostile *content* still renders that content as text.
 

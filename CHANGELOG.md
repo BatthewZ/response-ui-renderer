@@ -69,6 +69,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   resolve bindings), and it does not report the `navigate` or `columnDefs` refusals; the renderer
   is what stops those.
 
+- **`defaultAllowUrl` judged the endpoint by how the string started.** A `startsWith("//")`
+  guard does not see what the browser will request: the URL parser deletes tab, LF and CR
+  *before* parsing and reads `\` as `/` for http(s), so `/\evil.test/x`, `/\t/evil.test/x` and
+  `/\n/evil.test/x` all begin with a single slash, passed the guard, and fetched from a third
+  party with the user's credentials — from an `api` data binding or an `apiCall` action, so a
+  machine-authored document could exfiltrate to an origin it chose. The endpoint is now resolved
+  and its origin compared. Widening the guard to cover backslashes would have closed one of the
+  three; only resolving closes the class.
+
 ### Breaking
 
 - **`isDangerousUrl` answers a different question.** It was "does this start with one of three
@@ -104,6 +113,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- `defaultAllowUrl` no longer refuses a protocol-relative URL that is in fact same-origin
+  (`//app.test/x` from `app.test`), and no longer refuses a bare relative URL when there is no
+  `location` — server-side and browser now answer alike.
 - `validateViewSpec` no longer exhausts the stack on a deeply nested document. The nested walk
   shipped uncapped, in the one function whose job is to survive hostile input.
 

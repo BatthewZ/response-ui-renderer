@@ -73,15 +73,31 @@ export function normalizeMethod(method: unknown): string {
 }
 
 /**
- * Relative paths and same-origin absolute URLs only. Protocol-relative `//host`
- * is rejected — it resolves to a third-party origin.
+ * Where a relative URL is resolved against when there is no `location` — during
+ * SSR, or in a worker. A reserved TLD (RFC 2606), so it can never be a real
+ * origin a document might name and coincidentally match.
+ */
+const NO_LOCATION_BASE = "https://ssr.invalid/";
+
+/**
+ * Relative paths and same-origin absolute URLs only.
+ *
+ * Resolves and compares the origin rather than testing how the string starts.
+ * The leading characters are not what the browser reads: it strips tab, LF and
+ * CR *before* parsing, and treats `\` as `/` for http(s), so all three of
+ * `/\evil.test/x`, `/\t/evil.test/x` and `/\n/evil.test/x` begin with a single
+ * slash, passed a `startsWith("//")` guard, and fetched from a third party with
+ * the user's credentials. Widening that guard to cover backslashes would still
+ * have missed the two separated by whitespace — the only test that sees what
+ * will actually be requested is to resolve it the way the browser will.
  */
 export function defaultAllowUrl(url: string): boolean {
-  if (url.startsWith("//")) return false;
-  if (url.startsWith("/")) return true;
-  if (typeof globalThis.location === "undefined") return false;
+  const base =
+    typeof globalThis.location === "undefined" ? NO_LOCATION_BASE : globalThis.location.href;
   try {
-    return new URL(url, globalThis.location.href).origin === globalThis.location.origin;
+    // A non-special scheme (`javascript:`, `data:`, `mailto:`) resolves to the
+    // opaque origin `"null"`, which matches no base and so is refused here too.
+    return new URL(url, base).origin === new URL(base).origin;
   } catch {
     return false;
   }

@@ -90,6 +90,17 @@ strings and the new one matches everything unfamiliar. Budget for that when flip
 what the list will now *refuse* before shipping it, not just what it will now catch. `sms:` and
 `geo:` are refused as this stands, and they are the near-siblings of an allowed `tel:`.
 
+The same mistake has a sibling one layer out, in the fetch gate rather than the attribute one:
+**a URL guard must resolve, never pattern-match.** `startsWith("//")` does not see what the
+browser will request, because the parser deletes tab/LF/CR before parsing and reads `\` as `/`
+for http(s) — so `/\evil.test/x` and `/\t/evil.test/x` begin with a single slash and read as
+relative while resolving to somebody else's origin. Widening the pattern is the tempting fix and
+catches one spelling at a time; resolving and comparing the origin ends the class. Note this is
+the *third* URL policy in the package (attribute schemes, markdown links, fetch origins). They
+answer genuinely different questions and should not be merged — but the fetch one is the only one
+with no validator counterpart, because a host may widen `allowUrl` to its own API domain and the
+validator cannot know that.
+
 One more, cheap to state and easy to miss: **the guard must read what React will put in the
 attribute, not the type the document happened to use.** `href: ["vbscript:…"]` defeated a
 `typeof value === "string"` test and landed in the DOM as that exact string — on a prop name the
