@@ -106,6 +106,33 @@ attribute, not the type the document happened to use.** `href: ["vbscript:…"]`
 `typeof value === "string"` test and landed in the DOM as that exact string — on a prop name the
 filter already knew about.
 
+## Compare two policies by behaviour; comparing their declarations proves less than it looks
+
+Where this package mirrors a decision made upstream, the obvious gate reads both declarations and
+asserts the text matches. It is cheap and it is weak: it pins the constants and nothing else, so
+the code *around* them — how each side normalises its input before consulting them, which of them
+it consults in which order — drifts unwatched. Deleting one line of zero-width stripping on this
+side left both constants byte-identical and the textual gate green.
+
+Prefer to make the upstream helper importable and run both over a shared corpus, asserting they
+agree URL by URL. Test-only import, so no runtime coupling and no dependency added. Two things
+make it honest: the corpus has to contain inputs that land on *both* answers, asserted, or
+agreement is trivial; and it has to exercise the axes the two could drift on independently of
+their constants, not just a list of scary schemes.
+
+Expect the first run to fail on something real. Ours found that the upstream helper's `""` return
+value means both "refused" and "allowed, and it was empty", so the two sides genuinely disagree
+about a whitespace-only URL. That is a wart in a sentinel, not a policy difference — but write it
+down as an asserted fact rather than filtering it quietly out of the corpus, or the next person
+rediscovers it as a mysterious failure.
+
+## A gate that reads node_modules is only as good as what is installed there
+
+Every gate here scans the installed peer. None of them can notice that the installed peer is not
+the one the package claims to support — the scans just describe an older library, correctly and
+uselessly, and stay green. Assert that the installed version satisfies the declared peer range,
+or the whole file is validating whatever happens to be on disk.
+
 ## An example in prose is a claim, and rots the same way a number does
 
 Counts in the README are gated because a number in prose drifts silently. A quickstart is the

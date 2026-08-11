@@ -31,8 +31,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **The scheme check is now an allowlist.** It was a denylist of three, and every bypass of it was
   simply a fourth: `data:image/svg+xml`, `data:application/xhtml+xml`, `blob:`, `view-source:`.
   A URL is kept only if its scheme is `http:`, `https:`, `mailto:`, `tel:`, an image `data:` type,
-  or it is relative. This mirrors `markdown-parse.ts` in the component library, and a test holds
-  the two declarations identical.
+  or it is relative. This mirrors `safeUrl` in the component library, and a test holds the two to
+  it by **behaviour** — it runs both over a shared corpus and fails on any URL they judge
+  differently. Comparing the two declarations as text, which is where this started, left the
+  scheme-noise stripping and the way each side uses its constants unchecked; the behaviour form
+  caught a divergence there on its first run with both constants byte-identical.
 
 - **The check reads what React will put in the attribute, not only strings.** `href` valued
   `["vbscript:msgbox(1)"]` passed a `typeof value === "string"` guard and landed in the DOM as
@@ -101,6 +104,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **`contracts.test.ts` asserts the installed peer satisfies the declared range.** Every gate in
+  that file reads `node_modules`, so all of them were only as meaningful as the version sitting
+  there — and it had already drifted behind the declared range while the suite stayed green.
 - `ComponentContract` gains `urlProps`, `elementProps`, `headingLevelProps` and `contentProps`,
   so a host registering its own components declares which props are destinations, which choose an
   element, and which merely share a name with a DOM attribute. Without them a host component is
@@ -110,6 +116,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   `isNestedForbiddenKey` and `isNestedUrlKey` are exported from `/spec`.
 - `isUrlProp(key)` takes an optional second argument, the component's contract. Existing
   one-argument calls keep the universal answer.
+
+### Changed
+
+- **Peer range moves to `^0.21.0`**, for `safeUrl`.
 
 ### Fixed
 

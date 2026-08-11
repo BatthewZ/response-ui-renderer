@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+import { safeUrl } from "@batthewz/response-ui-react-components";
 import { globSync } from "glob";
 import { describe, expect, it } from "vitest";
 
@@ -37,6 +38,7 @@ import { NAME_PROP_MEANING } from "./render/id-scope";
 import {
   ALLOWED_AS_ELEMENTS,
   DIALOG_COMPONENTS,
+  isDangerousUrl,
   PROP_ENUMS,
   URL_PROPS as UNIVERSAL_URL_PROP_NAMES,
   validateViewSpec,
@@ -50,6 +52,31 @@ import {
  * what hid two of the three holes this gate exists to prevent.
  */
 const URL_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([...UNIVERSAL_URL_PROP_NAMES, "to"]);
+
+/**
+ * URLs the renderer's filter and the component library's `safeUrl` must judge
+ * identically. Spans both answers and every axis the two implementations could
+ * drift on independently of their constants: scheme casing, the noise
+ * characters a browser ignores mid-scheme, the tab/LF/CR refusal, the `data:`
+ * MIME carve-out, and the relative forms that must never be refused.
+ */
+const SAFE_URL_CORPUS: readonly string[] = [
+  "https://ok.example/x", "http://ok.example/x", "mailto:a@b.example", "tel:+441234",
+  "/relative", "./sibling", "../up", "#anchor", "?q=1", "", "//cdn.example/a.png",
+  "/path?x=a:b", "./a:b.md",
+  "data:image/png;base64,iVBORw0KGgo=", "data:image/jpeg,x", "data:image/gif,x",
+  "data:image/webp,x", "data:image/avif,x", "data:image/jpg,x",
+  "javascript:alert(1)", "JaVaScRiPt:alert(1)", "vbscript:msgbox(1)",
+  "data:text/html;base64,PHNjcmlwdD4=", "data:image/svg+xml,<svg onload=alert(1)>",
+  "data:image/svg+xml;base64,PHN2Zz4=", "data:application/xhtml+xml,<html/>",
+  "data:text/plain,hello", "data:font/woff2;base64,x", "data:image/pngx,y",
+  "blob:https://evil.example/8f2c", "view-source:https://evil.example",
+  "file:///etc/passwd", "ws://evil.example", "ftp://files.example/x",
+  "intent://scan#Intent;scheme=zxing;end", "sms:+441234", "geo:51.5,-0.12",
+  "java\tscript:alert(1)", "java\nscript:alert(1)", " javascript:alert(1)",
+  "java\u200bscript:alert(1)", "java\ufeffscript:alert(1)", "\u0000javascript:alert(1)",
+  "https://ok.example/a\tb", "https://ok.example/a\nb", "mailto:a@b.example?body=x\ny",
+];
 
 /**
  * Contracts this package commits to, enforced rather than documented.
@@ -364,6 +391,45 @@ describe("hand-maintained coercion tables", () => {
  * reads the library's own source and fails when it finds a sink nobody
  * classified. A rename test cannot do this; only an omission test can.
  */
+describe("the gates read the library this package says it supports", () => {
+  it("the installed peer satisfies the declared range", () => {
+    // Every gate below reads `node_modules`, so all of them are only as
+    // meaningful as the version sitting there. That version drifted behind the
+    // declared peer range once already, and the whole suite stayed green while
+    // validating a library the package no longer claimed to support — the one
+    // failure mode no amount of scanning can notice from the inside.
+    const declared = (
+      JSON.parse(read(path.join(root, "package.json"))) as {
+        peerDependencies: Record<string, string>;
+      }
+    ).peerDependencies["@batthewz/response-ui-react-components"];
+    const installed = (
+      JSON.parse(read(path.join(libraryRoot, "package.json"))) as { version: string }
+    ).version;
+
+    // Caret on 0.x pins the minor, which is this repo's stated rule: "pre-1.0 a
+    // break bumps the minor". Spelled out rather than pulling in a semver
+    // package, because this package ships no runtime dependencies and one more
+    // dev dependency to compare two triples is not worth it.
+    const parse = (v: string) => v.replace(/^\^/, "").split(".").map(Number);
+    const [dMajor, dMinor, dPatch] = parse(declared);
+    const [iMajor, iMinor, iPatch] = parse(installed);
+    const ceiling = dMajor === 0 ? [0, dMinor + 1, 0] : [dMajor + 1, 0, 0];
+    const atLeast =
+      iMajor > dMajor ||
+      (iMajor === dMajor && (iMinor > dMinor || (iMinor === dMinor && iPatch >= dPatch)));
+    const below =
+      iMajor < ceiling[0] ||
+      (iMajor === ceiling[0] && (iMinor < ceiling[1] || (iMinor === ceiling[1] && iPatch < ceiling[2])));
+
+    expect({ declared, installed, satisfies: atLeast && below }).toEqual({
+      declared,
+      installed,
+      satisfies: true,
+    });
+  });
+});
+
 describe("sink-prop tables stay in step with the library", () => {
   it.each([...RENAMED_URL_PROP_OWNERS, ...RENAMED_ELEMENT_PROP_OWNERS])(
     "%s still exists upstream",
@@ -587,30 +653,46 @@ describe("sink-prop tables stay in step with the library", () => {
     expect([...bags].filter((name) => !name.endsWith("Props"))).toEqual([]);
   });
 
-  it("agrees with the component library's own URL allowlist", () => {
-    // `markdown-parse.ts` guards markdown's links with the same question and
-    // settled it first. The renderer cannot import it — `/spec` must stay free
-    // of React so a server can validate without the component library — so the
-    // decision is mirrored, and this is what stops the mirror drifting into a
-    // second, weaker opinion.
-    const schemesOf = (source: string, declaration: RegExp): string[] | undefined => {
-      const body = declaration.exec(source)?.[1];
-      return body === undefined ? undefined : [...body.matchAll(/"([^"]+)"/g)].map((m) => m[1]).sort();
-    };
-    const dataTypeOf = (source: string) => /const SAFE_DATA_TYPE = (\/.*\/i);/.exec(source)?.[1];
+  it("agrees with the component library's own URL policy, by behaviour", () => {
+    // The same question, settled first by `safeUrl` in the component library.
+    // The renderer cannot call it at runtime — `/spec` must stay free of React
+    // AND of the component library, so a server can validate without either —
+    // so the decision is mirrored, and this is what stops the mirror drifting
+    // into a second, weaker opinion.
+    //
+    // Compared by BEHAVIOUR, not by reading the two declarations as text. The
+    // text form of this gate passed as long as the two constants matched, which
+    // left the scheme-noise stripping and the way each side *uses* those
+    // constants unexamined — and those are where a divergence would actually
+    // live. A shared corpus asks the only question that matters: do the two
+    // agree about this URL?
+    // A URL that trims to empty is the one input where `safeUrl`'s sentinel is
+    // ambiguous — `""` means both "refused" and "allowed, and it was empty".
+    // Asserted separately below rather than skipped, so the exclusion is a
+    // recorded fact about the two contracts and not a quiet allowance.
+    const verdicts = [...SAFE_URL_CORPUS].filter((url) => url.trim() !== "").map((url) => ({
+      url,
+      // `safeUrl` returns "" to refuse; `isDangerousUrl` returns true to refuse.
+      upstreamRefuses: safeUrl(url) === "",
+      oursRefuses: isDangerousUrl(url),
+    }));
 
-    const upstream = read(path.join(libraryRoot, "src/components/ui/markdown-parse.ts"));
-    const ours = read(path.join(root, "src/spec/validate.ts"));
+    // The corpus must exercise both answers, or agreement is trivial.
+    expect(verdicts.some((v) => v.upstreamRefuses)).toBe(true);
+    expect(verdicts.some((v) => !v.upstreamRefuses)).toBe(true);
 
-    const upstreamSchemes = schemesOf(upstream, /const ALLOWED_SCHEMES = new Set\(\[([^\]]*)\]\)/);
-    const oursSchemes = schemesOf(ours, /const ALLOWED_SCHEMES: ReadonlySet<string> = new Set\(\[([^\]]*)\]\)/);
+    const disagreements = verdicts.filter((v) => v.upstreamRefuses !== v.oursRefuses);
+    expect(disagreements).toEqual([]);
+  });
 
-    // Both halves must be found — two undefineds compare equal and would make
-    // this pass while reading nothing at all.
-    expect(upstreamSchemes).toBeDefined();
-    expect(dataTypeOf(upstream)).toBeDefined();
-    expect(oursSchemes).toEqual(upstreamSchemes);
-    expect(dataTypeOf(ours)).toBe(dataTypeOf(upstream));
+  it.each(["", "   "])("both treat %j as nothing to render, by different means", (url) => {
+    // `safeUrl` returns "", which its callers read as a refusal; the renderer
+    // calls it safe and lets an empty attribute through. Neither is wrong and
+    // neither is dangerous — an empty `href` resolves to the current page — but
+    // it is the one place the two contracts do not line up, and it is written
+    // down here so nobody has to rediscover it from a failing corpus.
+    expect(safeUrl(url)).toBe("");
+    expect(isDangerousUrl(url)).toBe(false);
   });
 });
 
