@@ -24,6 +24,18 @@ before it is bound rather than parsed whole. And a link inside parsed prose is a
 anchor, never the `navigate` action — a link naming a repository file walks a reader off a
 site that only deploys the rendering, so those are rewritten to page URLs before parsing.
 
+## Three kinds of page, and the branch that chooses between them
+
+The frame carries applications and documents now, not one of each: the playground, the
+builder, and the prose pages that are ViewSpecs. The choice is written as narrowing rather
+than as a lookup table, so the last branch is reached with the page already proven to be one
+that *is* a document — a map needs a cast there, and the cast is what survives a fourth page
+being added without one.
+
+A page that is an application still draws no chrome. The builder owns its own three columns
+and its own scrollers inside the region the frame gives it, and contributes its one control
+to the bar like every other page.
+
 ## The frame outlives the page, and pages must not draw chrome
 
 Following a link between pages used to be a real page load, which rebuilt the whole shell:
@@ -45,6 +57,15 @@ names is still JSON that has not been rendered; and focus stays on the link that
 followed, so a reader on a screen reader is told nothing happened at all. Arriving at a
 page is a single behaviour and belongs wherever the navigation does — not spread across
 the pages, each of which would owe it and one of which would forget.
+
+## A row inside a wrapping row does not wrap
+
+The top bar wraps and always has; its nav did not, and for three links that never showed. A
+fourth took the row past a phone's width, and an unwrapped flex row inside a wrapping one
+does not wrap — it overflows the window and takes the whole page sideways with it. Adding
+anything to the bar means measuring the page at 390px afterwards, and measuring
+`documentElement.scrollWidth` against its `clientWidth` rather than looking at it, because
+the overflow is off screen by definition.
 
 ## Its chrome is built from the design system, and that is load-bearing
 

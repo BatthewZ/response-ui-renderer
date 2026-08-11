@@ -17,6 +17,7 @@ export {
   errorsOf,
   EVENT_ACTIONS,
   FORBIDDEN_PROPS,
+  HEADING_LEVELS,
   isAttributeBagProp,
   isDangerousUrl,
   isElementProp,

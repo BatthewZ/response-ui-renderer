@@ -139,6 +139,79 @@ describe("node kinds", () => {
   });
 });
 
+describe("sibling keys", () => {
+  /**
+   * The warning is the only observable. React renders both children of a
+   * repeated key anyway — while reserving the right not to — so the DOM agrees
+   * with itself whether or not the keys were distinct, and a count of elements
+   * passes either way.
+   *
+   * Every other `console.error` is asserted on too rather than swallowed, so a
+   * document that fails to render here cannot hide behind the spy.
+   */
+  const keyWarningsFrom = (root: ViewSpec["root"]): { keys: string[]; other: string[] } => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    render(<ViewRenderer spec={spec({ root })} />);
+    const messages = error.mock.calls.map((call) => call.map(String).join(" "));
+    error.mockRestore();
+    return {
+      keys: messages.filter((message) => message.includes("same key")),
+      other: messages.filter((message) => !message.includes("same key")),
+    };
+  };
+
+  // `nodeKey` falls through `id` and `name` to `value`, which on a `Rating` is
+  // the score and on a `Meter` the reading — data every sibling may legitimately
+  // repeat. Hand-authorable with no builder in sight, which is why it is fixed
+  // here and not by whatever produced the document.
+  it("distinguishes two siblings showing the same value", () => {
+    const rating = (label: string) => ({
+      component: "Rating",
+      props: { "aria-label": label, value: 4, max: 5 },
+    });
+    const { keys, other } = keyWarningsFrom({
+      component: "Stack",
+      children: [rating("Food"), rating("Service")],
+    });
+    expect(keys).toEqual([]);
+    expect(other).toEqual([]);
+    expect(screen.getByLabelText("Food")).toBeInTheDocument();
+    expect(screen.getByLabelText("Service")).toBeInTheDocument();
+  });
+
+  // A radio group shares one `name` on purpose, so the fallback repeats there by
+  // design — the canonical spelling of the group is the one that breaks.
+  it("distinguishes the members of a radio group, which share one name", () => {
+    const { keys, other } = keyWarningsFrom({
+      component: "Stack",
+      children: [
+        { component: "Radio", props: { name: "plan", value: "free", "aria-label": "Free" } },
+        { component: "Radio", props: { name: "plan", value: "pro", "aria-label": "Pro" } },
+      ],
+    });
+    expect(keys).toEqual([]);
+    expect(other).toEqual([]);
+    expect(screen.getAllByRole("radio")).toHaveLength(2);
+  });
+
+  // The half that must not change, and the reason the fallback chain was left
+  // where it is: a child keyed by its own id keeps the DOM node it had when its
+  // siblings are reordered. Index keys pass every assertion above and fail this
+  // one, because the text a user typed would stay at position 0.
+  it("carries a child's own DOM state across a reorder of its siblings", async () => {
+    const input = (id: string) => ({ component: "Input", props: { id } });
+    const build = (...ids: string[]): ViewSpec =>
+      spec({ root: { component: "Stack", children: ids.map(input) } });
+
+    const { container, rerender } = render(<ViewRenderer spec={build("one", "two")} />);
+    await userEvent.type(container.querySelector("#two") as HTMLInputElement, "typed");
+
+    rerender(<ViewRenderer spec={build("two", "one")} />);
+    expect((container.querySelector("#two") as HTMLInputElement).value).toBe("typed");
+    expect((container.querySelector("#one") as HTMLInputElement).value).toBe("");
+  });
+});
+
 describe("theming", () => {
   it("applies themeOverrides as inline custom properties", () => {
     const { container } = render(

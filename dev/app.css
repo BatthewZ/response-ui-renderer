@@ -10,6 +10,7 @@
 @import "@batthewz/response-ui-css";
 @import "@batthewz/response-ui-react-components/styles";
 @import "../src/styles.css";
+@import "../src/builder/builder.css";
 
 /* Opt-in worked examples. Nothing on the site picks one — the documents theme
    themselves — but `?view=<doc>&theme=<name>` still renders one against a theme it
@@ -89,9 +90,13 @@ body {
   color: var(--C-TEXT-MUTED);
 }
 
+/* Wraps for the same reason the bar it sits in does. A fourth page took the row
+   past a phone's width, and an unwrapped flex row inside a wrapping one does not
+   wrap — it overflows the window and takes the whole page sideways with it. */
 .pg-nav {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.125rem;
 }
 
@@ -784,4 +789,47 @@ body {
   .pg-gate {
     animation: none;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Builder page                                                       */
+/* ------------------------------------------------------------------ */
+
+/* The builder owns its own three-column layout and its own scrollers, so the
+   frame's job is only to give it the space under the bar and to be the thing
+   the frame focuses on arrival. `position: relative` for the reason every other
+   pane here has it — see `.pg-page`. */
+.pg-builder {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.pg-builder:focus-visible {
+  outline: none;
+}
+
+/* The demo component the builder page registers. It is styled here rather than
+   in the design system for the same reason it is registered here: it is a
+   worked example of a host's own component, and a host's components are not
+   this package's business. */
+.demo-price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--R-SIZE-6);
+  margin: 0;
+}
+
+.demo-price-amount {
+  font-size: var(--H3);
+  line-height: var(--H3-line-height);
+  font-weight: var(--Bold-Weight);
+}
+
+.demo-price[data-emphasis="loud"] .demo-price-amount {
+  color: var(--C-ACCENT);
+}
+
+.demo-price-cadence {
+  color: var(--C-TEXT-MUTED);
 }

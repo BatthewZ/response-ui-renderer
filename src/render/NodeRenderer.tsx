@@ -98,6 +98,30 @@ function itemKey(item: unknown, index: number): string {
   return String(index);
 }
 
+/**
+ * Disambiguates a key that has already been used by an earlier sibling.
+ *
+ * `nodeKey` reaches past `id` into props that are not identity at all, and two
+ * honest siblings can therefore derive the same key: `value` is a `Rating`'s
+ * score and a `Meter`'s reading, so two ratings of 4 collide, and a radio group
+ * shares one `name` on purpose. React answers a repeated key by warning that it
+ * may duplicate or omit one of the children, so a document that means both is
+ * not owed that — the repeat is resolved here.
+ *
+ * Only a key that has *already appeared among these siblings* is changed, which
+ * is what keeps this off documents that were well-formed to begin with: their
+ * keys, and so what React reconciles across a reorder, are exactly what they
+ * were before. Fixing it the other way — dropping `value` from the chain — would
+ * renumber keys in documents that never had a problem.
+ */
+function uniqueChildKey(key: string, used: Set<string>): string {
+  let candidate = key;
+  let suffix = 2;
+  while (used.has(candidate)) candidate = `${key}#${suffix++}`;
+  used.add(candidate);
+  return candidate;
+}
+
 function nodeKey(node: ViewNode, index: number): string {
   if (typeof node === "string") return `t${index}`;
   if (isRefNode(node)) return `r${index}-${node.$ref}`;
@@ -563,8 +587,9 @@ export function NodeRenderer({
   // per-sibling isolation is traded away, and only at these positions.
   const parentInspectsChildren = inspectsChildren(contract, node.props);
 
+  const usedChildKeys = new Set<string>();
   const childNodes = node.children?.map((child, index) => {
-    const key = nodeKey(child, index);
+    const key = uniqueChildKey(nodeKey(child, index), usedChildKeys);
     return parentInspectsChildren ? (
       renderChild(child, key)
     ) : (

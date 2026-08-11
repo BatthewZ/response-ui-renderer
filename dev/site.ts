@@ -10,17 +10,19 @@
  * Ids and labels live here rather than beside the documents they render, so the
  * documents can link to a page without importing the module that builds them.
  */
-export type PageId = "playground" | "overview" | "reference";
+export type PageId = "playground" | "builder" | "overview" | "reference";
 
-/** Every page but the playground is a rendered document. */
-export type DocPageId = Exclude<PageId, typeof PLAYGROUND_PAGE>;
+/** The pages that are a rendered document rather than an application. */
+export type DocPageId = Exclude<PageId, typeof PLAYGROUND_PAGE | typeof BUILDER_PAGE>;
 
 export const PLAYGROUND_PAGE = "playground";
+export const BUILDER_PAGE = "builder";
 
 const PAGE_PARAM = "page";
 
 export const SITE_PAGES: readonly { id: PageId; label: string }[] = [
   { id: PLAYGROUND_PAGE, label: "Playground" },
+  { id: BUILDER_PAGE, label: "Builder" },
   { id: "overview", label: "Overview" },
   { id: "reference", label: "ViewSpec Reference" },
 ];

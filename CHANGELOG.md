@@ -6,6 +6,64 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.7.0] — Unreleased
 
+### Added
+
+- **`ViewBuilder`, a drag-and-drop editor for documents, at `/builder`.** A palette on the left, a
+  canvas in the middle that is the real `ViewRenderer` output, and an inspector on the right for
+  props, variants, `className`, `classNames` slots and the document's own `themeOverrides`. What
+  comes out is an ordinary ViewSpec, validated with the same `validateViewSpec` a host would run
+  before storing it.
+
+  The claim worth making about it is not that a page can be assembled by hand — it is that this
+  format is *data*, structured enough that a tool can compose, rearrange and retheme a document
+  without executing any of it. So it is built the way everything else here is: nothing about the
+  components is written down for the builder. The palette is `listComponentNames(registry)`, the
+  variant buttons are `propEnums`, the `classNames` fields are `slots`, the sections are
+  `category`, and a host's registered component gets the identical panel through the identical
+  code. Point it at your registry and contracts — the same two `ViewRenderer` takes — and your
+  components are first-class in it.
+
+  It takes `templates` for what dropping a component produces (defaulting to nodes derived from
+  this package's coverage corpus; `templatesFromDocuments` builds the same out of documents of
+  your own) and `themeTokens` for what the theme panel offers. Alongside it, and deliberately
+  kept small — 36 runtime names — the pieces a *different* editor would be built on:
+  `createBuilderCatalog`, the path-addressed tree operations, the drop resolution and the canvas
+  instrumentation. The editor's own pointer tuning, command layer, reducer and control-choosing
+  stayed internal: each is a shape that will move, and withdrawing an export is a minor bump.
+
+  **Treat `/builder` as provisional.** It is the youngest surface in a package that is itself
+  young, and it is published because a builder that cannot be installed cannot be pointed at
+  anyone's own components. It does not check that a component makes sense where it was dropped —
+  a `Button` inside a `Text` is a valid document and invalid HTML — and it has no import beyond
+  `initialSpec`.
+
+  Chrome CSS ships separately as `/builder.css`, so a page that only renders documents pays for
+  none of it, and the documented contracts it needs are behind `/builder` rather than in the main
+  entry point for the same reason `/reference` is.
+
+- **The theme contract is derived, not restated.** `THEME_TOKENS` is generated from
+  `_theme-template.css` in `@batthewz/response-ui-css` by `scripts/gen-theme-tokens.mjs`, grouped
+  under the template's own headings, with each token marked optional (commented out upstream) or
+  responsive (declared at two breakpoints, so a flat override flattens the step). Read at build
+  time because the foundation is a devDependency here and must stay one. `theme:tokens --check`
+  runs in `prepublishOnly` and a test re-derives from the installed package, so a contract that
+  moves upstream fails rather than silently offering a token nothing reads.
+
+### Fixed
+
+- **Two siblings could be handed the same React key.** A child's key prefers a stable identity so
+  that reordering does not remount it, and it looked for one at `id`, then `name`, then `value`.
+  The last two are not identity: `value` is a `Rating`'s score and a `Meter`'s reading, and a radio
+  group shares one `name` on purpose. So the canonical spelling of a radio group — two `Radio`
+  siblings, one `name`, different values — collided, as did any two siblings showing the same
+  number. React reports that as unsupported and reserves the right to duplicate or omit one of the
+  children.
+
+  A key is now disambiguated only when it has already appeared among the same siblings, so nothing
+  changes for a document that was well-formed to begin with: its keys, and so what React carries
+  across a reorder, are byte-identical. Dropping `value` from the chain would have been the other
+  fix and was rejected for that reason — it renumbers keys in documents that never had a problem.
+
 ### Changed
 
 - **Peer range moves to `@batthewz/response-ui-react-components@^0.21.0`**, which is where

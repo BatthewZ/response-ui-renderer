@@ -411,12 +411,18 @@ export function isElementProp(key: string, contract?: ComponentContract): boolea
  * `headingLevel: "1><img src=x onerror=…>"` rendered a document-triggerable
  * error box, which is document control of the element either way.
  */
-const HEADING_LEVELS: ReadonlySet<string> = new Set(["1", "2", "3", "4", "5", "6"]);
+/**
+ * Exported because the builder offers exactly this set as a control. A second
+ * hand-written copy of a security allowlist is the drift nobody notices until a
+ * value the picker offers is one the validator refuses.
+ */
+export const HEADING_LEVELS: readonly string[] = ["1", "2", "3", "4", "5", "6"];
+const HEADING_LEVEL_SET: ReadonlySet<string> = new Set(HEADING_LEVELS);
 
 export function isForbiddenHeadingLevel(value: unknown): boolean {
   if (value === null || value === undefined) return false;
-  if (typeof value === "number") return !HEADING_LEVELS.has(String(value));
-  return typeof value !== "string" || !HEADING_LEVELS.has(value);
+  if (typeof value === "number") return !HEADING_LEVEL_SET.has(String(value));
+  return typeof value !== "string" || !HEADING_LEVEL_SET.has(value);
 }
 
 export function isHeadingLevelProp(key: string, contract?: ComponentContract): boolean {

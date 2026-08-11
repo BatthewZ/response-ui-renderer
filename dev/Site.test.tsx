@@ -128,6 +128,23 @@ describe("Site", () => {
     expect(window.location.search).toBe("?page=overview");
   });
 
+  it("swaps in the builder, which is an application rather than a document", () => {
+    // The frame has three kinds of page under it now — two applications and the
+    // prose documents — and the branch that chooses between them is the one
+    // thing here that a fourth page would quietly get wrong.
+    mount("/?page=overview");
+    fireEvent.click(screen.getByRole("link", { name: "Builder" }));
+
+    expect(window.location.search).toBe("?page=builder");
+    expect(document.querySelector(".pg-builder")).toBeInTheDocument();
+    expect(document.querySelector(".pg-page")).toBeNull();
+    expect(screen.getByRole("button", { name: "What this is" })).toBeInTheDocument();
+
+    // Its own registry reaches the palette: the demo page registers `PriceTag`,
+    // which the design system has never heard of.
+    expect(screen.getByRole("button", { name: /^PriceTag\./ })).toBeInTheDocument();
+  });
+
   it("leaves alone every link that does not name a page", () => {
     mount("/?page=playground");
 

@@ -1,10 +1,12 @@
-import { type ComponentType, useEffect, useRef, useState } from "react";
+import { type ComponentType, type Ref, useEffect, useRef, useState } from "react";
 
+import { BuilderHeaderControls } from "./BuilderHeaderControls";
+import { BuilderPage } from "./BuilderPage";
 import { DocsPage } from "./DocsPage";
 import { Playground } from "./Playground";
 import { PlaygroundHeaderControls } from "./PlaygroundHeaderControls";
 import { ReferenceHeaderControls } from "./ReferenceHeaderControls";
-import { type PageId, pageOf, PLAYGROUND_PAGE, requestedPage } from "./site";
+import { BUILDER_PAGE, type PageId, pageOf, PLAYGROUND_PAGE, requestedPage } from "./site";
 import { SiteHeader } from "./SiteHeader";
 
 /**
@@ -16,8 +18,23 @@ import { SiteHeader } from "./SiteHeader";
  */
 const HEADER_CONTROLS: Partial<Record<PageId, ComponentType>> = {
   playground: PlaygroundHeaderControls,
+  builder: BuilderHeaderControls,
   reference: ReferenceHeaderControls,
 };
+
+/**
+ * What is under the bar.
+ *
+ * Written as narrowing rather than as a lookup so the last branch is reached
+ * with `page` already proven to be a page that *is* a document — a map would
+ * need a cast there, and the cast is what would survive a fourth page being
+ * added without one.
+ */
+function PageBody({ page, region }: { page: PageId; region: Ref<HTMLElement> }) {
+  if (page === PLAYGROUND_PAGE) return <Playground ref={region} />;
+  if (page === BUILDER_PAGE) return <BuilderPage ref={region} />;
+  return <DocsPage ref={region} page={page} />;
+}
 
 /** Where the current URL points, as the frame needs it. */
 function routeOf(): { page: PageId; hash: string } {
@@ -104,14 +121,13 @@ export function Site() {
     arrived.current = true;
   }, [page, hash]);
 
-  const playground = page === PLAYGROUND_PAGE;
   const Controls = HEADER_CONTROLS[page];
 
   return (
     <div className="pg-root">
       <SiteHeader page={page}>{Controls && <Controls />}</SiteHeader>
 
-      {playground ? <Playground ref={region} /> : <DocsPage ref={region} page={page} />}
+      <PageBody page={page} region={region} />
     </div>
   );
 }

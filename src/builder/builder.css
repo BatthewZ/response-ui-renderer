@@ -1,0 +1,724 @@
+/* @batthewz/response-ui-renderer — the ViewSpec builder's own chrome.
+ *
+ * Import AFTER the design-system foundation, which defines every var() below,
+ * and only if you mount `ViewBuilder`:
+ *   @import "@batthewz/response-ui-css";
+ *   @import "@batthewz/response-ui-react-components/styles";
+ *   @import "@batthewz/response-ui-renderer/styles";
+ *   @import "@batthewz/response-ui-renderer/builder.css";
+ *
+ * Tokens only — no raw hex, no raw colour functions — so the builder's chrome
+ * re-skins with the active theme exactly like everything else. A raw value here
+ * would break that silently: the shell would simply stop following the theme,
+ * and nothing would fail.
+ *
+ * Structural sizes are literal. Panel widths and drag-indicator thicknesses are
+ * chrome geometry, not part of the design language. */
+
+@source "./**/*.{ts,tsx}";
+
+.rui-builder {
+  --rui-builder-side: 17rem;
+  --rui-builder-indent: 0.75rem;
+
+  display: grid;
+  grid-template-columns: var(--rui-builder-side) minmax(0, 1fr) var(--rui-builder-side);
+  min-block-size: 0;
+  block-size: 100%;
+  background: var(--C-CANVAS);
+  color: var(--C-TEXT-PRIMARY);
+  font-family: var(--DEFAULT-FONT);
+  font-size: var(--BodyText-3);
+  line-height: var(--BodyText-3-line-height);
+}
+
+/* Nothing on the page selects text while a drag is in flight, or the drag
+   paints a blue smear across whatever it passes over. */
+.rui-builder[data-dragging] {
+  user-select: none;
+  cursor: grabbing;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Panels                                                             */
+/* ------------------------------------------------------------------ */
+
+.rui-builder-side {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  background: var(--C-SURFACE-1);
+  border-inline-end: 1px solid var(--C-BORDER-DEFAULT);
+}
+
+.rui-builder-side:last-child {
+  border-inline-end: none;
+  border-inline-start: 1px solid var(--C-BORDER-DEFAULT);
+}
+
+/* `position: relative` is not decoration. The library's visually-hidden text is
+   absolutely positioned with no offsets, so without a positioned ancestor it
+   resolves against the viewport, escapes the clip and stretches the page. */
+.rui-builder-scroll {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  padding: var(--R-SIZE-5);
+}
+
+.rui-builder-tabs {
+  display: flex;
+  gap: var(--R-SIZE-6);
+  padding: var(--R-SIZE-5) var(--R-SIZE-5) 0;
+  border-block-end: 1px solid var(--C-BORDER-DEFAULT);
+}
+
+.rui-builder-tab {
+  padding: var(--R-SIZE-6) var(--R-SIZE-5);
+  border: none;
+  border-radius: var(--RADIUS-SM) var(--RADIUS-SM) 0 0;
+  background: none;
+  color: var(--C-TEXT-SECONDARY);
+  font: inherit;
+  cursor: pointer;
+  transition: color var(--DURATION-FAST) var(--MOTION-EASE-SHIFT);
+}
+
+.rui-builder-tab:hover {
+  color: var(--C-TEXT-PRIMARY);
+}
+
+/* Weight and a rule, not colour alone. */
+.rui-builder-tab[aria-selected="true"] {
+  color: var(--C-TEXT-PRIMARY);
+  font-weight: var(--Semibold-Weight);
+  box-shadow: inset 0 -2px 0 0 var(--C-BORDER-STRONG);
+}
+
+.rui-builder-palette {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  flex: 1;
+}
+
+.rui-builder-search {
+  padding: var(--R-SIZE-5) var(--R-SIZE-5) 0;
+}
+
+.rui-builder-input {
+  inline-size: 100%;
+  padding: var(--R-SIZE-6) var(--R-SIZE-5);
+  border: 1px solid var(--C-BORDER-DEFAULT);
+  border-radius: var(--RADIUS-MD);
+  background: var(--C-SURFACE-0);
+  color: var(--C-TEXT-PRIMARY);
+  font: inherit;
+}
+
+.rui-builder-input:focus-visible {
+  outline: 2px solid var(--C-BORDER-FOCUS);
+  outline-offset: 1px;
+}
+
+.rui-builder-group + .rui-builder-group {
+  margin-block-start: var(--R-SIZE-4);
+}
+
+.rui-builder-group-title {
+  margin: 0 0 var(--R-SIZE-6);
+  color: var(--C-TEXT-MUTED);
+  font-size: var(--BodyText-3);
+  font-weight: var(--Semibold-Weight);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rui-builder-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--R-SIZE-6);
+}
+
+.rui-builder-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--C-BORDER-DEFAULT);
+  border-radius: var(--RADIUS-SM);
+  background: var(--C-SURFACE-0);
+  color: var(--C-TEXT-PRIMARY);
+  font: inherit;
+  text-align: start;
+  cursor: grab;
+  transition:
+    border-color var(--DURATION-FAST) var(--MOTION-EASE-SHIFT),
+    background var(--DURATION-FAST) var(--MOTION-EASE-SHIFT);
+}
+
+.rui-builder-chip:hover {
+  border-color: var(--C-BORDER-STRONG);
+  background: var(--C-SURFACE-2);
+}
+
+.rui-builder-chip:focus-visible {
+  outline: 2px solid var(--C-BORDER-FOCUS);
+  outline-offset: 1px;
+}
+
+/* A container is the thing you can drop *into*, and that is worth seeing before
+   you pick it up rather than after. */
+.rui-builder-chip[data-container]::before {
+  content: "";
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border: 1px solid var(--C-BORDER-STRONG);
+  border-radius: 2px;
+}
+
+.rui-builder-chip[data-dragging] {
+  opacity: 0.4;
+}
+
+.rui-builder-chip-parent {
+  color: var(--C-TEXT-MUTED);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Structure tree                                                     */
+/* ------------------------------------------------------------------ */
+
+.rui-builder-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rui-builder-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  padding-block: 0.1875rem;
+  padding-inline-end: var(--R-SIZE-6);
+  border-radius: var(--RADIUS-SM);
+  cursor: grab;
+}
+
+.rui-builder-row[data-hovered] {
+  background: var(--C-SURFACE-2);
+}
+
+.rui-builder-row[data-selected] {
+  background: var(--C-SURFACE-3);
+  font-weight: var(--Semibold-Weight);
+}
+
+.rui-builder-row:focus-visible {
+  outline: 2px solid var(--C-BORDER-FOCUS);
+  outline-offset: -2px;
+}
+
+.rui-builder-row-name {
+  white-space: nowrap;
+}
+
+/* Everything the document is not a component is written in the mono face, so
+   the two kinds of row never have to be told apart by reading them. */
+.rui-builder-row[data-kind="text"] .rui-builder-row-name,
+.rui-builder-row[data-kind="ref"] .rui-builder-row-name,
+.rui-builder-row[data-kind="each"] .rui-builder-row-name,
+.rui-builder-row[data-kind="cond"] .rui-builder-row-name {
+  color: var(--C-TEXT-SECONDARY);
+  font-family: var(--DEFAULT-MONO-FONT);
+}
+
+.rui-builder-row-text,
+.rui-builder-row-hint {
+  overflow: hidden;
+  color: var(--C-TEXT-MUTED);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rui-builder-row-hint {
+  font-style: italic;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Canvas                                                             */
+/* ------------------------------------------------------------------ */
+
+.rui-builder-main {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* Wraps, because the row is a title plus a verdict plus five controls and a
+   phone is 390px wide. Without it the bar is what pushes the whole page into a
+   horizontal scroll — and the page, not the bar, is where that shows up. */
+.rui-builder-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--R-SIZE-6) var(--R-SIZE-5);
+  padding: var(--R-SIZE-5);
+  background: var(--C-SURFACE-0);
+  border-block-end: 1px solid var(--C-BORDER-DEFAULT);
+}
+
+.rui-builder-title {
+  flex: 1;
+  min-inline-size: 6rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--RADIUS-SM);
+  background: none;
+  color: var(--C-TEXT-PRIMARY);
+  font: inherit;
+  font-weight: var(--Semibold-Weight);
+}
+
+.rui-builder-title:hover {
+  border-color: var(--C-BORDER-DEFAULT);
+}
+
+.rui-builder-title:focus-visible {
+  outline: 2px solid var(--C-BORDER-FOCUS);
+  outline-offset: 1px;
+}
+
+.rui-builder-status {
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--RADIUS-FULL);
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.rui-builder-status[data-verdict="empty"] {
+  color: var(--C-TEXT-MUTED);
+  background: var(--C-SURFACE-2);
+}
+
+.rui-builder-status[data-verdict="clean"] {
+  color: var(--C-STATUS-SUCCESS);
+  background: var(--C-STATUS-SUCCESS-BG);
+}
+
+.rui-builder-status[data-verdict="warning"] {
+  color: var(--C-STATUS-WARNING);
+  background: var(--C-STATUS-WARNING-BG);
+}
+
+.rui-builder-status[data-verdict="error"] {
+  color: var(--C-STATUS-ERROR);
+  background: var(--C-STATUS-ERROR-BG);
+}
+
+.rui-builder-toolbar-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--R-SIZE-6);
+}
+
+.rui-builder-issues {
+  margin: 0;
+  padding: var(--R-SIZE-6) var(--R-SIZE-5);
+  list-style: none;
+  background: var(--C-SURFACE-1);
+  border-block-end: 1px solid var(--C-BORDER-DEFAULT);
+  font-family: var(--DEFAULT-MONO-FONT);
+}
+
+.rui-builder-issues li[data-severity="error"] {
+  color: var(--C-STATUS-ERROR);
+}
+
+.rui-builder-issues li[data-severity="warning"] {
+  color: var(--C-STATUS-WARNING);
+}
+
+/* Both `position: relative` and `overflow` — see `.rui-builder-scroll`. */
+.rui-builder-stage {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+  overflow: auto;
+  padding: var(--R-SIZE-4);
+}
+
+.rui-builder-stage-inner {
+  position: relative;
+  min-block-size: 100%;
+}
+
+/* The document's own controls do not respond while the canvas is being edited —
+   the click becomes a selection instead. `Interact` hands them back. */
+.rui-builder-render {
+  cursor: default;
+  /* The chrome reads at --BodyText-3; the document must not. Inheriting the
+     panel's type size makes every bare string on the canvas render a fifth
+     smaller than it will in the host, so the preview understates what ships. */
+  font-size: initial;
+  line-height: initial;
+}
+
+.rui-builder-stage[data-interactive] .rui-builder-render {
+  cursor: auto;
+}
+
+.rui-builder-stage-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 60vh;
+}
+
+.rui-builder-invite {
+  max-inline-size: 26rem;
+  padding: var(--R-SIZE-3);
+  border: 2px dashed var(--C-BORDER-DEFAULT);
+  border-radius: var(--RADIUS-LG);
+  text-align: center;
+}
+
+.rui-builder-invite h2 {
+  margin: 0 0 var(--R-SIZE-6);
+  font-size: var(--H5);
+  line-height: var(--H5-line-height);
+}
+
+.rui-builder-invite p {
+  margin: 0;
+  color: var(--C-TEXT-SECONDARY);
+}
+
+.rui-builder-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.rui-builder-outline {
+  position: absolute;
+  border-radius: var(--RADIUS-SM);
+}
+
+.rui-builder-outline[data-kind="hover"] {
+  outline: 1px solid var(--C-BORDER-STRONG);
+  outline-offset: 1px;
+}
+
+.rui-builder-outline[data-kind="selection"] {
+  outline: 2px solid var(--C-BORDER-FOCUS);
+  outline-offset: 1px;
+}
+
+/* A line between siblings and a filled box inside a container are different
+   drawings because they are different outcomes. */
+.rui-builder-drop-line {
+  position: absolute;
+  block-size: 3px;
+  border-radius: var(--RADIUS-FULL);
+  background: var(--C-BORDER-FOCUS);
+}
+
+/* `opacity` on the box would fade the border with the fill, and 45% of a
+   surface token over a surface is a lightness difference below what an eye can
+   see — the indicator for *nesting*, which is the whole point of the canvas,
+   was the fainter of the two. The border stays at full strength and only the
+   fill is knocked back, which is what the two-drawings idea needed. */
+.rui-builder-drop-inside {
+  position: absolute;
+  border: 2px solid var(--C-BORDER-FOCUS);
+  border-radius: var(--RADIUS-SM);
+}
+
+.rui-builder-drop-inside::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--C-BORDER-FOCUS);
+  opacity: 0.12;
+}
+
+.rui-builder-ghost {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  /* The design system defines no layering scale, so this is chrome geometry
+     like the panel widths above — high enough to clear the builder's own
+     panels, which is all it has to clear. */
+  z-index: 60;
+  padding: 0.25rem 0.5rem;
+  margin-block-start: 0.75rem;
+  margin-inline-start: 0.75rem;
+  border-radius: var(--RADIUS-SM);
+  background: var(--C-SURFACE-0);
+  box-shadow: var(--SHADOW-MD);
+  border: 1px solid var(--C-BORDER-STRONG);
+  pointer-events: none;
+}
+
+.rui-builder-json {
+  max-block-size: 30vh;
+  margin: 0;
+  padding: var(--R-SIZE-5);
+  overflow: auto;
+  background: var(--C-SURFACE-2);
+  border-block-start: 1px solid var(--C-BORDER-DEFAULT);
+  font-family: var(--DEFAULT-MONO-FONT);
+  font-size: var(--BodyText-3);
+  white-space: pre;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Inspector                                                          */
+/* ------------------------------------------------------------------ */
+
+.rui-builder-fields,
+.rui-builder-theme {
+  display: flex;
+  flex-direction: column;
+  gap: var(--R-SIZE-5);
+}
+
+.rui-builder-node-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.rui-builder-node-name {
+  margin: 0;
+  font-size: var(--H6);
+  line-height: var(--H6-line-height);
+}
+
+.rui-builder-node-name[data-kind="each"],
+.rui-builder-node-name[data-kind="cond"],
+.rui-builder-node-name[data-kind="ref"],
+.rui-builder-node-name[data-kind="text"] {
+  font-family: var(--DEFAULT-MONO-FONT);
+}
+
+.rui-builder-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+}
+
+.rui-builder-crumb {
+  padding: 0 0.125rem;
+  border: none;
+  background: none;
+  color: var(--C-TEXT-MUTED);
+  font: inherit;
+  font-family: var(--DEFAULT-MONO-FONT);
+  cursor: pointer;
+}
+
+.rui-builder-crumb:hover {
+  color: var(--C-TEXT-PRIMARY);
+  text-decoration: underline;
+}
+
+.rui-builder-crumb + .rui-builder-crumb::before {
+  content: "/";
+  margin-inline-end: 0.125rem;
+}
+
+.rui-builder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--R-SIZE-6);
+}
+
+.rui-builder-section {
+  margin: var(--R-SIZE-5) 0 0;
+  padding-block-start: var(--R-SIZE-5);
+  border-block-start: 1px solid var(--C-BORDER-DEFAULT);
+  color: var(--C-TEXT-MUTED);
+  font-size: var(--BodyText-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rui-builder-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rui-builder-label {
+  color: var(--C-TEXT-SECONDARY);
+  font-family: var(--DEFAULT-MONO-FONT);
+  overflow-wrap: anywhere;
+}
+
+.rui-builder-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rui-builder-hint,
+.rui-builder-note,
+.rui-builder-empty-note {
+  margin: 0;
+  color: var(--C-TEXT-MUTED);
+}
+
+.rui-builder-note {
+  padding: var(--R-SIZE-6);
+  border-inline-start: 2px solid var(--C-BORDER-DEFAULT);
+  color: var(--C-TEXT-SECONDARY);
+}
+
+.rui-builder-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.rui-builder-segment {
+  padding: 0.1875rem 0.4375rem;
+  border: 1px solid var(--C-BORDER-DEFAULT);
+  border-radius: var(--RADIUS-SM);
+  background: var(--C-SURFACE-0);
+  color: var(--C-TEXT-SECONDARY);
+  font: inherit;
+  cursor: pointer;
+}
+
+.rui-builder-segment:hover {
+  border-color: var(--C-BORDER-STRONG);
+}
+
+.rui-builder-segment[aria-pressed="true"] {
+  border-color: var(--C-BORDER-STRONG);
+  background: var(--C-SURFACE-3);
+  color: var(--C-TEXT-PRIMARY);
+  font-weight: var(--Semibold-Weight);
+}
+
+.rui-builder-segment:focus-visible {
+  outline: 2px solid var(--C-BORDER-FOCUS);
+  outline-offset: 1px;
+}
+
+.rui-builder-bound {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--R-SIZE-6);
+  padding: 0.25rem 0.5rem;
+  border: 1px dashed var(--C-BORDER-STRONG);
+  border-radius: var(--RADIUS-SM);
+  color: var(--C-TEXT-SECONDARY);
+  font-family: var(--DEFAULT-MONO-FONT);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Theme panel                                                        */
+/* ------------------------------------------------------------------ */
+
+.rui-builder-token {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: var(--R-SIZE-6);
+  border: 1px solid var(--C-BORDER-DEFAULT);
+  border-radius: var(--RADIUS-MD);
+  background: var(--C-SURFACE-0);
+}
+
+.rui-builder-token + .rui-builder-token {
+  margin-block-start: var(--R-SIZE-6);
+}
+
+.rui-builder-token-head {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.rui-builder-token-head .rui-builder-label {
+  flex: 1;
+}
+
+.rui-builder-swatch {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+  flex: none;
+  border-radius: var(--RADIUS-SM);
+  box-shadow: inset 0 0 0 1px var(--C-BORDER-STRONG);
+}
+
+.rui-builder-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.rui-builder-channel {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.rui-builder-channel-label {
+  inline-size: 1rem;
+  color: var(--C-TEXT-MUTED);
+  font-family: var(--DEFAULT-MONO-FONT);
+}
+
+.rui-builder-range {
+  flex: 1;
+  min-inline-size: 0;
+  accent-color: var(--C-BORDER-FOCUS);
+}
+
+.rui-builder-channel-value {
+  inline-size: 3rem;
+  color: var(--C-TEXT-MUTED);
+  font-family: var(--DEFAULT-MONO-FONT);
+  text-align: end;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Narrow viewports                                                   */
+/* ------------------------------------------------------------------ */
+
+/* Three columns need three columns' worth of room. Below that the panels stack
+   above and below the canvas, which is the honest shape rather than a squeezed
+   one — a 12rem palette of component names is unreadable. */
+@media (width < 64rem) {
+  .rui-builder {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(12rem, 20vh) minmax(0, 1fr) minmax(12rem, 30vh);
+    block-size: auto;
+  }
+
+  .rui-builder-side,
+  .rui-builder-side:last-child {
+    border-inline: none;
+    border-block-end: 1px solid var(--C-BORDER-DEFAULT);
+  }
+
+  .rui-builder-side:last-child {
+    border-block-start: 1px solid var(--C-BORDER-DEFAULT);
+    border-block-end: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rui-builder-tab,
+  .rui-builder-chip {
+    transition: none;
+  }
+}

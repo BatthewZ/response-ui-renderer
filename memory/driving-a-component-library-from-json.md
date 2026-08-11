@@ -109,3 +109,25 @@ Treat every render as a fresh attempt: retry when new children arrive, which is 
 something above re-rendered. That cannot loop, because the boundary's own state change does
 not produce new children. A node that is still broken throws once per render, which is the
 honest cost of never lying about the current state.
+
+## A React key may be derived from identity, never from data
+
+Keying a child by its position remounts it whenever a sibling moves, so the key is derived
+from the node's props instead. The trap is which props qualify. `id` is identity. `name` is
+not — a radio group shares one on purpose, which makes the canonical spelling of a group two
+siblings with the same key. `value` is not either: it is a rating's score, a meter's reading,
+a number two siblings may honestly both be showing. React answers a repeated key by warning
+that it may duplicate or omit one of the children, so the document that means both gets one.
+
+The instinct is to fix it upstream, in whatever produced the document — rename the colliding
+prop the way a duplicate `id` is renamed. That is right for `id`, which is genuinely unique or
+the HTML is wrong, and wrong for everything else: renaming a rating's `value` to make a key
+unique changes how many stars it draws. A tool must not corrupt valid data to work around a
+rendering detail, and a hand-authored document reaches the same collision with no tool
+involved, so the fix belongs where the key is made.
+
+Disambiguate only a key that has already appeared among the *same siblings*. Then a document
+that was well-formed keeps byte-identical keys, and the change cannot move what React
+reconciles anywhere it was not already broken. Removing the weak props from the chain instead
+would renumber keys in documents that never had the problem — a much larger blast radius for
+the same defect.

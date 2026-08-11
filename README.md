@@ -16,6 +16,7 @@ import { ViewRenderer } from "@batthewz/response-ui-renderer";
 - **Zero runtime dependencies.** React and response-ui are peers; nothing else ships.
 - **Host-agnostic.** No router, no server routes, no auth model. Navigation, network and toasts are injected.
 - **Extensible to your own components.** Register them, declare a contract, and the renderer translates their props, the validator checks them and the reference documents them — through the same code that serves the library's own, not a parallel path.
+- **A drag-and-drop editor, for your registry too.** `ViewBuilder` composes a document by direct manipulation and hands back ordinary JSON. Its palette *is* the registry, its variant controls *are* the contracts — so your own components arrive in it with a full inspector and nothing taught to the builder about them.
 - **Hardened for machine-generated input.** Per-node error boundaries, prototype-safe lookups, forbidden-prop stripping, URL-scheme filtering, depth limits.
 
 ---
@@ -414,6 +415,60 @@ Otherwise keep documents to the scale (`gap-r4`, `p-r3`, `w-full`) and prefer re
 
 ---
 
+## Building a document by hand
+
+A ViewSpec is data, not a program — which means a tool can compose, rearrange and retheme one without running any of it. `ViewBuilder` is that tool: a palette, a canvas that is the real render, and an inspector, in about the shape you would expect.
+
+```tsx
+import { ViewBuilder } from "@batthewz/response-ui-renderer/builder";
+import "@batthewz/response-ui-renderer/builder.css";
+
+<ViewBuilder icons={icons} adapters={adapters} onChange={(spec) => save(spec)} />;
+```
+
+It takes the same `registry`, `contracts`, `icons` and `adapters` `ViewRenderer` does, so pointing it at your own components is the same act as rendering them:
+
+```tsx
+<ViewBuilder
+  registry={extendRegistry(defaultRegistry, { BarChart })}
+  contracts={extendContracts(defaultReferenceContracts, {
+    BarChart: {
+      category: "Data",                                  // must be one of the sections below
+      propEnums: { orientation: ["horizontal", "vertical"] },
+      props: [{ key: "series", optional: false, type: "string" }],
+    },
+  })}
+/>;
+```
+
+Pass `contracts` from `/reference` rather than `defaultContracts`: the inspector draws its rows from the prop tables, and those only live on the documented set. Everything the builder shows is derived from what you passed it — the palette from the registry, the variant buttons from `propEnums`, the `classNames` fields from `slots`, the sections from `category`. There is no builder-side list of components, which is why yours are not second-class.
+
+`category` must name one of the sections the palette is drawing — `DEFAULT_CATEGORIES` from `/reference`, or your own list passed as `categories`. A name that appears in neither is filed under **Other** rather than inventing a heading, so a section of your own means passing both:
+
+```tsx
+import { DEFAULT_CATEGORIES } from "@batthewz/response-ui-renderer/reference";
+
+<ViewBuilder categories={[...DEFAULT_CATEGORIES, { name: "Charts", blurb: "Ours." }]} … />;
+```
+
+It is a separate entry point because it is not free: it carries the documented contracts (the prop tables the inspector draws) and the corpus its default templates come from — around 85kB gzipped, against a renderer that is a fraction of that. A page that only renders documents imports none of it, which is the point of the split; a page that mounts an editor is paying for an editor.
+
+Two more inputs are worth knowing about. `templates` decides what dropping a component *produces*; `templatesFromDocuments(yourDocuments)` builds them out of documents you already have, so your components land composed rather than bare. It **replaces** the default rather than adding to it, so spread it unless you mean to lose the built-in ones:
+
+```tsx
+<ViewBuilder templates={{ ...defaultBuilderTemplates, ...templatesFromDocuments(yourDocuments) }} … />;
+```
+
+`themeTokens` is the set the theme panel offers, defaulting to the `@batthewz/response-ui-css` theme contract as its `_theme-template.css` defines it — replace it if you theme a different system, or extend it to reach tokens that file does not list.
+
+What it does not author: `data`, `forms`, `$each`, `$cond` and `$ref`. A document that already has them keeps them — they are shown in the structure tree and written back untouched — but composing them is JSON's job.
+
+The pieces underneath are exported too, for a different editor rather than this one: `createBuilderCatalog`, the path-addressed tree operations (`nodeAt`, `insertAt`, `moveNode`, …), the drop resolution (`zoneFor`, `dropTargetAt`, `canMove`) and the canvas instrumentation (`instrumentSpec`, `pathFromElement`). Deliberately not exported: the editor's pointer tuning, its command layer, its reducer and its control-choosing — all shapes that will move, and none of them a thing to build on. **This is the youngest surface in the package**; treat it as provisional, and expect a minor bump to move it.
+
+What it will not save you from: nothing checks that a component makes sense where you dropped it. A `Button` inside a `Text` is a valid document and invalid HTML, and a compound part dropped away from its parent renders the renderer's own inline error on the canvas rather than being refused. It also has no import — it starts empty, and `initialSpec` is the only way in.
+
+---
+
 ## Custom components
 
 Registering a component makes it *renderable*. A **contract** tells the renderer, the validator and the reference generator everything else they know about a component — the same record, read by the same code, for your components and the library's alike.
@@ -532,7 +587,7 @@ A name no contract holds **throws**, with the nearest match. That is the point o
 
 That last group is there for prompt and schema building: the accepted values of every bounded prop, the components whose `children` is a function of their own data, and the ones whose `children` is source text they parse. `COMPONENT_TYPED_ICON_SLOTS` is the odd one — *most* icon slots take a name (see [VIEWSPEC.md](VIEWSPEC.md)); this is the exception that wants a component type rather than an element, invisible from a document and useful to a schema builder.
 
-Subpaths: `/spec` (types + validator + contracts, no React) · `/reference` (reference generation and scoping) · `/icons` (lucide set) · `/zod` (schemas) · `/styles` (CSS).
+Subpaths: `/spec` (types + validator + contracts, no React) · `/reference` (reference generation and scoping) · `/builder` (`ViewBuilder` and the pieces under it) · `/icons` (lucide set) · `/zod` (schemas) · `/styles` (CSS) · `/builder.css` (the builder's own chrome).
 
 ## License
 

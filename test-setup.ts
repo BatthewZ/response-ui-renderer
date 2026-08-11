@@ -67,6 +67,25 @@ if (typeof HTMLDialogElement !== "undefined") {
   }
 }
 
+// Two more jsdom omissions, and both are hit by the *builder's* drag rather than
+// by any component. jsdom has no layout at all, so it implements neither: with
+// them absent the pointermove handler throws mid-way, which vitest reports as an
+// unhandled error and — worse — leaves the tests that fire a pointermove passing
+// on a handler that never finished. `elementFromPoint` answering `null` is the
+// truthful stub: with no layout there is genuinely nothing under the pointer, so
+// where a drag *lands* stays untestable here and lives in `drop.test.ts`.
+if (typeof Document !== "undefined" && typeof Document.prototype.elementFromPoint !== "function") {
+  Document.prototype.elementFromPoint = function elementFromPoint() {
+    return null;
+  };
+}
+
+if (typeof Element !== "undefined" && typeof Element.prototype.scrollBy !== "function") {
+  Element.prototype.scrollBy = function scrollBy() {
+    /* jsdom has no layout to scroll */
+  };
+}
+
 afterEach(() => {
   cleanup();
 });

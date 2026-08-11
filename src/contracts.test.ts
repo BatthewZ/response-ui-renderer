@@ -121,7 +121,16 @@ describe("dependency contract", () => {
     dependencies?: Record<string, string>;
     peerDependencies?: Record<string, string>;
     peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+    sideEffects?: unknown;
   };
+
+  it("marks its stylesheets as side-effectful, so a bundler cannot drop them", () => {
+    // `sideEffects: false` is what makes the JS tree-shake, and it is also a
+    // licence for a bundler to delete `import "…/builder.css"` — the only way a
+    // consumer has of getting the chrome's styles, and the line the README
+    // tells them to write. The array form keeps both.
+    expect(pkg.sideEffects).toEqual(["*.css"]);
+  });
 
   it("ships no runtime dependencies", () => {
     // response-ui-react-components: "do NOT add a validator as a runtime
@@ -167,43 +176,91 @@ describe("design-system contract", () => {
     }
   });
 
-  it("styles diagnostics with design tokens only", () => {
-    const css = read(path.join(root, "src/styles.css"));
+  // Every stylesheet the package ships, not one named file. The builder's chrome
+  // arrived as a second one, and a gate that names `styles.css` would have gone
+  // on passing while the new sheet did whatever it liked.
+  const shippedStylesheets = globSync("src/**/*.css", { cwd: root, absolute: true });
+
+  it("ships more than one stylesheet, so these gates have to read them all", () => {
+    expect(shippedStylesheets.map(rel).sort()).toEqual([
+      "src/builder/builder.css",
+      "src/styles.css",
+    ]);
+  });
+
+  it.each(shippedStylesheets)("%s writes no colour of its own", (file) => {
+    // Colour only — these sheets do carry raw *lengths*, deliberately: chrome
+    // geometry is not part of the design language. Colour is, and a raw one
+    // stops following the theme silently.
+    //
+    // Case-insensitive, and `oklch`/`oklab`/`lab`/`lch`/`color-mix` are in the
+    // list because the design system is authored in OKLCH — `oklch(…)` is the
+    // syntax someone here would actually reach for, and it was the one the
+    // original spelling of this gate let through.
+    const css = read(file);
     expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-    expect(css).not.toMatch(/\b(rgb|rgba|hsl|hsla)\(/);
-    expect(css).toMatch(/var\(--C-STATUS-ERROR\)/);
+    expect(css).not.toMatch(/\b(rgba?|hsla?|hwb|oklch|oklab|lab|lch|color|color-mix)\s*\(/i);
+    // The named colours, less the four keywords that are not colours at all.
+    // An allowlist would need a CSS value parser; this is the set that shows up
+    // when someone is sketching.
+    expect(css).not.toMatch(
+      /:\s*(white|black|red|blue|green|grey|gray|silver|purple|orange|yellow|pink|rebeccapurple)\b/i,
+    );
     expect(css).toMatch(/var\(--R-SIZE-/);
     expect(css).toMatch(/prefers-reduced-motion/);
   });
 
-  it("honours the contrast contract: no fill token as ink on a surface", () => {
-    // response-ui-css AGENTS.md, Don'ts: "No fill token (--C-PRIMARY /
-    // --C-ACCENT / status bg-*) as ink on a surface — it's only guaranteed to
-    // contrast its own on-* text, not the surface."
-    // Status *-BG pairs are the blessed exception: --C-STATUS-X on
-    // --C-STATUS-X-BG is the documented tint pattern.
-    const css = read(path.join(root, "src/styles.css"));
-    for (const fill of ["--C-PRIMARY", "--C-ACCENT", "--C-SECONDARY"]) {
-      expect(css, `${fill} used as ink`).not.toContain(`var(${fill})`);
-    }
+  it("styles diagnostics with the status tokens they are about", () => {
+    expect(read(path.join(root, "src/styles.css"))).toMatch(/var\(--C-STATUS-ERROR\)/);
   });
 
-  it("uses only tokens that response-ui-css actually defines", () => {
+  it.each(shippedStylesheets)(
+    "%s honours the contrast contract: no fill token as ink on a surface",
+    (file) => {
+      // response-ui-css AGENTS.md, Don'ts: "No fill token (--C-PRIMARY /
+      // --C-ACCENT / status bg-*) as ink on a surface — it's only guaranteed to
+      // contrast its own on-* text, not the surface."
+      // Status *-BG pairs are the blessed exception: --C-STATUS-X on
+      // --C-STATUS-X-BG is the documented tint pattern.
+      // Matched by prefix and without the closing paren, so `--C-PRIMARY-HOVER`
+      // and `var(--C-ACCENT, black)` are caught too — every one of them is a
+      // fill, and the first spelling of this gate saw none of them. The status
+      // backgrounds are fills as well; they are excluded from the ink test
+      // rather than the list because `--C-STATUS-X` on `--C-STATUS-X-BG` is the
+      // documented tint pair and this sheet uses it.
+      const css = read(file);
+      for (const fill of ["--C-PRIMARY", "--C-ACCENT", "--C-SECONDARY"]) {
+        const used = new RegExp(`var\\(\\s*${fill}[,)-]`).test(css);
+        expect(used, `${fill} (or a variant of it) used as ink`).toBe(false);
+      }
+    },
+  );
+
+  it.each(shippedStylesheets)("%s uses only tokens response-ui-css defines", (file) => {
     // A typo'd custom property fails silently at runtime — the declaration is
     // simply dropped. Cross-check every token against the foundation package.
     const cssRoot = path.join(root, "node_modules/@batthewz/response-ui-css/src");
-    const foundation = globSync("**/*.css", { cwd: cssRoot, absolute: true })
+    // Not `examples/`: those themes are worked examples that "deleting must
+    // break nothing", so a token defined only there is not part of the contract
+    // and must not certify a usage here.
+    const foundation = globSync("**/*.css", { cwd: cssRoot, absolute: true, ignore: "examples/**" })
       .map(read)
       .join("\n");
 
-    const used = new Set(
-      [...read(path.join(root, "src/styles.css")).matchAll(/var\((--[A-Za-z0-9-]+)/g)].map(
-        (m) => m[1],
-      ),
-    );
+    const css = read(file);
+    // A sheet may declare custom properties of its own — the builder's panel
+    // widths are two — and those are not the foundation's to define. They must
+    // be namespaced, though: an unnamespaced one is this package writing into
+    // the design system's own vocabulary from the outside.
+    const declared = new Set([...css.matchAll(/^\s*(--[A-Za-z0-9-]+)\s*:/gm)].map((m) => m[1]));
+    expect([...declared].filter((token) => !token.startsWith("--rui-"))).toEqual([]);
+
+    const used = new Set([...css.matchAll(/var\(\s*(--[A-Za-z0-9-]+)/g)].map((m) => m[1]));
     expect(used.size).toBeGreaterThan(10);
 
-    const undefined_ = [...used].filter((token) => !foundation.includes(`${token}:`));
+    const undefined_ = [...used].filter(
+      (token) => !declared.has(token) && !foundation.includes(`${token}:`),
+    );
     expect(undefined_).toEqual([]);
   });
 });

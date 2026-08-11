@@ -3,7 +3,9 @@
   "version": "0.7.0",
   "type": "module",
   "description": "Render declarative JSON (ViewSpec) as @batthewz/response-ui-react-components. The machine-authorable layer of the response-ui design system.",
-  "sideEffects": false,
+  "sideEffects": [
+    "*.css"
+  ],
   "files": [
     "dist",
     "src",
@@ -20,6 +22,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./builder": {
+      "types": "./dist/builder/index.d.ts",
+      "import": "./dist/builder/index.js"
+    },
+    "./builder.css": "./dist/builder/builder.css",
     "./spec": {
       "types": "./dist/spec/index.d.ts",
       "import": "./dist/spec/index.js"
@@ -48,14 +55,15 @@
   "scripts": {
     "build": "vite build",
     "prepack": "bun run build",
-    "typecheck": "tsc --noEmit && eslint src dev test-setup.ts test-utils.ts",
-    "lint": "eslint src dev test-setup.ts test-utils.ts",
+    "typecheck": "tsc --noEmit && eslint src dev scripts/theme-template.ts test-setup.ts test-utils.ts",
+    "lint": "eslint src dev scripts/theme-template.ts test-setup.ts test-utils.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "bun run build && bun run typecheck && bun run docs:viewspec -- --check && bun run test",
+    "prepublishOnly": "bun run build && bun run typecheck && bun run docs:viewspec -- --check && bun run theme:tokens -- --check && bun run test",
     "dev": "vite --config dev/vite.config.ts",
     "dev:build": "vite build --config dev/vite.config.ts",
-    "docs:viewspec": "bun scripts/gen-viewspec-doc.mjs"
+    "docs:viewspec": "bun scripts/gen-viewspec-doc.mjs",
+    "theme:tokens": "bun scripts/gen-theme-tokens.mjs"
   },
   "peerDependencies": {
     "@batthewz/response-ui-react-components": "^0.21.0",

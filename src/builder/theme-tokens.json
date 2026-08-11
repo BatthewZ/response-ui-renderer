@@ -1,0 +1,527 @@
+[
+  {
+    "name": "--DEFAULT-FONT",
+    "suggested": "\"Poppins\", sans-serif",
+    "group": "Fonts",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--DEFAULT-MONO-FONT",
+    "suggested": "\"Libertinus Mono\", monospace",
+    "group": "Fonts",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--HEADING-FONT",
+    "suggested": "\"Poppins\", sans-serif",
+    "group": "Fonts",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--HEADING-LETTER-SPACING",
+    "suggested": "normal",
+    "group": "Fonts",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--HEADING-TEXT-TRANSFORM",
+    "suggested": "none",
+    "group": "Fonts",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-CANVAS",
+    "suggested": "oklch(0.97 0 0)",
+    "group": "Canvas (page background)",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-PRIMARY",
+    "suggested": "oklch(0.3 0.04 260)",
+    "group": "Brand",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-PRIMARY-HOVER",
+    "suggested": "oklch(0.25 0.04 260)",
+    "group": "Brand",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-PRIMARY-ACTIVE",
+    "suggested": "oklch(0.2 0.04 260)",
+    "group": "Brand",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-SECONDARY",
+    "suggested": "oklch(0.93 0.01 256)",
+    "group": "Brand",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-SECONDARY-HOVER",
+    "suggested": "oklch(0.88 0.02 256)",
+    "group": "Brand",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-ACCENT",
+    "suggested": "oklch(0.55 0.22 263)",
+    "group": "Brand",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-ACCENT-HOVER",
+    "suggested": "oklch(0.5 0.22 263)",
+    "group": "Brand",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-SURFACE-0",
+    "suggested": "oklch(1 0 0)",
+    "group": "Surfaces (cards, sidebars, popovers)",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-SURFACE-1",
+    "suggested": "oklch(0.985 0 0)",
+    "group": "Surfaces (cards, sidebars, popovers)",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-SURFACE-2",
+    "suggested": "oklch(0.955 0 0)",
+    "group": "Surfaces (cards, sidebars, popovers)",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-SURFACE-3",
+    "suggested": "oklch(0.93 0 0)",
+    "group": "Surfaces (cards, sidebars, popovers)",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-TEXT-PRIMARY",
+    "suggested": "oklch(0.2 0 0)",
+    "group": "Text",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-TEXT-SECONDARY",
+    "suggested": "oklch(0.4 0 0)",
+    "group": "Text",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-TEXT-MUTED",
+    "suggested": "oklch(0.55 0 0)",
+    "group": "Text",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-TEXT-INVERSE",
+    "suggested": "oklch(0.99 0 0)",
+    "group": "Text",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-TEXT-ON-PRIMARY",
+    "suggested": "oklch(0.99 0 0)",
+    "group": "Text",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-TEXT-ON-ACCENT",
+    "suggested": "oklch(0.99 0 0)",
+    "group": "Text",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-BORDER-DEFAULT",
+    "suggested": "oklch(0.9 0 0)",
+    "group": "Borders",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-BORDER-STRONG",
+    "suggested": "oklch(0.8 0 0)",
+    "group": "Borders",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-BORDER-FOCUS",
+    "suggested": "oklch(0.55 0.22 263)",
+    "group": "Borders",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-STATUS-ERROR",
+    "suggested": "oklch(0.55 0.22 27)",
+    "group": "Status",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-STATUS-ERROR-BG",
+    "suggested": "oklch(0.96 0.03 27)",
+    "group": "Status",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-STATUS-SUCCESS",
+    "suggested": "oklch(0.55 0.18 145)",
+    "group": "Status",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-STATUS-SUCCESS-BG",
+    "suggested": "oklch(0.96 0.04 145)",
+    "group": "Status",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-STATUS-WARNING",
+    "suggested": "oklch(0.65 0.16 75)",
+    "group": "Status",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-STATUS-WARNING-BG",
+    "suggested": "oklch(0.97 0.04 80)",
+    "group": "Status",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-STATUS-INFO",
+    "suggested": "oklch(0.55 0.15 240)",
+    "group": "Status",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-STATUS-INFO-BG",
+    "suggested": "oklch(0.96 0.03 240)",
+    "group": "Status",
+    "optional": false,
+    "responsive": false
+  },
+  {
+    "name": "--C-SELECTION",
+    "suggested": "oklch(0.55 0.22 263)",
+    "group": "Status",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--C-TEXT-ON-SELECTION",
+    "suggested": "oklch(0.99 0 0)",
+    "group": "Status",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--RADIUS-SM",
+    "suggested": "0.25rem",
+    "group": "Radii",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--RADIUS-MD",
+    "suggested": "0.5rem",
+    "group": "Radii",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--RADIUS-LG",
+    "suggested": "0.75rem",
+    "group": "Radii",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--RADIUS-XL",
+    "suggested": "1rem",
+    "group": "Radii",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--SHADOW-SM",
+    "suggested": "0 1px 2px 0 oklch(0 0 0 / 0.05)",
+    "group": "Shadows",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--SHADOW-MD",
+    "suggested": "0 4px 6px -1px oklch(0 0 0 / 0.1)",
+    "group": "Shadows",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--SHADOW-LG",
+    "suggested": "0 10px 15px -3px oklch(0 0 0 / 0.1)",
+    "group": "Shadows",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--MOTION-DURATION-ENTER",
+    "suggested": "240ms",
+    "group": "Motion",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--MOTION-DURATION-EXIT",
+    "suggested": "180ms",
+    "group": "Motion",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--MOTION-EASE-ENTER",
+    "suggested": "cubic-bezier(0.16, 1, 0.3, 1)",
+    "group": "Motion",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--MOTION-EASE-EXIT",
+    "suggested": "cubic-bezier(0.7, 0, 1, 0.5)",
+    "group": "Motion",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--MOTION-PAGE-TRANSITION-IN",
+    "suggested": "my-page-in",
+    "group": "Page transitions — reference @keyframes you define elsewhere",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--MOTION-PAGE-TRANSITION-OUT",
+    "suggested": "my-page-out",
+    "group": "Page transitions — reference @keyframes you define elsewhere",
+    "optional": true,
+    "responsive": false
+  },
+  {
+    "name": "--H1",
+    "suggested": "2.25rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H1-line-height",
+    "suggested": "2.75rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H2",
+    "suggested": "1.75rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H2-line-height",
+    "suggested": "2.25rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H3",
+    "suggested": "1.5rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H3-line-height",
+    "suggested": "2rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H4",
+    "suggested": "1.25rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H4-line-height",
+    "suggested": "2rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H5",
+    "suggested": "1.125rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H5-line-height",
+    "suggested": "1.75rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H6",
+    "suggested": "1rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--H6-line-height",
+    "suggested": "1.5rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--BodyText-1",
+    "suggested": "0.875rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--BodyText-1-line-height",
+    "suggested": "1.875rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--BodyText-2",
+    "suggested": "0.8125rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--BodyText-2-line-height",
+    "suggested": "1.5rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--BodyText-3",
+    "suggested": "0.75rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--BodyText-3-line-height",
+    "suggested": "1.75rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--Semibold-Weight",
+    "suggested": "500",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--Bold-Weight",
+    "suggested": "600",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--R-SIZE-1",
+    "suggested": "2.25rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--R-SIZE-2",
+    "suggested": "1.25rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--R-SIZE-3",
+    "suggested": "1rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--R-SIZE-4",
+    "suggested": "0.75rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--R-SIZE-5",
+    "suggested": "0.5rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  },
+  {
+    "name": "--R-SIZE-6",
+    "suggested": "0.25rem",
+    "group": "Spacing, type scale & weights — RESPONSIVE.",
+    "optional": true,
+    "responsive": true
+  }
+]

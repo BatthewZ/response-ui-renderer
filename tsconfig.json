@@ -15,6 +15,6 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["@types/node", "@types/react", "@types/react-dom"]
   },
-  "include": ["src/**/*", "dev/**/*", "test-setup.ts", "test-utils.ts"],
+  "include": ["src/**/*", "dev/**/*", "scripts/theme-template.ts", "test-setup.ts", "test-utils.ts"],
   "exclude": ["node_modules", "dist"]
 }
