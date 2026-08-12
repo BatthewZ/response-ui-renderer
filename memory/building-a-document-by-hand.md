@@ -161,3 +161,20 @@ a radio group on purpose and `value` is data, so a dropped node that repeats one
 saying what it means. When the repeat causes a rendering problem, the problem is the
 renderer's; an editor that edits valid data to make the renderer comfortable is silently
 lying about what the author asked for.
+
+## The chrome may wear a library component, and the cascade is why it fits
+
+A panel that needs a disclosure, a menu or a control already has one upstream, and building a
+second is the same duplication the palette exists to refuse — the behaviour, the heading
+semantics and the keyboard handling are the expensive parts, and none of them are chrome. What
+stops the seams showing is a cascade fact rather than a specificity fight: the builder's
+stylesheet is unlayered, the library's rules are layered, and unlayered CSS outranks any layer
+whatever the selectors weigh. So a chrome class on a component's slot simply wins. Nothing
+here needs `!important`, and a rule reaching for one is describing a different bug.
+
+The trap is on the other side of the same fact. An unlayered rule wins in *every* state,
+including the ones the component only enters when open, hovered or checked — so restating a
+property the component animates or toggles switches that behaviour off silently, and the
+component still looks right in the state it was inspected in. Restyle the properties the
+chrome actually owns — spacing, colour, type, size — and leave the ones carrying the state
+alone.

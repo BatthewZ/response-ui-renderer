@@ -53,6 +53,20 @@ const add = (name: string) =>
   screen.getByRole("button", { name: new RegExp(`^${name.replace(/\./g, "\\.")}\\. Add`) });
 
 /**
+ * The palette section holding a component, reached through the component rather
+ * than through the category it happens to live in: which section owns `Card` is
+ * the contracts' business, and a test that spelled the category would fail on a
+ * recategorisation that broke nothing.
+ */
+function sectionOf(name: string): { trigger: HTMLElement; panel: HTMLElement } {
+  const panel = add(name).closest<HTMLElement>("[role='region']");
+  if (panel === null) throw new Error(`"${name}" is not inside a palette section`);
+  const trigger = document.getElementById(panel.getAttribute("aria-labelledby") ?? "");
+  if (trigger === null) throw new Error(`the section holding "${name}" is not labelled by a heading`);
+  return { trigger, panel };
+}
+
+/**
  * The component node at a path, or a failure naming the path.
  *
  * Narrowed rather than cast: a cast would keep passing if an edit put a string
@@ -139,6 +153,43 @@ describe("adding components", () => {
     mount();
     expect(screen.queryByRole("button", { name: /^FileUpload\./ })).toBeNull();
     expect(screen.queryByRole("button", { name: /^Repeater\./ })).toBeNull();
+  });
+
+  it("collapses a category, and takes its components out of reach with it", async () => {
+    const { user } = mount();
+    const section = sectionOf("Card");
+    expect(section.trigger).toHaveAttribute("aria-expanded", "true");
+    expect(section.panel).not.toHaveAttribute("inert");
+
+    await user.click(section.trigger);
+
+    expect(section.trigger).toHaveAttribute("aria-expanded", "false");
+    // A collapsed panel is only CSS-clipped, and jsdom has no layout to clip
+    // with — `inert` is the part that is actually load-bearing here, because it
+    // is what takes the chips out of the tab order and the accessibility tree.
+    // Without it the section would look shut and still be reachable by Tab.
+    expect(section.panel).toHaveAttribute("inert");
+  });
+
+  it("opens a collapsed category rather than hide a search hit behind it", async () => {
+    const { user } = mount();
+    await user.click(sectionOf("Card").trigger);
+
+    await user.type(screen.getByLabelText("Search components"), "card");
+
+    expect(sectionOf("Card").trigger).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("keeps a section collapsed while the query it was collapsed under is refined", async () => {
+    const { user } = mount();
+    const search = screen.getByLabelText("Search components");
+
+    await user.type(search, "car");
+    await user.click(sectionOf("Card").trigger);
+    await user.type(search, "d");
+
+    // Reopening per keystroke would undo the collapse the moment it was made.
+    expect(sectionOf("Card").trigger).toHaveAttribute("aria-expanded", "false");
   });
 });
 

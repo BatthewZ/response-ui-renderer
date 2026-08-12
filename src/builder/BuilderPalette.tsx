@@ -1,5 +1,6 @@
 "use client";
 
+import { Accordion } from "@batthewz/response-ui-react-components";
 import { useMemo, useState } from "react";
 
 import type { BuilderCatalog, PaletteEntry } from "./catalog";
@@ -13,6 +14,10 @@ import type { DragPayload } from "./drag";
  * gesture; the click is what makes the palette usable from a keyboard, and it
  * is not a lesser path — it drops into whatever is selected, which is the same
  * decision the drag makes with the pointer instead of with the selection.
+ *
+ * The sections collapse, and what is tracked is which ones are SHUT rather than
+ * which are open: a category the catalog grows later is then open on arrival,
+ * which is the state every other category starts in.
  */
 
 type PaletteProps = {
@@ -32,6 +37,7 @@ export function BuilderPalette({
   dragging,
 }: PaletteProps) {
   const [query, setQuery] = useState("");
+  const [shut, setShut] = useState<readonly string[]>([]);
 
   const groups = useMemo(() => {
     if (query.trim() === "") return catalog.groups;
@@ -42,6 +48,34 @@ export function BuilderPalette({
   }, [catalog, query]);
 
   const total = groups.reduce((count, group) => count + group.entries.length, 0);
+  const shown = groups.map((group) => group.category);
+
+  // A search that finds something has to show it. Starting one opens every
+  // section, or a hit sits behind a heading that was collapsed before anyone
+  // thought to search — the panel reads as empty and the entry reads as
+  // missing. Only the transition INTO a search does this — refining the query
+  // does not — so a section collapsed to quieten a broad search stays collapsed
+  // as the query is narrowed, and clearing it leaves them as the search left
+  // them.
+  const searching = query.trim() !== "";
+  const [wasSearching, setWasSearching] = useState(searching);
+  if (wasSearching !== searching) {
+    setWasSearching(searching);
+    if (searching) setShut([]);
+  }
+
+  const open = shown.filter((category) => !shut.includes(category));
+
+  const setOpen = (next: string | string[]) => {
+    const opened = new Set(Array.isArray(next) ? next : [next]);
+    // Only the sections on screen are being answered for. A filtered-out
+    // category keeps the state it had, rather than being reopened by a search
+    // that never showed it.
+    setShut((prev) => [
+      ...prev.filter((category) => !shown.includes(category)),
+      ...shown.filter((category) => !opened.has(category)),
+    ]);
+  };
 
   return (
     <div className="rui-builder-palette">
@@ -63,23 +97,30 @@ export function BuilderPalette({
           </p>
         )}
 
-        {groups.map((group) => (
-          <section key={group.category} className="rui-builder-group">
-            <h4 className="rui-builder-group-title">{group.category}</h4>
-            <div className="rui-builder-chips">
-              {group.entries.map((entry) => (
-                <PaletteChip
-                  key={entry.name}
-                  entry={entry}
-                  destination={destination}
-                  dragging={dragging === entry.name}
-                  onDragStart={onDragStart}
-                  onInsert={onInsert}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+        <Accordion mode="multiple" value={open} onValueChange={setOpen} headingLevel={4}>
+          {groups.map((group) => (
+            <Accordion.Item key={group.category} value={group.category} className="rui-builder-group">
+              <Accordion.Trigger
+                className="rui-builder-group-title"
+                classNames={{ chevron: "rui-builder-group-chevron" }}
+              >
+                {group.category}
+              </Accordion.Trigger>
+              <Accordion.Content classNames={{ body: "rui-builder-chips" }}>
+                {group.entries.map((entry) => (
+                  <PaletteChip
+                    key={entry.name}
+                    entry={entry}
+                    destination={destination}
+                    dragging={dragging === entry.name}
+                    onDragStart={onDragStart}
+                    onInsert={onInsert}
+                  />
+                ))}
+              </Accordion.Content>
+            </Accordion.Item>
+          ))}
+        </Accordion>
       </div>
     </div>
   );

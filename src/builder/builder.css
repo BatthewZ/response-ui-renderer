@@ -122,23 +122,69 @@
   outline-offset: 1px;
 }
 
-.rui-builder-group + .rui-builder-group {
-  margin-block-start: var(--R-SIZE-4);
+/* The sections are the library's own `Accordion`, so the open/close behaviour,
+   the heading wrapper and the arrow-key roving are not reimplemented here — only
+   the chrome is. Every rule below deliberately outranks a utility the component
+   ships: this file is UNLAYERED and the library's classes sit in
+   `@layer utilities` / `@layer components`, and unlayered CSS beats any layer
+   regardless of specificity. Nothing here needs `!important` and nothing here
+   should grow one.
+
+   What is NOT restated is as load-bearing as what is: the trigger keeps its
+   flex row and its full width, and the chevron keeps its rotation — `transform`
+   on `.rui-builder-group-chevron` would win in the open state too and stop that
+   state from being visible at all. */
+
+/* The divider does the separating, so the last one would draw a rule across the
+   bottom of the panel with nothing under it. */
+.rui-builder-group:last-child {
+  border-block-end: none;
 }
 
 .rui-builder-group-title {
-  margin: 0 0 var(--R-SIZE-6);
+  padding: var(--R-SIZE-5) 0;
+  background: none;
   color: var(--C-TEXT-MUTED);
   font-size: var(--BodyText-3);
+  line-height: var(--BodyText-3-line-height);
   font-weight: var(--Semibold-Weight);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
+/* Colour, not a fill — the same hover the panel's tabs use, and a tinted band
+   flush against the text would read as a button rather than a heading. */
+.rui-builder-group-title:hover {
+  color: var(--C-TEXT-PRIMARY);
+}
+
+/* The panel's own ring, in place of the component's inset one. The component
+   insets its outline because it ships with padding either side of the text; this
+   trigger has none — the heading is aligned with the chips under it, not
+   indented past them — so an inset ring is drawn straight through the first
+   letter. Offset outward instead, which is what everything else in this panel
+   focuses with. */
+.rui-builder-group-title:focus-visible {
+  outline: 2px solid var(--C-BORDER-FOCUS);
+  outline-offset: 1px;
+}
+
+.rui-builder-group-chevron {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  color: inherit;
+}
+
+/* The panel's own inset, replacing the one the component ships: the chips sit
+   flush with the scroller's padding, and only the space under them is ours. */
 .rui-builder-chips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--R-SIZE-6);
+  padding: 0 0 var(--R-SIZE-4);
+  color: var(--C-TEXT-PRIMARY);
+  font-size: var(--BodyText-3);
+  line-height: var(--BodyText-3-line-height);
 }
 
 .rui-builder-chip {
