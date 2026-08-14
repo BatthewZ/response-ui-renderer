@@ -77,7 +77,10 @@ export type ReferenceRegions = {
 export const DEFAULT_CATEGORIES: readonly ReferenceCategory[] = [
   {
     name: "Layout",
-    blurb: "Structure and spacing. The `r1`–`r6` scale is **inverted** — `r1` is the largest step.",
+    blurb:
+      "Structure and spacing. The `r1`–`r6` scale is **inverted** — `r1` is the largest step. " +
+      'A `columns` prop takes one count or mobile-first per-breakpoint counts — `{ "base": 1, "md": 3 }`, ' +
+      "keys `base`/`sm`/`md`/`lg`/`xl`; an omitted `base` means one column until the first named breakpoint.",
   },
   { name: "Typography", blurb: "Text and inline marks." },
   {
