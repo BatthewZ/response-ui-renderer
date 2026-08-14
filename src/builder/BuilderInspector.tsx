@@ -444,6 +444,27 @@ function PropRow({
         </FieldRow>
       );
 
+    case "url":
+      return (
+        <FieldRow label={label}>
+          {(id) => (
+            // `type="url"` for the keyboard and the paste affordance, but
+            // deliberately not validated here: the renderer already refuses a
+            // dangerous scheme at render time, and a field that rejected a
+            // relative path or an unfinished paste would be wrong more often
+            // than it was right.
+            <Input
+              id={id}
+              type="url"
+              inputMode="url"
+              placeholder="https://…"
+              value={typeof value === "string" ? value : ""}
+              onChange={(event) => onChange(event.target.value || undefined)}
+            />
+          )}
+        </FieldRow>
+      );
+
     case "text":
     case "node":
       return (

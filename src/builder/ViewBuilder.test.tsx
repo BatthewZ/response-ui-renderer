@@ -1,5 +1,5 @@
 import { ToastProvider } from "@batthewz/response-ui-react-components";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -193,6 +193,108 @@ describe("adding components", () => {
   });
 });
 
+/**
+ * The palette's job is not to hold every name — it is to get you to the one you
+ * want without reading all of them. Three things do that work, and each is
+ * asserted here against what a reader actually sees rather than against the
+ * catalogue that fed it.
+ */
+describe("finding a component fast", () => {
+  /** Every chip on screen, by the name a document would spell. */
+  const chipNames = (): string[] =>
+    [...document.querySelectorAll(".rui-builder-chip")].map(
+      (chip) => (chip.getAttribute("aria-label") ?? "").split(". Add to ")[0],
+    );
+
+  it("browses the components in their own right, with no compound parts among them", () => {
+    mount();
+    const names = chipNames();
+
+    // Not a filtered-down palette: nearly a hundred components are still on
+    // offer. What has gone is the 70-odd entries that only work inside one
+    // specific other thing, every one of which sat between the reader and one
+    // that did not.
+    expect(names.length).toBeGreaterThan(80);
+    expect(names).toContain("Table");
+    expect(names.filter((name) => name.includes("."))).toEqual([]);
+  });
+
+  it("leads with the components most documents are built from", () => {
+    mount();
+
+    const headings = [...document.querySelectorAll(".rui-builder-group-title")];
+    // First, and open: the point of the section is that it is what you land on.
+    expect(headings[0]).toHaveTextContent("Essentials");
+    expect(screen.getByRole("button", { name: "Essentials" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    expect(add("Stack")).toBeInTheDocument();
+  });
+
+  it("offers a compound component's parts against the thing they are part of", async () => {
+    const { user } = mount();
+    expect(screen.queryByText(/^Parts of/)).toBeNull();
+
+    await user.click(add("Table"));
+
+    expect(screen.getByText("Parts of Table")).toBeInTheDocument();
+    expect(add("Table.Row")).toBeInTheDocument();
+    expect(add("Table.Cell")).toBeInTheDocument();
+  });
+
+  it("keeps offering them from inside the family, which is where you are when you want one", async () => {
+    const { user } = mount();
+    await user.click(add("Table"));
+    await user.click(add("Text"));
+
+    // The selection is a `Text` inside the table now, not the table. Reading
+    // the selection alone would have taken the parts away at exactly the point
+    // they became useful.
+    expect(screen.getByText("Parts of Table")).toBeInTheDocument();
+  });
+
+  it("offers none for a component that has no parts", async () => {
+    const { user } = mount();
+    await user.click(add("Divider"));
+
+    expect(screen.queryByText(/^Parts of/)).toBeNull();
+  });
+
+  it("stands the section down for a search, so no part is offered twice at once", async () => {
+    const { user } = mount();
+    await user.click(add("Table"));
+    expect(screen.getByText("Parts of Table")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Search components"), "table.r");
+
+    expect(screen.queryByText(/^Parts of/)).toBeNull();
+    // The search reaches it instead, and reaches it once.
+    expect(screen.getAllByRole("button", { name: /^Table\.Row\. Add/ })).toHaveLength(1);
+  });
+
+  it("says where the next one lands before it is clicked, rather than after", async () => {
+    const { user } = mount();
+    const line = () => document.querySelector(".rui-builder-destination");
+
+    expect(line()).toHaveTextContent("Starts the document");
+
+    await user.click(add("Card"));
+    expect(line()).toHaveTextContent("Adds inside Card");
+
+    // `Input` takes no children, so the next one is a sibling — which used to
+    // be discoverable only by adding one and undoing it.
+    await user.click(add("Input"));
+    expect(line()).toHaveTextContent("Adds after Input");
+
+    // Hidden from assistive technology: every chip already carries the same
+    // fact, on the control that acts on it. This line is for the reader who
+    // cannot hear that one.
+    expect(line()).toHaveAttribute("aria-hidden", "true");
+    expect(add("Badge")).toHaveAccessibleName("Badge. Add to after Input");
+  });
+});
+
 describe("the canvas is the render", () => {
   it("draws the real components, marked with the node that drew them", async () => {
     const { user } = mount();
@@ -284,6 +386,9 @@ describe("the inspector", () => {
     // the table left the panel saying a component with six variants declared no
     // props at all, for five components.
     const { user, latest } = mount({ templates: {} });
+    // A compound part is not browsed — it is offered against the component it
+    // is part of, or searched for by the name a document spells.
+    await user.type(screen.getByLabelText("Search components"), "Timeline.Item");
     await user.click(add("Timeline.Item"));
 
     const inspector = screen.getByLabelText("Properties and theme");
@@ -291,6 +396,40 @@ describe("the inspector", () => {
 
     await user.click(within(inspector).getByRole("button", { name: "h3" }));
     expect(componentAt(latest(), []).props?.titleAs).toBe("h3");
+  });
+
+  it("offers the image source of every part that carries one, without unfolding the rest", async () => {
+    // The props of a compound part were derived for the root name only, so all
+    // 73 of them arrived declaring no props at all — and `src` is the entire
+    // reason a document names `MediaCard.Image`. Asserted across the parts that
+    // carry one rather than on a single case, because the fix is in the
+    // derivation and a fix that only reached one of them is not one.
+    for (const [name, template] of [
+      ["MediaCard.Image", {}],
+      ["Hero.Background", {}],
+      ["Spotlight.Image", {}],
+      ["Avatar", {}],
+    ] as const) {
+      const { user, latest } = mount({ templates: template });
+      await user.type(screen.getByLabelText("Search components"), name);
+      await user.click(add(name));
+
+      const inspector = screen.getByLabelText("Properties and theme");
+      // Present without pressing "Show N more props": on an image part `src`
+      // sits beside a *required* `alt`, so ranking by optionality alone offered
+      // the caption and folded away the picture. The optional marker is part of
+      // the label, and `srcSet` is a real prop elsewhere, so neither a bare
+      // equality nor a prefix would do.
+      const field = within(inspector).getByLabelText(/^src( \*)?$/);
+      expect(field).toHaveAttribute("type", "url");
+
+      // Cleared first: a *required* `src` arrives already seeded with a
+      // placeholder, which is the template doing its job.
+      await user.clear(field);
+      await user.type(field, "https://example.com/a.png");
+      expect(componentAt(latest(), []).props?.src).toBe("https://example.com/a.png");
+      cleanup();
+    }
   });
 
   it("bounds a heading level to the six the renderer allows", async () => {

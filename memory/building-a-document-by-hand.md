@@ -178,3 +178,116 @@ property the component animates or toggles switches that behaviour off silently,
 component still looks right in the state it was inspected in. Restyle the properties the
 chrome actually owns — spacing, colour, type, size — and leave the ones carrying the state
 alone.
+
+## A palette is not an index, and the difference is most of its length
+
+Offering every addressable name is what a registry is for, and it makes a poor thing to
+build from. Roughly two in five of them are compound parts, and a part is not a choice
+anybody browsing is making — it is the answer to a question you only have once you have
+already put its parent down. Listing them anyway does not merely add length; every one of
+them sits between the reader and a component they could actually start with, and the
+categories that were supposed to make the list scannable fill up with them.
+
+So a part belongs against the thing it is part of. Two details decide whether that
+actually helps. It has to be found by walking *up* from the selection rather than by
+reading the selection alone, because the moment you want a cell is while you are on a row
+or on the text inside one, and almost never while the table itself is selected. And the
+chips there must drop the parent from their face — under a heading that already names it,
+the prefix is the one word on every chip carrying no information, and it is the word they
+all begin with, which is the worst place to put it. The name a document spells still has
+to be the *accessible* name: read out of context, `Row` is not a name anything can use.
+
+## Which components lead has to be counted, not chosen
+
+A palette that opens on the dozen components most documents are built from is worth more
+than any amount of sorting, and the temptation is to write the dozen down. Don't: a
+hand-kept list of favourites goes stale first, and — worse in a package whose whole claim
+is that a host's components are first-class — it is a statement about how a library is
+used that this package has no standing to make about somebody else's.
+
+Count them out of the documents instead. Two things keep the count honest. Only components
+written *more than once* can lead, or a corpus where everything appears once (which is what
+a coverage corpus is by construction) yields an arbitrary top-N under a heading claiming
+they are the ones you want; a corpus that repeats nothing should yield no section, and
+saying nothing is the truthful outcome. And an occurrence is a node an author wrote, not a
+node that rendered — counting renders makes whichever component happened to sit in the
+longest loop look like the thing the library is built out of.
+
+Check the cut lands on a cliff rather than inside a flat stretch, and assert the cliff
+rather than the list: a limit that falls mid-run is drawing an arbitrary line and calling
+everything above it essential.
+
+## One arrangement, or a section becomes a different section mid-task
+
+A leading section and a category list are two ways of placing the same component, and the
+place has to be one place. Two failures follow from letting them diverge. Listing a
+component in both is a duplicate accessible name and a reader wondering which one is the
+real one. And arranging a *search's* results by a different rule from the browse list moves
+things about underneath somebody mid-task — a section collapsed a moment ago is a different
+section a keystroke later, and the state that tracks which are shut is now describing
+sections that are not there. Arrange once, from one function, and hand it whichever entries
+are on show.
+
+## The panel knew where the drop would land, and only said so to a screen reader
+
+A control's accessible name is a good place to put what it will do, and a bad place for it
+to be the *only* copy. Where the next component lands had been computed and written into
+every chip's label for as long as the palette existed, which meant the reader it never
+reached was the one using the mouse. When a fact is already derived and already announced,
+showing it costs a line — and the visible copy should then be hidden from assistive
+technology, or the same sentence is read twice, once somewhere it cannot be acted on.
+
+## A derivation scoped to a component's own name will silently drop its parts
+
+The prop tables were read off the declarations under a component's own name, while the
+compound parts were registered as addressable names and nothing else. Every part therefore
+arrived with an empty table, and the inspector reported that as *the part declares no props
+of its own* — which is what makes this kind of gap hard to see. An absent derivation and a
+genuine absence render identically, so the panel was confidently stating something it had
+never looked for, and the check that the reference stays up to date agreed, because the
+generator dropped the props on both sides.
+
+It matters most where it looks least important. A part is usually a wrapper that really does
+declare nothing but `classNames`, so the empty tables read as plausible — but the exceptions
+are the parts whose single prop is the entire reason a document names them, and an image
+source is the whole of `MediaCard.Image`. The general rule: when a derivation is keyed on a
+name, check what it does for every *kind* of name the registry holds, and prefer to fail
+loudly on a name it cannot place over returning nothing for it.
+
+## An invariant only bites over a population that carries data
+
+Enriching a derivation is the thing most likely to make an unrelated test fail, and that is
+the derivation working. The check that every insertion template fills every required prop had
+been passing over the parts for as long as the parts declared no required props to fill — it
+was true and empty. The moment the tables were real it found a palette entry requiring an
+object that nothing could synthesise, which had been broken the whole time and would break in
+the reader's hands rather than in the suite. Treat a new failure after a derivation change as
+a discovery until proven otherwise, and be suspicious of an invariant whose population you
+have never counted.
+
+## Match a type by its meaning, not by its exact spelling
+
+A control chosen by an exact match on `string` does not fire for `string|null`, and the value
+falls through to whatever the last branch is — here a raw JSON box, on the one prop its
+component exists to carry, so setting it meant typing the quotes. A union of a type with
+nothing but absence is still that type to whoever fills the field in.
+
+Where the *name* has to be consulted — a URL is a string that deserves its own control, and
+only the name says which strings those are — gate it behind the declared type rather than
+matching the name alone. `action` is a URL on a form element and a callback everywhere else,
+and the declaration is the only thing that knows which.
+
+## Whether a drop can succeed is derivable, so derive it
+
+A palette entry that can only ever be dragged in to fail is worse than one that is not there,
+and which entries those are is a fact about the contract and the template rather than a list
+worth keeping: an entry whose template still lacks a required prop after seeding cannot land
+in a usable state. Deriving it means a host's own component is judged by the same rule with
+nothing taught here, and it moves on its own when the prop becomes optional or a template
+gains a value for it — which a hand-written exclusion would not.
+
+Say it out loud, though. Withholding is the right call and a component disappearing from a
+palette with no explanation is the silent drop the rest of this package throws to prevent, so
+name the entry and the prop that could not be filled. The same applies to the test: assert the
+*rule* that every withheld name has a reason, not the list of today's names, or the test has
+to be edited to agree with the upstream fix it should have been checking.

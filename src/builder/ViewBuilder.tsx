@@ -18,7 +18,7 @@ import {
 import { BuilderCanvas } from "./BuilderCanvas";
 import { BuilderInspector } from "./BuilderInspector";
 import { BuilderLayers, LAYER_ROW_ATTR } from "./BuilderLayers";
-import { BuilderPalette } from "./BuilderPalette";
+import { BuilderPalette, type Destination, type PaletteFamily } from "./BuilderPalette";
 import { BuilderTheme } from "./BuilderTheme";
 import {
   type BuilderCatalog,
@@ -28,7 +28,11 @@ import {
 import { autoScrollBy, type DragPayload, movedFar } from "./drag";
 import { canMove, type DropTarget, dropTargetAt } from "./drop";
 import { BUILDER_PATH_ATTR, BUILDER_PATH_SELECTOR } from "./instrument";
-import { defaultBuilderExclusions, defaultBuilderTemplates } from "./templates";
+import {
+  defaultBuilderExclusions,
+  defaultBuilderFrequency,
+  defaultBuilderTemplates,
+} from "./templates";
 import { THEME_TOKENS, type ThemeToken } from "./theme-contract";
 import {
   childEntries,
@@ -81,6 +85,13 @@ export type ViewBuilderProps = {
   catalog?: BuilderCatalog;
   /** What dropping a component produces. Defaults to this package's corpus. */
   templates?: BuilderCatalogOptions["templates"];
+  /**
+   * How often each component is reached for, deciding which the palette leads
+   * with. Defaults to the counts across this package's own documents; pass
+   * `frequencyFromDocuments(yours)` to lead with what *your* pages are made of,
+   * or `{}` for a palette that leads with nothing.
+   */
+  frequency?: BuilderCatalogOptions["frequency"];
   /** Names to leave out of the palette, mapped to why. */
   excluded?: BuilderCatalogOptions["excluded"];
   /** Palette sections, in reading order. */
@@ -112,6 +123,7 @@ export function ViewBuilder({
   adapters,
   catalog: suppliedCatalog,
   templates = defaultBuilderTemplates,
+  frequency = defaultBuilderFrequency,
   excluded = defaultBuilderExclusions,
   categories,
   themeTokens = THEME_TOKENS,
@@ -123,8 +135,8 @@ export function ViewBuilder({
   const catalog = useMemo(
     () =>
       suppliedCatalog ??
-      createBuilderCatalog({ registry, contracts, categories, templates, excluded }),
-    [suppliedCatalog, registry, contracts, categories, templates, excluded],
+      createBuilderCatalog({ registry, contracts, categories, templates, frequency, excluded }),
+    [suppliedCatalog, registry, contracts, categories, templates, frequency, excluded],
   );
 
   const { state, dispatch, spec, canUndo, canRedo } = useBuilder(initialSpec, title);
@@ -317,16 +329,56 @@ export function ViewBuilder({
     [accepts, catalog, dispatch, doc.root, selection],
   );
 
-  /** What a click on the palette would do, said in the button's own label. */
-  const destination = useMemo(() => {
+  /** What a click on the palette would do — on every chip, and once in words. */
+  const destination = useMemo((): Destination => {
     const root = doc.root;
-    if (root === null) return "the empty canvas, as the document root";
+    if (root === null) {
+      return {
+        phrase: "the empty canvas, as the document root",
+        // Short on purpose: the canvas already spells this out at length, and a
+        // line that wraps here moves every chip under it down a row.
+        line: "Starts the document",
+      };
+    }
     const at = selection ?? ROOT_PATH;
     const selected = nodeAt(root, at);
-    if (selected === null) return "the document";
+    if (selected === null) return { phrase: "the document", line: "Adds to the document" };
     const name = isComponentNode(selected) ? selected.component : "the selection";
-    return accepts(selected) ? `inside ${name}` : `after ${name}`;
+    return accepts(selected)
+      ? { phrase: `inside ${name}`, line: `Adds inside ${name}` }
+      : { phrase: `after ${name}`, line: `Adds after ${name}` };
   }, [accepts, doc.root, selection]);
+
+  /**
+   * The compound component the selection sits in, and the parts it takes.
+   *
+   * Found by walking *up* rather than by reading the selection alone, because
+   * the moment you want a `Table.Cell` is while you are somewhere inside a
+   * table — on a row, or on the text in a cell — and almost never while the
+   * table itself is what is selected. The nearest ancestor that has parts wins,
+   * so a `Card` nested in a cell offers the card's parts and not the table's.
+   */
+  const family = useMemo((): PaletteFamily | null => {
+    const root = doc.root;
+    if (root === null || selection === null) return null;
+
+    let path: NodePath | null = selection;
+    while (path !== null) {
+      const node = nodeAt(root, path);
+      if (node !== null && isComponentNode(node)) {
+        const parts = catalog.parts(node.component);
+        if (parts.length > 0) {
+          const dot = node.component.indexOf(".");
+          return {
+            name: dot === -1 ? node.component : node.component.slice(0, dot),
+            parts,
+          };
+        }
+      }
+      path = parentPath(path);
+    }
+    return null;
+  }, [catalog, doc.root, selection]);
 
   const selected = selection === null || doc.root === null ? null : nodeAt(doc.root, selection);
   const siblingStep = selection === null ? null : lastStep(selection);
@@ -395,6 +447,7 @@ export function ViewBuilder({
           <BuilderPalette
             catalog={catalog}
             destination={destination}
+            family={family}
             dragging={drag?.payload.kind === "new" ? drag.payload.name : null}
             onDragStart={startDrag}
             onInsert={insertByClick}

@@ -451,6 +451,14 @@ import { DEFAULT_CATEGORIES } from "@batthewz/response-ui-renderer/reference";
 <ViewBuilder categories={[...DEFAULT_CATEGORIES, { name: "Charts", blurb: "Ours." }]} … />;
 ```
 
+The palette browses the components in their own right. A compound part — `Table.Row`, `Hero.Background` — is not among them: it is offered against the thing it is part of, as a **Parts of Table** section that appears the moment the selection is a table or anything inside one, and it is found by searching for the name a document spells. With the built-in registry that is 72 entries out of 168 that are no longer between you and a component you can actually start with.
+
+```tsx
+<ViewBuilder frequency={frequencyFromDocuments(yourDocuments)} … />;
+```
+
+The palette also leads with an **Essentials** section — the components your documents are most often built from, counted from them rather than chosen by anyone. It defaults to the counts across this package's own documents; pass your own, or `{}` for a palette that leads with nothing. Components that lead are moved out of their categories rather than listed in both, so every component is still in exactly one place.
+
 It is a separate entry point because it is not free: it carries the documented contracts (the prop tables the inspector draws) and the corpus its default templates come from — around 85kB gzipped, against a renderer that is a fraction of that. A page that only renders documents imports none of it, which is the point of the split; a page that mounts an editor is paying for an editor.
 
 Two more inputs are worth knowing about. `templates` decides what dropping a component *produces*; `templatesFromDocuments(yourDocuments)` builds them out of documents you already have, so your components land composed rather than bare. It **replaces** the default rather than adding to it, so spread it unless you mean to lose the built-in ones:

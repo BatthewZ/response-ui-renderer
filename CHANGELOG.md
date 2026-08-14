@@ -41,6 +41,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   none of it, and the documented contracts it needs are behind `/builder` rather than in the main
   entry point for the same reason `/reference` is.
 
+  **The palette is arranged around what you are doing, not around what exists.** Listing every
+  addressable name is what a registry is for, and it makes a poor thing to build from: 72 of the
+  168 built-in entries are compound parts, and none of them is a choice anybody browsing is making.
+  So a part is no longer browsed. It is offered against the thing it is part of — a **Parts of
+  Table** section that appears the moment the selection is a table *or anything inside one*, which
+  is where you are when you want a row — and it is still found by searching for the name a document
+  spells. What is left is the components you can actually start with.
+
+  Above them is an **Essentials** section, which is derived like everything else here: components
+  are counted across the documents this package ships, and the ones written more than once lead,
+  ranked. `frequencyFromDocuments` builds the same counts out of documents of your own and
+  `ViewBuilder` takes them as `frequency`, so a host's palette opens on what a host's pages are
+  made of; passing `{}` leads with nothing. A corpus that repeats nothing produces no section at
+  all rather than fourteen arbitrary components under a heading claiming they are the ones you
+  want. Leading components move out of their categories rather than appearing in both, so every
+  component is still in exactly one place — and `arrange` puts a component in that same place
+  whether it was browsed to or searched for.
+
+  The palette also says where the next component will land — *Adds inside Card*, *Adds after
+  Input* — before it is clicked rather than after. The builder always knew this; it was only ever
+  in the chips' accessible names, so the one reader who could not get at it was the one holding the
+  mouse.
+
 - **The theme contract is derived, not restated.** `THEME_TOKENS` is generated from
   `_theme-template.css` in `@batthewz/response-ui-css` by `scripts/gen-theme-tokens.mjs`, grouped
   under the template's own headings, with each token marked optional (commented out upstream) or
@@ -50,6 +73,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   moves upstream fails rather than silently offering a token nothing reads.
 
 ### Fixed
+
+- **A compound part declared no props, so an image had no `src`.** Prop tables were derived for a
+  component's own name and for nothing else, and the parts were only ever registered as addressable
+  names — so all 73 of them arrived with an empty table and an inspector that said the part declared
+  no props of its own. That is wrong for every part and it is *load-bearing* for four: `src` is the
+  entire reason a document names `MediaCard.Image`, `Hero.Background` or `Spotlight.Image`, and it
+  could not be set from the builder at all. A template lifted from the corpus landed a working image
+  URL that then could not be edited.
+
+  The derivation now runs over the same `Root` / `RootPart` / `Part` name forms the slot and value-set
+  passes already accepted, so a part is described by whatever it actually declares. 26 of the 73 gain
+  a table; the rest genuinely declare only `classNames`, which was already reported as slot keys. This
+  reaches `defaultReferenceContracts`, so a host reading contracts or generating a scoped reference
+  gets the part props too. A part the not-addressable table warns about keeps its name and is still
+  withheld.
+
+  Two things around the control-picking were wrong in the same place. A prop typed `string|null` —
+  `Avatar.src`, the one prop that component exists to carry — was matched against `string` exactly,
+  missed, and fell through to the raw JSON textarea, where setting an avatar meant typing the quotes;
+  a union of `string` with nothing but absence is now a text field. And a URL-valued prop, recognised
+  through the same `isUrlProp` the renderer already uses to refuse a dangerous scheme, now gets its
+  own control — `type="url"`, an `https://…` placeholder — and is offered up front rather than folded
+  into "Show N more props". Ranking by optionality alone put a required `alt` on screen beside an
+  optional `src` and hid the picture behind the caption. The name is only consulted once the declared
+  type says the value is a string, so a component's `action` handler stays a handler.
+
+- **The palette offered a component that could only ever be dragged in to fail.** `MultiSelect.Item`
+  requires an `option` object that the corpus supplies only by mapping the root's filtered list, so a
+  dropped one arrived with nothing to show and the component read a field off `undefined`. Nothing
+  detected it, because the check that every insertion template fills every required prop was passing
+  vacuously over parts that declared no props to fill.
+
+  An entry whose template still lacks a required prop after seeding is now withheld, on the rule the
+  `excluded` option already stated — and derived rather than listed, so a host's own component earns
+  the same answer without this package having heard of it. It is announced on the console rather than
+  dropped quietly, with the prop that could not be filled, because a component vanishing from a
+  palette with no explanation is the silent failure the rest of this package throws to prevent.
 
 - **Two siblings could be handed the same React key.** A child's key prefers a stable identity so
   that reordering does not remount it, and it looked for one at `id`, then `name`, then `value`.

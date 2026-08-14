@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { NOT_ADDRESSABLE } from "../examples/not-addressable";
-import { defaultReferenceContracts } from "../reference/contracts";
+import { DEFAULT_CATEGORIES, defaultReferenceContracts } from "../reference/contracts";
 import { defaultRegistry, listComponentNames } from "../registry/registry";
 import { extendRegistry } from "../registry/types";
 import {
@@ -11,8 +11,14 @@ import {
   isEventHandlerSpec,
   type ViewNode,
 } from "../spec";
-import { createBuilderCatalog, literalUnion, placeholderFromRef, templatesFromDocuments } from "./catalog";
-import { defaultBuilderTemplates } from "./templates";
+import {
+  createBuilderCatalog,
+  frequencyFromDocuments,
+  literalUnion,
+  placeholderFromRef,
+  templatesFromDocuments,
+} from "./catalog";
+import { defaultBuilderFrequency, defaultBuilderTemplates } from "./templates";
 
 /**
  * The catalogue is the builder's only source of knowledge about components, and
@@ -30,23 +36,59 @@ describe("the palette is the registry", () => {
   it("offers every addressable name that a document can drive, and no other", () => {
     const addressable = listComponentNames(defaultRegistry);
     const offered = catalog.entries.map((entry) => entry.name).sort();
-    const expected = addressable
-      .filter((name) => !Object.hasOwn(NOT_ADDRESSABLE, name))
-      .sort();
+    const withheld = addressable.filter((name) => !offered.includes(name));
 
-    expect(offered).toEqual(expected);
-    // The exclusions are real, and are the reason the two lists differ.
-    expect(addressable.length - offered.length).toBe(Object.keys(NOT_ADDRESSABLE).length);
+    // A name is kept out of the palette for one of exactly two reasons: the
+    // curated table says a document cannot drive it, or its template cannot
+    // fill a prop the component requires, so dropping it would render broken.
+    //
+    // Asserted as the rule and not as a list, because the second reason is
+    // derived — it moves on its own when upstream makes a prop optional or the
+    // corpus gains a value for it, and a test that restated today's answer
+    // would then have to be edited to agree with a change it should be
+    // checking. What must never happen is a name disappearing for no reason at
+    // all, which is what this catches.
+    const unexplained = withheld.filter((name) => {
+      if (Object.hasOwn(NOT_ADDRESSABLE, name)) return false;
+      const template = catalog.template(name);
+      const required = (defaultReferenceContracts[name]?.props ?? []).filter(
+        (prop) => !prop.optional,
+      );
+      return !required.some((prop) => template.props?.[prop.key] === undefined);
+    });
+    expect(unexplained).toEqual([]);
+
+    // The curated table still applies in full, and the derived rule has not
+    // quietly eaten the library it is filtering.
+    expect(withheld).toEqual(expect.arrayContaining(Object.keys(NOT_ADDRESSABLE)));
     expect(offered).not.toContain("FileUpload");
+    expect(offered.length).toBeGreaterThan(addressable.length - 12);
   });
 
   it("names each entry once", () => {
     expect(new Set(catalog.entries.map((entry) => entry.name)).size).toBe(catalog.entries.length);
   });
 
-  it("groups every entry under a section that is actually emitted", () => {
-    const grouped = catalog.groups.flatMap((group) => group.entries.map((entry) => entry.name));
-    expect(grouped.sort()).toEqual(catalog.entries.map((entry) => entry.name).sort());
+  it("arranges every entry it is given under a section that is actually emitted", () => {
+    const arranged = catalog
+      .arrange(catalog.entries)
+      .flatMap((group) => group.entries.map((entry) => entry.name));
+    expect(arranged.sort()).toEqual(catalog.entries.map((entry) => entry.name).sort());
+  });
+
+  it("browses the components in their own right, and leaves the parts out", () => {
+    const browsed = catalog.groups.flatMap((group) => group.entries.map((entry) => entry.name));
+    const roots = catalog.entries
+      .filter((entry) => entry.parent === null)
+      .map((entry) => entry.name);
+
+    expect(browsed.sort()).toEqual(roots.sort());
+    // The parts are a real population and a large one, so the assertion above
+    // is not passing on an empty difference. They are reached through the root
+    // they belong to, or by searching for them.
+    expect(catalog.entries.length - roots.length).toBeGreaterThan(50);
+    expect(browsed).not.toContain("Table.Row");
+    expect(catalog.search("table.r").map((entry) => entry.name)).toContain("Table.Row");
   });
 
   it("files a compound part under its root's own section", () => {
@@ -62,6 +104,147 @@ describe("the palette is the registry", () => {
     expect(catalog.search("table.r").map((entry) => entry.name)).toContain("Table.Row");
     expect(catalog.search("").length).toBe(catalog.entries.length);
     expect(catalog.search("no-such-component")).toEqual([]);
+  });
+});
+
+describe("the components the palette leads with", () => {
+  /** The default catalogue plus a set of counts, and nothing else changed. */
+  const led = (frequency: Readonly<Record<string, number>>, extra = {}) =>
+    createBuilderCatalog({
+      templates: defaultBuilderTemplates,
+      excluded: NOT_ADDRESSABLE,
+      frequency,
+      ...extra,
+    });
+
+  const sectionHolding = (groups: readonly { category: string; entries: readonly { name: string }[] }[], name: string) =>
+    groups.find((group) => group.entries.some((entry) => entry.name === name))?.category;
+
+  it("counts what an author wrote, not what a loop renders", () => {
+    const counts = frequencyFromDocuments([
+      {
+        data: { rows: { type: "static", value: [1, 2, 3, 4, 5] } },
+        root: {
+          component: "Stack",
+          children: [{ $each: "data.rows", as: "row", node: { component: "Badge" } }],
+        },
+      },
+    ]);
+
+    // One `Badge` was reached for, and it renders five times. Counting the
+    // renders would make whichever component happened to sit in the longest
+    // loop look like the thing the library is built out of.
+    expect(counts.Badge).toBe(1);
+    expect(counts.Stack).toBe(1);
+    expect(counts.Card).toBeUndefined();
+  });
+
+  it("leads with nothing when nothing has been counted", () => {
+    // The default in `catalog` above, built without any frequency at all: a
+    // ranking is a claim about how a library is used, and this package cannot
+    // invent one for somebody else's components.
+    expect(catalog.groups.map((group) => group.category)).not.toContain("Essentials");
+    // Sections it does have, so the absence above is an absence and not an
+    // empty palette agreeing with anything asked of it.
+    expect(catalog.groups.length).toBeGreaterThan(5);
+  });
+
+  it("leads with nothing when a corpus repeats nothing, rather than with an arbitrary fourteen", () => {
+    const flat = Object.fromEntries(catalog.entries.map((entry) => [entry.name, 1]));
+    expect(led(flat).groups.map((group) => group.category)).not.toContain("Essentials");
+  });
+
+  it("leads with what a host's own documents are made of", () => {
+    // Counted so that the ranked order and the alphabetical one disagree —
+    // otherwise the assertion below passes either way and says nothing.
+    const lead = led({ Spinner: 9, Table: 4, Alert: 2, Divider: 1, "Table.Row": 40 }).groups[0];
+
+    expect(lead.category).toBe("Essentials");
+    // Ranked, not alphabetised: the ranking is the section's whole claim, and
+    // sorting it by name throws away the only thing it knows.
+    expect(lead.entries.map((entry) => entry.name)).toEqual(["Spinner", "Table", "Alert"]);
+    // `Divider` was named once, which is not evidence of anything; and a
+    // `Table.Row` is never somewhere to start, however often it is written.
+    expect(lead.entries.map((entry) => entry.name)).not.toContain("Divider");
+    expect(lead.entries.map((entry) => entry.name)).not.toContain("Table.Row");
+  });
+
+  it("moves them out of their categories rather than listing them in two places", () => {
+    const catalogue = led({ Alert: 9 });
+    const elsewhere = catalogue.groups
+      .filter((group) => group.category !== "Essentials")
+      .flatMap((group) => group.entries.map((entry) => entry.name));
+
+    expect(elsewhere).not.toContain("Alert");
+    // One place, still reachable by every route into the palette.
+    expect(catalogue.search("alert").map((entry) => entry.name)).toContain("Alert");
+    expect(
+      catalogue.arrange(catalogue.entries).flatMap((group) => group.entries.map((e) => e.name)),
+    ).toContain("Alert");
+  });
+
+  it("keeps a component in one section whether it was browsed to or searched for", () => {
+    const catalogue = led({ Alert: 9 });
+
+    // Arranging a search's results separately moved things about under the
+    // reader mid-task: a section collapsed while browsing was a different
+    // section a keystroke later.
+    expect(sectionHolding(catalogue.groups, "Alert")).toBe("Essentials");
+    expect(sectionHolding(catalogue.arrange(catalogue.search("alert")), "Alert")).toBe("Essentials");
+    expect(sectionHolding(catalogue.arrange(catalogue.search("table.r")), "Table.Row")).toBe(
+      sectionHolding(catalogue.groups, "Table"),
+    );
+  });
+
+  it("gives way to a host that already has a section of that name", () => {
+    const catalogue = led(
+      { Card: 9, Stack: 5 },
+      {
+        contracts: extendContracts(defaultReferenceContracts, {
+          Alert: { category: "Essentials" },
+        }),
+        categories: [{ name: "Essentials", blurb: "the host's own" }, ...DEFAULT_CATEGORIES],
+      },
+    );
+
+    // Exactly one section of that name and it is theirs. Two would be a
+    // duplicate key and an accordion that opened both at once.
+    const named = catalogue.groups.filter((group) => group.category === "Essentials");
+    expect(named).toHaveLength(1);
+    expect(named[0].entries.map((entry) => entry.name)).toEqual(["Alert"]);
+    // And the counted components stayed where they were, rather than being
+    // quietly folded into somebody else's meaning.
+    expect(sectionHolding(catalogue.groups, "Card")).toBe(catalog.entry("Card")?.category);
+  });
+
+  it("leads the shipped palette with the components its own documents are built from", () => {
+    const lead = led(defaultBuilderFrequency).groups[0];
+
+    expect(lead.category).toBe("Essentials");
+    expect(lead.entries.map((entry) => entry.name)).toEqual([
+      "Text",
+      "Stack",
+      "Row",
+      "Card",
+      "Button",
+      "Badge",
+      "Divider",
+      "Grid",
+      "Field",
+      "Container",
+      "Spacer",
+      "Label",
+      "Icon",
+      "Center",
+    ]);
+
+    // The cut lands on a cliff rather than in the middle of a run: the last one
+    // in is written twice as often as the first one out. A limit that fell
+    // inside a flat stretch would be drawing an arbitrary line and calling the
+    // components above it essential.
+    expect(defaultBuilderFrequency.Center).toBeGreaterThanOrEqual(
+      2 * defaultBuilderFrequency.FieldError,
+    );
   });
 });
 

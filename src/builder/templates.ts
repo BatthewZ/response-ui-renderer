@@ -1,7 +1,8 @@
+import { exampleSpecs } from "../examples";
 import { coverageSpecs } from "../examples/coverage";
 import { NOT_ADDRESSABLE } from "../examples/not-addressable";
 import type { ComponentNode } from "../spec";
-import { templatesFromDocuments } from "./catalog";
+import { frequencyFromDocuments, templatesFromDocuments } from "./catalog";
 
 /**
  * What dropping each built-in component produces, taken from the coverage
@@ -25,6 +26,26 @@ import { templatesFromDocuments } from "./catalog";
  */
 export const defaultBuilderTemplates: Readonly<Record<string, ComponentNode>> =
   templatesFromDocuments(Object.values(coverageSpecs));
+
+/**
+ * How often each built-in component is reached for, across every document this
+ * package ships — which decides the components the palette opens on.
+ *
+ * A wider corpus than the templates read, and deliberately. A template wants the
+ * *smallest idiomatic occurrence* of one component, which the coverage corpus is
+ * built to hold; a count wants the most representative sample of how documents
+ * really compose, and `exampleSpecs` is the half of the evidence written to be
+ * product-shaped rather than organised by component family. Counting only the
+ * coverage documents makes each family look equally busy, because there is one
+ * document per family by construction.
+ *
+ * Both halves are rendered and validated on every test run, so neither can drift
+ * into counting something that no longer works.
+ */
+export const defaultBuilderFrequency: Readonly<Record<string, number>> = frequencyFromDocuments([
+  ...Object.values(coverageSpecs),
+  ...Object.values(exampleSpecs),
+]);
 
 /**
  * The components a document cannot drive, and why — the palette leaves them out.

@@ -315,18 +315,24 @@ function describeInternals(components, notAddressable) {
     const source = sourceFor(name);
     if (!source) continue;
 
-    // The same forms the slot and enum passes accept. Spelling a subset here
-    // left `ProgressBar` — whose props are declared as `ProgressBarOwnProps`,
-    // the root type being inlined into its `forwardRef` union — with an empty
-    // Props column, while its enums came through the other path regardless.
-    const props = propsOf(source, propsTypeForms(name));
-    if (props.length > 0) {
-      docs[name].props = props.map(({ key, optional, type }) => ({ key, optional, type }));
-    }
-
+    // Root and parts alike, through the same name forms the slot and enum
+    // passes accept. Spelling a subset of the forms left `ProgressBar` — whose
+    // props are declared as `ProgressBarOwnProps`, the root type being inlined
+    // into its `forwardRef` union — with an empty Props column, while its enums
+    // came through the other path regardless. Deriving only the root left all 73
+    // compound parts with no props at all: `src` is the whole reason a document
+    // names `MediaCard.Image`, `Hero.Background` or `Spotlight.Image`, and it was
+    // the one thing nothing declared.
     const labelOf = new Map();
     for (const [label, typeNames] of propsTypeNames(name, parts)) {
       for (const typeName of typeNames) labelOf.set(typeName, label);
+      // A part the not-addressable table warns about keeps its name and loses
+      // its props, on the same grounds the slot pass withholds its slot keys.
+      if (Object.hasOwn(notAddressable, label)) continue;
+      const props = propsOf(source, typeNames);
+      if (props.length > 0) {
+        docs[label].props = props.map(({ key, optional, type }) => ({ key, optional, type }));
+      }
     }
 
     const unplaced = [];

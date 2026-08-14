@@ -28,7 +28,20 @@
       }
     ]
   },
-  "Accordion.Item": {},
+  "Accordion.Item": {
+    "props": [
+      {
+        "key": "value",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
   "Accordion.Trigger": {
     "slots": [
       "heading",
@@ -43,6 +56,43 @@
   },
   "ActivityFeed": {},
   "ActivityFeed.Item": {
+    "props": [
+      {
+        "key": "avatar",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "icon",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "actor",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "action",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "target",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "timestamp",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "highlight",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
     "slots": [
       "sentence",
       "actor",
@@ -137,11 +187,40 @@
     ]
   },
   "AppShell.SidebarSection": {
+    "props": [
+      {
+        "key": "title",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "titleAs",
+        "optional": true,
+        "type": "\"h2\"|\"h3\"|\"h4\"|\"h5\"|\"h6\""
+      }
+    ],
     "slots": [
       "groupHeader"
     ]
   },
   "AppShell.SidebarLink": {
+    "props": [
+      {
+        "key": "to",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "icon",
+        "optional": true,
+        "type": "LucideIcon"
+      },
+      {
+        "key": "href",
+        "optional": true,
+        "type": "never"
+      }
+    ],
     "slots": [
       "itemIcon",
       "itemLabel"
@@ -253,6 +332,18 @@
     ]
   },
   "Breadcrumbs.Item": {
+    "props": [
+      {
+        "key": "href",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "current",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
     "slots": [
       "current",
       "link",
@@ -650,16 +741,58 @@
     ]
   },
   "Combobox.Input": {
+    "props": [
+      {
+        "key": "error",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "toggleLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ],
     "slots": [
       "toggle"
     ]
   },
   "Combobox.Content": {
+    "props": [
+      {
+        "key": "loadingLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ],
     "slots": [
       "loading"
     ]
   },
-  "Combobox.Item": {},
+  "Combobox.Item": {
+    "props": [
+      {
+        "key": "index",
+        "optional": false,
+        "type": "number"
+      },
+      {
+        "key": "value",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "label",
+        "optional": true,
+        "type": "string"
+      }
+    ]
+  },
   "Combobox.Empty": {},
   "CommandPalette": {
     "props": [
@@ -1321,8 +1454,49 @@
       "overlay"
     ]
   },
-  "Hero.Background": {},
-  "Hero.Content": {},
+  "Hero.Background": {
+    "props": [
+      {
+        "key": "src",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "alt",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "parallax",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "parallaxRate",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "imgProps",
+        "optional": true,
+        "type": "Omit<ComponentPropsWithRef<\"img\">, \"src\"|\"alt\">"
+      }
+    ]
+  },
+  "Hero.Content": {
+    "props": [
+      {
+        "key": "animate",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "animation",
+        "optional": true,
+        "type": "\"fade-up\"|\"fade-in\"|\"scale\""
+      }
+    ]
+  },
   "HoverCard": {
     "props": [
       {
@@ -1359,6 +1533,13 @@
   },
   "HoverCard.Trigger": {},
   "HoverCard.Content": {
+    "props": [
+      {
+        "key": "arrow",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
     "slots": [
       "arrow"
     ]
@@ -1432,7 +1613,25 @@
       }
     ]
   },
-  "MediaCard.Image": {},
+  "MediaCard.Image": {
+    "props": [
+      {
+        "key": "src",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "alt",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "imgProps",
+        "optional": true,
+        "type": "Omit<ComponentPropsWithRef<\"img\">, \"src\"|\"alt\">"
+      }
+    ]
+  },
   "MediaCard.Overlay": {},
   "MediaCard.Content": {},
   "MediaCard.Badge": {},
@@ -1562,10 +1761,26 @@
     ]
   },
   "MultiSelect.Content": {},
-  "MultiSelect.Item": {},
+  "MultiSelect.Item": {
+    "props": [
+      {
+        "key": "option",
+        "optional": false,
+        "type": "MultiSelectItem"
+      }
+    ]
+  },
   "MultiSelect.ItemIndicator": {},
   "MultiSelect.Empty": {},
-  "MultiSelect.Tag": {},
+  "MultiSelect.Tag": {
+    "props": [
+      {
+        "key": "index",
+        "optional": false,
+        "type": "number"
+      }
+    ]
+  },
   "MultiSelect.TagRemove": {},
   "NumberInput": {
     "props": [
@@ -1766,6 +1981,13 @@
   },
   "Popover.Trigger": {},
   "Popover.Content": {
+    "props": [
+      {
+        "key": "arrow",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
     "slots": [
       "arrow"
     ]
@@ -2343,8 +2565,49 @@
       }
     ]
   },
-  "Spotlight.Item": {},
-  "Spotlight.Image": {},
+  "Spotlight.Item": {
+    "props": [
+      {
+        "key": "reversed",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "Spotlight.Image": {
+    "props": [
+      {
+        "key": "src",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "alt",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "parallax",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "parallaxRate",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "parallaxClamp",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "imgProps",
+        "optional": true,
+        "type": "Omit<ComponentPropsWithRef<\"img\">, \"src\"|\"alt\">"
+      }
+    ]
+  },
   "Spotlight.Content": {},
   "Stack": {
     "props": [
@@ -2375,15 +2638,78 @@
     ]
   },
   "StatCard": {},
-  "StatCard.Value": {},
+  "StatCard.Value": {
+    "props": [
+      {
+        "key": "animateValue",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "from",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "to",
+        "optional": true,
+        "type": "number"
+      },
+      {
+        "key": "format",
+        "optional": true,
+        "type": "(value: number) => string"
+      },
+      {
+        "key": "duration",
+        "optional": true,
+        "type": "number"
+      }
+    ]
+  },
   "StatCard.Label": {},
   "StatCard.Trend": {
+    "props": [
+      {
+        "key": "value",
+        "optional": false,
+        "type": "number"
+      },
+      {
+        "key": "direction",
+        "optional": false,
+        "type": "\"up\"|\"down\"|\"neutral\""
+      },
+      {
+        "key": "sentiment",
+        "optional": true,
+        "type": "\"positive\"|\"negative\"|\"neutral\""
+      },
+      {
+        "key": "format",
+        "optional": true,
+        "type": "(value: number) => string"
+      }
+    ],
     "slots": [
       "trendIcon"
     ]
   },
   "StatCard.Icon": {},
-  "StatCard.Sparkline": {},
+  "StatCard.Sparkline": {
+    "props": [
+      {
+        "key": "direction",
+        "optional": true,
+        "type": "\"up\"|\"down\"|\"neutral\""
+      },
+      {
+        "key": "sentiment",
+        "optional": true,
+        "type": "\"positive\"|\"negative\"|\"neutral\""
+      }
+    ]
+  },
   "Stepper": {
     "props": [
       {
@@ -2414,6 +2740,23 @@
     ]
   },
   "Stepper.Step": {
+    "props": [
+      {
+        "key": "title",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "description",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "icon",
+        "optional": true,
+        "type": "ReactNode"
+      }
+    ],
     "slots": [
       "indicator",
       "glyph",
@@ -2562,8 +2905,38 @@
   },
   "Table.Head": {},
   "Table.Body": {},
-  "Table.Row": {},
+  "Table.Row": {
+    "props": [
+      {
+        "key": "selected",
+        "optional": true,
+        "type": "boolean"
+      },
+      {
+        "key": "index",
+        "optional": true,
+        "type": "number"
+      }
+    ]
+  },
   "Table.HeaderCell": {
+    "props": [
+      {
+        "key": "sortDirection",
+        "optional": true,
+        "type": "\"asc\"|\"desc\"|false"
+      },
+      {
+        "key": "onSort",
+        "optional": true,
+        "type": "() => void"
+      },
+      {
+        "key": "sortLabel",
+        "optional": true,
+        "type": "string"
+      }
+    ],
     "slots": [
       "sortButton",
       "sortIcon"
@@ -2599,8 +2972,29 @@
       "indicator"
     ]
   },
-  "Tabs.Tab": {},
-  "Tabs.Panel": {},
+  "Tabs.Tab": {
+    "props": [
+      {
+        "key": "value",
+        "optional": false,
+        "type": "string"
+      },
+      {
+        "key": "disabled",
+        "optional": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "Tabs.Panel": {
+    "props": [
+      {
+        "key": "value",
+        "optional": false,
+        "type": "string"
+      }
+    ]
+  },
   "TagInput": {
     "props": [
       {
@@ -2755,6 +3149,33 @@
     ]
   },
   "Timeline.Item": {
+    "props": [
+      {
+        "key": "date",
+        "optional": true,
+        "type": "string"
+      },
+      {
+        "key": "title",
+        "optional": false,
+        "type": "ReactNode"
+      },
+      {
+        "key": "titleAs",
+        "optional": true,
+        "type": "\"h1\"|\"h2\"|\"h3\"|\"h4\"|\"h5\"|\"h6\""
+      },
+      {
+        "key": "icon",
+        "optional": true,
+        "type": "ReactNode"
+      },
+      {
+        "key": "highlight",
+        "optional": true,
+        "type": "boolean"
+      }
+    ],
     "slots": [
       "icon",
       "card",

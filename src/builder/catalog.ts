@@ -66,7 +66,26 @@ export type PaletteGroup = {
 };
 
 export type BuilderCatalog = {
+  /**
+   * What the palette browses: the components in their own right, arranged.
+   *
+   * A compound part is **not** here. It is reached through the root it belongs
+   * to or through a search, because a palette that lists it alongside the
+   * components is mostly a list of things that only work somewhere specific —
+   * with the built-in registry, 72 of 168 entries are parts, and none of them
+   * is a choice anyone browsing is making.
+   */
   groups: readonly PaletteGroup[];
+  /**
+   * Any set of entries in that same arrangement: the components that recur
+   * first, then the categories in reading order, empty sections left out.
+   *
+   * The arrangement is one function rather than two so a component keeps its
+   * section whether it was browsed to or searched for. Grouping search results
+   * separately moved things about under the reader mid-task, and made a
+   * collapsed section a different section a keystroke later.
+   */
+  arrange(entries: readonly PaletteEntry[]): readonly PaletteGroup[];
   entries: readonly PaletteEntry[];
   entry(name: string): PaletteEntry | undefined;
   /** Substring match on the addressable name, so `table.r` finds `Table.Row`. */
@@ -118,6 +137,16 @@ export type BuilderCatalogOptions = {
    */
   templates?: Readonly<Record<string, ViewNode>>;
   /**
+   * How often each component is reached for, by name, deciding which lead the
+   * palette. Defaults to the counts across every document this package ships;
+   * `frequencyFromDocuments` builds the same thing out of documents of your own.
+   *
+   * Without it there is no leading section at all, which is the honest answer:
+   * the components a palette should open on is a claim about how a library is
+   * actually used, and nothing here can invent one.
+   */
+  frequency?: Readonly<Record<string, number>>;
+  /**
    * Names to leave out, mapped to why — the shape of `NOT_ADDRESSABLE`.
    * Defaults to the components this package documents as needing host code.
    * They are omitted rather than shown disabled: a palette entry that can only
@@ -127,6 +156,19 @@ export type BuilderCatalogOptions = {
 };
 
 const UNCATEGORIZED = "Other";
+
+/** The section the components a document is mostly built from lead with. */
+const ESSENTIALS = "Essentials";
+
+/**
+ * How many components that section holds.
+ *
+ * A number about the panel, not about the design system — the same kind of
+ * number as the drag threshold. It is however many chips can be taken in
+ * without reading them one at a time, and past that the section stops being a
+ * shortcut and becomes another list to scan.
+ */
+const ESSENTIALS_LIMIT = 14;
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -248,6 +290,46 @@ export function templatesFromDocuments(
 }
 
 /**
+ * How many times each component is named across a set of documents.
+ *
+ * The measure of what a library is actually built out of, and the only
+ * defensible answer to which components a palette should open on: `Stack` and
+ * `Text` are reached for on every page, and a `Sparkline` is reached for by the
+ * one page that wants a sparkline. Counting says so; a hand-kept list of
+ * favourites would be one more thing to maintain and the first thing to go
+ * stale — and it would be a claim this package makes about a host's components
+ * on no evidence at all.
+ *
+ * An occurrence is a node an author *wrote*, so a component inside an `$each`
+ * counts once however many rows the loop has: what is being measured is how
+ * often somebody reaches for it, not how often it renders.
+ *
+ * Exported so a host can do what this package does with its own documents.
+ */
+export function frequencyFromDocuments(documents: Iterable<unknown>): Record<string, number> {
+  // Null-prototype, because the keys are component names and a document chooses
+  // them: `counts["constructor"]` on an object literal is a function, and
+  // `function + 1` is `NaN`.
+  const counts: Record<string, number> = Object.create(null) as Record<string, number>;
+
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item);
+      return;
+    }
+    if (!isPlainObject(node)) return;
+    if (isComponentNode(node as ViewNode)) {
+      const name = (node as ComponentNode).component;
+      counts[name] = (counts[name] ?? 0) + 1;
+    }
+    for (const value of Object.values(node)) walk(value);
+  };
+
+  for (const document of documents) walk(rootOf(document));
+  return counts;
+}
+
+/**
  * The loop's alias, bound to the first row.
  *
  * An `$each` names its rows and everything under it is written against one of
@@ -341,6 +423,7 @@ export function createBuilderCatalog(options: BuilderCatalogOptions = {}): Build
     contracts = defaultReferenceContracts,
     categories = DEFAULT_CATEGORIES,
     templates = {},
+    frequency,
     excluded = {},
   } = options;
 
@@ -552,9 +635,50 @@ export function createBuilderCatalog(options: BuilderCatalogOptions = {}): Build
     return entry;
   };
 
+  /**
+   * Required props the template could not fill — the ones `seedValue` refuses
+   * to invent, because it has no honest value for their type.
+   *
+   * `MultiSelect.Item` is the case: its `option` is a `MultiSelectItem`, an
+   * object the corpus only ever supplies by mapping the root's filtered list,
+   * so a dropped one arrives with nothing to show and the component reads a
+   * field off `undefined`.
+   */
+  const unfilledRequired = (name: string): string[] => {
+    const built = template(name);
+    return (contract(name).props ?? [])
+      .filter((doc) => !doc.optional && built.props?.[doc.key] === undefined)
+      .map((doc) => doc.key);
+  };
+
+  const unsatisfiable = new Map<string, string[]>();
   const entries = listComponentNames(registry)
     .filter((name) => !Object.hasOwn(excluded, name))
+    .filter((name) => {
+      const missing = unfilledRequired(name);
+      if (missing.length === 0) return true;
+      unsatisfiable.set(name, missing);
+      return false;
+    })
     .map(toEntry);
+
+  // Derived, not listed: whether a drop can succeed is a fact about the
+  // contract and the template, and a host's own component earns the same
+  // answer without this package having heard of it. Withheld on the rule the
+  // `excluded` option already states — a palette entry that can only ever be
+  // dragged in to fail is worse than one that is not there — but said out
+  // loud, because a component vanishing from a palette with no explanation is
+  // the silent drop the rest of this package throws to prevent.
+  if (unsatisfiable.size > 0) {
+    const listed = [...unsatisfiable]
+      .map(([name, keys]) => `${name} (${keys.join(", ")})`)
+      .join("; ");
+    console.warn(
+      `[response-ui-renderer] not offered in the palette, because no value can be derived for a ` +
+        `required prop and a dropped one would render broken: ${listed}. Give the prop a template ` +
+        `value, or an enumerated set on the contract, to make it droppable.`,
+    );
+  }
 
   const blurbs = new Map(categories.map((category) => [category.name, category.blurb]));
   const order = [...categories.map((category) => category.name), UNCATEGORIZED];
@@ -565,23 +689,75 @@ export function createBuilderCatalog(options: BuilderCatalogOptions = {}): Build
     if (!order.includes(entry.category)) entry.category = UNCATEGORIZED;
   }
 
-  const groups: PaletteGroup[] = order
-    .map((category) => ({
-      category,
-      blurb: blurbs.get(category) ?? "",
-      entries: entries
-        .filter((entry) => entry.category === category)
-        .sort(
-          (a, b) =>
-            (a.parent ?? a.name).localeCompare(b.parent ?? b.name) || a.name.localeCompare(b.name),
-        ),
-    }))
-    .filter((group) => group.entries.length > 0);
+  const countOf = (name: string): number =>
+    frequency !== undefined && Object.hasOwn(frequency, name) ? frequency[name] : 0;
+
+  /**
+   * The components that lead the palette, most reached for first.
+   *
+   * Only ones named *more than once*, so the section means what it says: in a
+   * corpus written for coverage every component is named at least once, and a
+   * top-14 of a flat distribution is fourteen arbitrary components under a
+   * heading claiming they are the ones you want. A corpus that repeats nothing
+   * yields no section, which is the truthful outcome.
+   *
+   * Parts are excluded for the same reason they are excluded from browsing:
+   * whatever the counts say, a `Table.Cell` is not somewhere to start.
+   *
+   * A leading section would collide with a host that already has a category of
+   * this name — two sections with one name is a duplicate key and an accordion
+   * that opens both at once — and the host's meaning wins, because they said
+   * theirs out loud.
+   */
+  const essentials: readonly PaletteEntry[] = order.includes(ESSENTIALS)
+    ? []
+    : entries
+        .filter((entry) => entry.parent === null && countOf(entry.name) > 1)
+        .sort((a, b) => countOf(b.name) - countOf(a.name) || a.name.localeCompare(b.name))
+        .slice(0, ESSENTIALS_LIMIT);
+
+  const essentialNames = new Set(essentials.map((entry) => entry.name));
+
+  const byCategory = (a: PaletteEntry, b: PaletteEntry): number =>
+    (a.parent ?? a.name).localeCompare(b.parent ?? b.name) || a.name.localeCompare(b.name);
+
+  const arrange = (list: readonly PaletteEntry[]): readonly PaletteGroup[] => {
+    const lead: PaletteGroup[] = [];
+    // By name, not by identity: `arrange` is a public method and the entries it
+    // is handed need only *be* the entries, not be the same objects.
+    const present = new Set(list.map((entry) => entry.name));
+    const leading = essentials.filter((entry) => present.has(entry.name));
+    if (leading.length > 0) {
+      lead.push({
+        category: ESSENTIALS,
+        blurb: "What most documents are built from.",
+        // Left in frequency order: the section's whole claim is that these are
+        // ranked, and re-sorting it alphabetically throws the ranking away.
+        entries: leading,
+      });
+    }
+
+    return [
+      ...lead,
+      ...order
+        .map((category) => ({
+          category,
+          blurb: blurbs.get(category) ?? "",
+          entries: list
+            .filter((entry) => entry.category === category && !essentialNames.has(entry.name))
+            .sort(byCategory),
+        }))
+        .filter((group) => group.entries.length > 0),
+    ];
+  };
+
+  const groups = arrange(entries.filter((entry) => entry.parent === null));
 
   const byName = new Map(entries.map((entry) => [entry.name, entry]));
 
   return {
     groups,
+    arrange,
     entries,
     entry: (name) => byName.get(name),
     search(query) {

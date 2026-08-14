@@ -6,6 +6,7 @@ import {
   isElementProp,
   isForbiddenProp,
   isHeadingLevelProp,
+  isUrlProp,
   type PropDoc,
 } from "../spec";
 import { literalUnion } from "./catalog";
@@ -24,6 +25,8 @@ export type PropControl =
   | { kind: "boolean" }
   | { kind: "number" }
   | { kind: "text" }
+  /** A string the renderer treats as a URL — `src`, `href`, `poster`. */
+  | { kind: "url" }
   /** Typed `ReactNode`: a string is a legal value and renders as its text. */
   | { kind: "node" }
   /** A handler. The document's spelling of one is `{ "action": … }`. */
@@ -35,9 +38,23 @@ export type PropControl =
 
 const NUMBER = /^\s*number\s*$/;
 const BOOLEAN = /^\s*boolean\s*$/;
-const STRING = /^\s*string\s*$/;
 const NODE = /\bReactNode\b/;
 const HANDLER = /=>/;
+
+const STRING_MEMBER = /^(?:string|null|undefined)$/;
+
+/**
+ * `string`, including the nullable spellings of it.
+ *
+ * `Avatar.src` is declared `string|null`, which an exact match on `string` sent
+ * to the JSON textarea — so setting an avatar image meant typing the quotes
+ * around it, for the one prop that component exists to carry. A union of
+ * `string` with nothing but absence is still a string to whoever fills it in.
+ */
+function isStringType(type: string): boolean {
+  const members = type.split("|").map((member) => member.trim());
+  return members.includes("string") && members.every((member) => STRING_MEMBER.test(member));
+}
 
 export type PropControlOptions = {
   /** The component's own contract, for `propEnums` and the sink-prop tables. */
@@ -75,7 +92,12 @@ export function controlFor(prop: PropDoc, options: PropControlOptions = {}): Pro
 
   if (BOOLEAN.test(prop.type)) return { kind: "boolean" };
   if (NUMBER.test(prop.type)) return { kind: "number" };
-  if (STRING.test(prop.type)) return { kind: "text" };
+  // Gated on the type rather than the name alone, so a component's `action`
+  // handler stays a handler: `action` is a URL on a `<form>` and a callback
+  // everywhere else, and only the declaration says which one this is.
+  if (isStringType(prop.type)) {
+    return isUrlProp(prop.key, contract) ? { kind: "url" } : { kind: "text" };
+  }
   if (HANDLER.test(prop.type)) return { kind: "action", actions: [...EVENT_ACTION_NAMES] };
   if (NODE.test(prop.type)) return { kind: "node" };
 
@@ -107,8 +129,15 @@ export function describeBinding(value: unknown): string {
   return "a bound value";
 }
 
-/** Props worth showing before the reader asks for the rest. */
+/**
+ * Props worth showing before the reader asks for the rest.
+ *
+ * A URL is here despite being optional and free-text. `MediaCard.Image` and
+ * `Hero.Background` declare `src?` beside a required `alt`, so ranking by
+ * optionality alone offered the caption of an image whose source was folded
+ * away — the one prop those parts exist to carry, behind "Show 2 more props".
+ */
 export function isPrimaryProp(prop: PropDoc, control: PropControl): boolean {
   if (!prop.optional) return true;
-  return control.kind === "enum" || control.kind === "boolean";
+  return control.kind === "enum" || control.kind === "boolean" || control.kind === "url";
 }

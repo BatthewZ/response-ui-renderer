@@ -21,6 +21,7 @@ export {
   type BuilderCatalog,
   type BuilderCatalogOptions,
   createBuilderCatalog,
+  frequencyFromDocuments,
   type PaletteEntry,
   type PaletteGroup,
   templatesFromDocuments,
@@ -43,7 +44,11 @@ export {
   instrumentSpec,
   pathFromElement,
 } from "./instrument";
-export { defaultBuilderExclusions, defaultBuilderTemplates } from "./templates";
+export {
+  defaultBuilderExclusions,
+  defaultBuilderFrequency,
+  defaultBuilderTemplates,
+} from "./templates";
 export {
   groupThemeTokens,
   THEME_TOKEN_GROUPS,
